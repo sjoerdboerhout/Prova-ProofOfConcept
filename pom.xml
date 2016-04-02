@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>nl.dictu</groupId>
+  <artifactId>Prova</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <name>Prova</name>
+  <url>http://www.dictu.nl</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+    <maven-compiler-plugin.version>3.0</maven-compiler-plugin.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+
+    <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
+    <maven.surefire-plugin.parallel>methods</maven.surefire-plugin.parallel>
+    <maven.surefire-plugin.threadCount>10</maven.surefire-plugin.threadCount>
+
+    <junit.version>4.12</junit.version>
+    <log4j-api.version>2.5</log4j-api.version>
+    <log4j-core.version>2.5</log4j-core.version>
+  </properties>
+
+  <modules>
+    <!-- Prova core -->
+    <module>core</module>
+
+    <!-- Control Plugins -->
+    <module>runners/cli</module>
+
+    <!-- Input Plugins -->
+    <module>plugins/input/msExcel</module>
+
+    <!-- Output Plugins -->
+    <module>plugins/output/scriptPrinter</module>
+    <module>plugins/output/selenium</module>
+    <module>plugins/output/shellCommand</module>
+
+    <!-- Reporting Plugins -->
+    <module>plugins/reporting/simpleReport</module>
+  </modules>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <version>${log4j-api.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <version>${log4j-core.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>${maven-compiler-plugin.version}</version>
+        <configuration>
+          <source>${maven.compiler.source}</source>
+          <target>${maven.compiler.target}</target>
+        </configuration>
+        <executions>
+          <execution>
+            <id>compile</id>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+            <phase>clean</phase>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+        <configuration>
+          <parallel>${maven.surefire-plugin.parallel}</parallel>
+          <threadCount>${maven.surefire-plugin.threadCount}</threadCount>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

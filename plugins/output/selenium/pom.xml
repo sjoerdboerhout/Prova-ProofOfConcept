@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" 
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>nl.dictu</groupId>
+    <artifactId>Prova</artifactId>
+    <version>0.1.0-SNAPSHOT</version>   
+    <relativePath>../../../pom.xml</relativePath> 
+  </parent>
+
+  <groupId>nl.dictu.prova.plugins.output</groupId>
+  <artifactId>selenium</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>Output plugin: Selenium webdriver</name>
+  <description>Plugin to execute test actions in Selenium</description>
+  <packaging>jar</packaging>
+
+  <properties>
+    <selenium-java.version>2.53.0</selenium-java.version>
+    <selenium-server.version>2.53.0</selenium-server.version>
+    <phantomjsdriver.version>1.2.0</phantomjsdriver.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>${selenium-java.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-server</artifactId>
+      <version>${selenium-server.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.detro</groupId>
+      <artifactId>phantomjsdriver</artifactId>
+      <version>${phantomjsdriver.version}</version>
+    </dependency>
+  </dependencies>
+
+</project>
