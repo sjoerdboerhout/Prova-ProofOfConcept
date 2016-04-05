@@ -1,4 +1,4 @@
-package nl.dictu.prova;
+package nl.dictu.prova.framework.web;
 
 import static org.junit.Assert.assertTrue;
 import org.junit.After;
@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class ProvaTest
+public class ClickTest
 {
   /*
    *  One-time initialization code

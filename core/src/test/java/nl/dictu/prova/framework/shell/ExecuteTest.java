@@ -1,4 +1,4 @@
-package nl.dictu.prova;
+package nl.dictu.prova.framework.shell;
 
 import static org.junit.Assert.assertTrue;
 import org.junit.After;
@@ -7,7 +7,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class ProvaTest
+public class ExecuteTest
 {
   /*
    *  One-time initialization code
@@ -40,7 +40,7 @@ public class ProvaTest
   public void tearDown()
   {
   }
-
+  
   /*
    * Issue ID:    PROVA-X
    * Requirement: ...

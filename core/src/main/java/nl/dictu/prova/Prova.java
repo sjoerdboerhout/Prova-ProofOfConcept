@@ -1,25 +1,32 @@
 package nl.dictu.prova;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 
+import nl.dictu.prova.framework.TestSuite;
 import nl.dictu.prova.logging.LogLevel;
+import nl.dictu.prova.plugins.input.InputPlugin;
+import nl.dictu.prova.plugins.output.OutputPlugin;
+import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 /*
  * Hello world!
  *
  */
-public class Prova
+public class Prova implements TestRunner
 {
   private static LogLevel logLevel = LogLevel.WARNING;
-  
   final static Logger LOGGER = LogManager.getLogger();
 
-  public static void main(String[] args)
-  {
-    Prova prova = new Prova(args);
-  }
+  private InputPlugin                 inputPlugin;
+  private OutputPlugin                shellOutputPlugin;
+  private OutputPlugin                webOutputPlugin;
+  private ArrayList<ReportingPlugin>  reportPlugins;
+
 
   private static String ReturnString(String text)
   {
@@ -71,7 +78,7 @@ public class Prova
     ctx.reconfigure();
   }
 
-  /*
+  /**
    * TODO Add Javadoc
    */
   public Prova(String[] args)
@@ -129,5 +136,31 @@ public class Prova
       e.printStackTrace();
     }
   }
-    
+
+  @Override
+  public void addTestSuite(TestSuite testSuite)
+  {
+    // TODO Auto-generated method
+  }
+
+  @Override
+  public OutputPlugin getWebActionPlugin()
+  {
+    // TODO Auto-generated method
+    return this.webOutputPlugin;
+  }
+
+  @Override
+  public OutputPlugin getShellActionPlugin()
+  {
+    // TODO Auto-generated method
+    return this.shellOutputPlugin;
+  }
+
+  @Override
+  public ArrayList<ReportingPlugin> getReportingPlugins()
+  {
+    // TODO Auto-generated method
+    return this.reportPlugins;
+  }    
 }

@@ -5,10 +5,12 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 /**
- * @author Sjoerd Boerhout
- * 
  * Issue ID: PROVA-13
+ * 
+ * Test the different log levels and their order 
  *
+ * @author Sjoerd Boerhout
+ * @since 0.0.1
  */
 public class LogLevelTest
 {  
