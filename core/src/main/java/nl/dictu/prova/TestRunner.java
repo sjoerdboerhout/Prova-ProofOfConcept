@@ -3,6 +3,7 @@ package nl.dictu.prova;
 import java.util.ArrayList;
 
 import nl.dictu.prova.framework.TestSuite;
+import nl.dictu.prova.plugins.input.InputPlugin;
 import nl.dictu.prova.plugins.output.OutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
@@ -15,8 +16,9 @@ import nl.dictu.prova.plugins.reporting.ReportingPlugin;
  */
 public interface TestRunner
 {
-  public void                       addTestSuite(TestSuite testSuite);
-  
+  public void                       setRootTestSuite(TestSuite testSuite);
+
+  public InputPlugin                getInputPlugin();
   public OutputPlugin               getWebActionPlugin();
   public OutputPlugin               getShellActionPlugin();
   public ArrayList<ReportingPlugin> getReportingPlugins();
