@@ -11,7 +11,7 @@ import nl.dictu.prova.plugins.reporting.ReportingPlugin;
  * framework to run.
  * 
  * @author  Sjoerd Boerhout
- * @since   0.0.1
+ * @since   2016-04-06
  */
 public interface TestRunner
 {

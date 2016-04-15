@@ -1,7 +1,6 @@
 package nl.dictu.prova;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -13,21 +12,22 @@ import nl.dictu.prova.plugins.input.InputPlugin;
 import nl.dictu.prova.plugins.output.OutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
-/*
- * Hello world!
- *
+/**
+ * Testrunner class Prova
+ * 
+ * @author  Sjoerd Boerhout
+ * @since   2016-04-06
  */
 public class Prova implements TestRunner
 {
-  private static LogLevel logLevel = LogLevel.WARNING;
+  private static LogLevel logLevel = Constants.DEFAULT_LOGLEVEL;
   final static Logger LOGGER = LogManager.getLogger();
 
   private InputPlugin                 inputPlugin;
   private OutputPlugin                shellOutputPlugin;
   private OutputPlugin                webOutputPlugin;
   private ArrayList<ReportingPlugin>  reportPlugins;
-
-
+  
   private static String ReturnString(String text)
   {
     // For testing the Lambda support of Log4J2
