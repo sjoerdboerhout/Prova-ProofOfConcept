@@ -52,3 +52,5 @@ doc
 _archive
 .recommenders
 log
+core/src/main/resources/log4j2.out.xml
+config

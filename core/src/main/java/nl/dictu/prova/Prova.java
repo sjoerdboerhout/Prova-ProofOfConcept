@@ -2,13 +2,12 @@ package nl.dictu.prova;
 
 import java.lang.Thread.State;
 import java.util.ArrayList;
+import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.LoggerContext;
 
 import nl.dictu.prova.framework.TestSuite;
-import nl.dictu.prova.logging.LogLevel;
 import nl.dictu.prova.plugins.input.InputPlugin;
 import nl.dictu.prova.plugins.output.OutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
@@ -21,7 +20,6 @@ import nl.dictu.prova.plugins.reporting.ReportingPlugin;
  */
 public class Prova implements Runnable, TestRunner
 {
-  private static LogLevel logLevel = Constants.DEFAULT_LOGLEVEL;
   final static Logger LOGGER = LogManager.getLogger();
 
   private Thread                      thread;
@@ -32,28 +30,31 @@ public class Prova implements Runnable, TestRunner
   private ArrayList<ReportingPlugin>  reportPlugins;
   
   private TestSuite                   rootTestSuite;
+  private Properties                  properties = new Properties();
   
   
   /**
-   * Constructor of the Prova runner. 
-   * The argument 'project' indicates which project Prova should start.
-   * Configuration files for this project will be processed before starting 
-   * test execution.
+   * Set up the Prova runner. 
+   * The argument 'project' indicates which project Prova starts.
    * 
    * @param project
    */
-  public Prova(String project)
+  public void setUp(String project, Properties provaProperties)
   {
     try
     {          
-      System.out.println("Hello World, I'm Prova and starting project: " + project); 
-      
       if(project.trim().length() < 1)
       {
         throw new Exception("Invalid project name supplied! (" + project + ")");
       }
       
-      this.thread = new Thread(this, project);
+      thread = new Thread(this, project);
+      
+      // Add all System properties
+      properties.putAll(System.getProperties());
+      
+      // Add all properties read from the config files
+      properties.putAll(provaProperties);
     }
     catch(Exception eX)
     {
@@ -66,7 +67,7 @@ public class Prova implements Runnable, TestRunner
    */
   public void start()
   { 
-    LOGGER.debug("Starting Prova execution");
+    LOGGER.trace("Starting Prova execution");
     this.thread.start();
   }
 
@@ -75,7 +76,7 @@ public class Prova implements Runnable, TestRunner
    */
   public void stop()
   {
-    LOGGER.debug("Interrupting Prova execution");
+    LOGGER.trace("Interrupting Prova execution");
     this.thread.interrupt();
   }
 
@@ -126,20 +127,28 @@ public class Prova implements Runnable, TestRunner
   {
     try
     {
-      LOGGER.debug("Starting Prova thread execution");
+      LOGGER.debug("Starting Prova execution");
       
+      LOGGER.trace("Starting Prova state: init");
       init();
+      
+      LOGGER.trace("Starting Prova state: setup");
       setup();
+      
+      LOGGER.trace("Starting Prova state: execute");
       execute();
+      
+      LOGGER.trace("Starting Prova state: teardown");
       tearDown();
     }
     catch(Exception ex)
     {
-      LOGGER.error(ex);
+      LOGGER.fatal(ex);
     }
     
     try
     {
+      LOGGER.trace("Starting Prova state: shutdown");
       shutDown();
       LOGGER.debug("Ending Prova thread execution");
     }
@@ -334,85 +343,18 @@ public class Prova implements Runnable, TestRunner
   }
 
   
-  
+   
   /**
-   * Update the loglevel of Prova
+   * Add a set of properties to the current collection
    * 
-   * @param logger
-   * @param name
-   * @return
+   * @param properties
    */
-  public String setDebugLevel(String logger, String name)
+  public void addProperties(Properties properties)
   {
-    try
-    {
-      logLevel = LogLevel.lookup(name);
-      
-      // Log4j2 configuration uses the systems properties.
-      System.setProperty("prova.log.level", logLevel.name());
-      
-      // TODO add support for updating the log level per logger
-      
-      // Force a reconfiguration of Log4j to activate the settings immediately
-      LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-      ctx.reconfigure();
-      
-      System.out.println("Config updated. Level: " + ctx.getLogger(LogManager.ROOT_LOGGER_NAME).getLevel());
-      
-      return ctx.getLogger(LogManager.ROOT_LOGGER_NAME).getLevel().name();
-    }
-    catch(Exception eX)
-    {
-      LOGGER.warn(eX);
-    }
+    LOGGER.debug("Adding new properties: " + properties.size());
     
-    return logLevel.name();
+    this.properties.putAll(properties);
   }
   
-  /**
-   * Update the location to save the Prova log files 
-   * 
-   * @param logFile
-   */
-  public void updateLogfile(String logFile)
-  {     
-    try
-    {
-      // Log4j2 configuration uses the systems properties.
-      System.setProperty("prova.log.filename", logFile);
-      
-      // Force a reconfiguration of Log4j to activate the settings immediately
-      LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-      ctx.reconfigure();
-    }
-    catch(Exception eX)
-    {
-      LOGGER.error(eX);
-    }
-  }
-    
-  /**
-   * Override the log pattern with a new pattern.
-   * The pattern is set for both console and file logging
-   * This function assumes a valid Log4j2 is supplied!
-   * 
-   * @param newPattern
-   */
-  public void updateLogPattern(String newPattern)
-  {
-    try
-    {
-      // Log4j2 configuration uses the systems properties.
-      System.setProperty("prova.log.pattern.console", newPattern);
-      System.setProperty("prova.log.pattern.file", newPattern);
-    
-      // Force a reconfiguration of Log4j to activate the settings immediately
-      LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
-      ctx.reconfigure();
-    }
-    catch(Exception eX)
-    {
-      LOGGER.error(eX);
-    }
-  }
+   
 }
