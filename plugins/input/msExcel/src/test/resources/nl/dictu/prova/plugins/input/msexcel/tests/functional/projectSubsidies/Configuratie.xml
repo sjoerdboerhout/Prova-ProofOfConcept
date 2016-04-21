@@ -1,0 +1,654 @@
+<up>
+  <release>R39</release>
+
+  <environments>
+    <o>
+      <deelname>
+        <url></url>
+      </deelname>
+      
+      <gebeurtenissen>
+        <url></url>
+      </gebeurtenissen>
+      
+      <sub2tml>
+        <url></url>
+      </sub2tml>
+      
+      <tvenv>
+        <url></url>
+      </tvenv>
+      
+      <subsidie>
+        <url></url>
+      </subsidie>
+    </o>
+
+    <s>
+      <deelname>
+        <url>http://lx00ab83.dbr.agro.nl:8080/aquima-server/server/start/TestAllesDLNM</url>
+      </deelname>
+      
+      <gebeurtenissen>
+        <url>http://lx00ab83.dbr.agro.nl:8080/aquima-server/server/start/TestAllesTESTGebeurtenis</url>
+      </gebeurtenissen>
+      
+      <sub2tml>
+        <url>http://lx00ab83.dbr.agro.nl:8080/aquima-server/server/start/TestAllesTDSUB2TML</url>
+      </sub2tml>
+      
+      <tvenv>
+        <url>http://lx00ab83.dbr.agro.nl:8080/aquima-server/server/start/TestAlles1tvenv</url>
+      </tvenv>
+      
+      <projectsubsidie>
+        <url>http://lx00ab83.dbr.agro.nl:8080/aquima-server/server/start/TestAllesTSTPROJSUB</url>
+      </projectsubsidie>
+    </s>
+    
+    <t>
+      <deelname>
+        <url></url>
+      </deelname>
+      
+      <gebeurtenissen>
+        <url></url>
+      </gebeurtenissen>
+      
+      <sub2tml>
+        <url></url>
+      </sub2tml>
+      
+      <tvenv>
+        <url></url>
+      </tvenv>
+      
+      <subsidie>
+        <url></url>
+      </subsidie>
+    </t>
+    
+    <a>
+      <deelname>
+        <url></url>
+      </deelname>
+      
+      <gebeurtenissen>
+        <url></url>
+      </gebeurtenissen>
+      
+      <sub2tml>
+        <url></url>
+      </sub2tml>
+      
+      <tvenv>
+        <url></url>
+      </tvenv>
+      
+      <subsidie>
+        <url></url>
+      </subsidie>
+    </a>
+    
+    <p>
+      <deelname>
+        <url></url>
+      </deelname>
+      
+      <gebeurtenissen>
+        <url></url>
+      </gebeurtenissen>
+      
+      <sub2tml>
+        <url></url>
+      </sub2tml>
+      
+      <tvenv>
+        <url></url>
+      </tvenv>
+      
+      <subsidie>
+        <url></url>
+      </subsidie>
+    </p>
+  </environments>
+
+  
+  <testCaseTypes>
+    <testCaseType>
+      <name>Functional Test Case</name>
+      <abbrev>FTC</abbrev>
+    </testCaseType>
+    <testCaseType>
+      <name>Service Test Case</name>
+      <abbrev>STC</abbrev>
+    </testCaseType>
+    <testCaseType>
+      <name>Database Test Case</name>
+      <abbrev>DTC</abbrev>
+    </testCaseType>
+  </testCaseTypes>
+  
+  
+  <protoTypes>
+    <protoType>
+      <name>deelname</name>
+    </protoType>
+    <protoType>
+      <name>gebeurtenissen</name>
+    </protoType>
+    <protoType>
+      <name>sub2tml</name>
+    </protoType>
+    <protoType>
+      <name>projectsubsidie</name>
+    </protoType>
+    <protoType>
+      <name>tvenv</name>
+    </protoType>
+  </protoTypes>
+  
+  
+  <elementTypes>
+    <elementType>
+      <name>button</name>
+    </elementType>
+    
+    <elementType>
+      <name>checkbox</name>
+    </elementType>
+    
+    <elementType>
+      <name>hyperlink</name>
+    </elementType>
+    
+    <elementType>
+      <name>image</name>
+    </elementType>
+    
+    <elementType>
+      <name>input</name>
+    </elementType>
+    
+    <elementType>
+      <name>label</name>
+    </elementType>
+    
+    <elementType>
+      <name>list</name> 
+    </elementType>
+    
+    <elementType>
+      <name>radioButton</name>
+    </elementType>
+    
+    <elementType>
+      <name>select</name>
+    </elementType>
+    
+    <elementType>
+      <name>table</name>
+    </elementType>
+    
+    <elementType>
+      <name>textarea</name>
+    </elementType>
+    
+    <elementType>
+      <name>errorMessage</name>
+      <project>Blueriq</project>
+    </elementType>
+    
+    <elementType>
+      <name>fileUpload</name>
+      <project>Blueriq</project>
+    </elementType>
+    
+    <elementType>
+      <name>infoMessage</name>
+      <project>Blueriq</project>
+    </elementType>
+        
+  </elementTypes>
+  
+  
+  <locatorTypes>
+      
+    <locatorType>
+      <name>attribute</name>
+      <arguments>
+        <attribName></attribName>
+      </arguments> 
+    </locatorType>
+    
+    <locatorType>
+      <name>button</name>
+      <arguments>
+        <value></value>
+        <index></index>
+      </arguments>
+    </locatorType>
+    
+    <locatorType>
+      <name>hyperlink</name>
+      <arguments>
+        <value></value>
+        <href></href>
+        <index></index>
+      </arguments>
+    </locatorType>
+    
+    <locatorType>
+      <name>id</name>
+      <arguments>
+        <id></id>
+      </arguments> 
+    </locatorType> 
+    
+    <locatorType>
+      <name>name</name>
+      <arguments>
+        <name></name>
+      </arguments> 
+    </locatorType>
+        
+    <locatorType>
+      <name>partialText</name>
+      <arguments>
+        <value></value>
+      </arguments>  
+    </locatorType>
+    
+    <locatorType>
+      <name>tag</name>
+      <arguments>
+        <tagname></tagname>
+      </arguments> 
+    </locatorType>        
+    
+    <locatorType>
+      <name>text</name>
+      <arguments>
+        <value></value>
+      </arguments>  
+    </locatorType>
+    
+    <locatorType>
+      <name>value</name>
+      <arguments>
+        <value></value>
+      </arguments> 
+    </locatorType>
+    
+    
+    <locatorType>
+      <name>xPath</name>
+      <arguments>
+        <value></value>
+      </arguments> 
+    </locatorType> 
+
+    <!-- UP-EU -->
+    
+    <locatorType>
+      <name>checkbox</name>
+      <arguments>
+        <label></label>
+        <index></index>
+        <value></value>
+      </arguments> 
+      <project>UP-EU</project> 
+    </locatorType>
+    
+    <locatorType>
+      <name>dropDown</name>
+      <arguments>
+        <label></label>
+        <index></index>
+        <value></value>
+      </arguments> 
+      <project>UP-EU</project> 
+    </locatorType> 
+    
+    <locatorType>
+      <name>radioButton</name>
+      <arguments>
+        <label></label>
+        <index></index>
+        <value></value>
+      </arguments> 
+      <project>UP-EU</project> 
+    </locatorType>   
+    
+    <locatorType>
+      <name>tableHorizontal</name>
+      <arguments>
+        <label></label>
+        <index></index>
+        <value></value>
+      </arguments> 
+      <project>UP-EU</project> 
+    </locatorType>   
+    
+    <locatorType>
+      <name>tableVertical</name>
+      <arguments>
+        <label></label>
+        <index></index>
+        <value></value>
+      </arguments> 
+      <project>UP-EU</project> 
+    </locatorType>   
+    
+    <locatorType>
+      <name>textField</name>
+      <arguments>
+        <name></name>
+        <index></index>
+      </arguments> 
+      <project>UP-EU</project> 
+    </locatorType> 
+
+    <!-- Blueriq -->
+    
+    <locatorType>
+      <name>errorMessage</name>
+      <arguments>
+        <label></label>
+        <index></index>
+        <value></value>
+      </arguments> 
+      <project>Blueriq</project> 
+    </locatorType>
+    
+    <locatorType>
+      <name>infoMessage</name>
+      <arguments>
+        <label></label>
+        <index></index>
+        <value></value>
+      </arguments> 
+      <project>Blueriq</project> 
+    </locatorType> 
+    
+  </locatorTypes>
+  
+  
+  <webActions>
+  
+    <webAction>
+      <name>captureScreen</name>
+      <arguments>
+        <filename type="string" use="required"></filename>
+      </arguments>     
+    </webAction>
+    
+    <webAction>
+      <name>click</name>
+      <arguments>
+        <xpath type="string" use="required"></xpath>
+        <rightClick type="boolean" default="false"></rightClick> 
+        <numberOfClicks type="integer" default="1"></numberOfClicks>
+        <waitUntilPageLoaded type="boolean" default="false"></waitUntilPageLoaded> 
+      </arguments>      
+    </webAction>
+     
+    <webAction>
+      <name>closeBrowser</name> 
+    </webAction>
+    
+    <webAction>
+      <name>openBrowser</name>
+      <arguments>
+        <driver type="string" use="required" default="fireFox"></driver>
+        <pathOverride type="string"></pathOverride>
+        <browserArguments type="string"></browserArguments>
+      </arguments>     
+    </webAction>
+    
+    <webAction>
+      <name>select</name>
+      <arguments>
+        <xpath type="string" use="required"></xpath>
+        <deSelect type="boolean" default="false"></deSelect>
+      </arguments>
+    </webAction>
+    
+    <webAction>
+      <name>setText</name>
+      <arguments>
+        <xpath type="string" use="required"></xpath>
+        <value type="string" use="required"></value>
+      </arguments>
+    </webAction>
+    
+    <webAction>
+      <name>pause</name>
+      <arguments>
+        <waitTime type="double" use="required" default="500"></waitTime>
+      </arguments>
+    </webAction>  
+    
+    <webAction>
+      <name>sendKeys</name>
+      <arguments>
+        <value type="string" use="required"></value>
+        <xpath type="string"></xpath>
+      </arguments> 
+    </webAction>
+    
+    <webAction>
+      <name>validateElement</name>
+      <arguments>
+        <xpath type="string" use="required"></xpath>
+        <exists type="boolean"></exists>
+      </arguments>     
+    </webAction>  
+    
+    <webAction>
+      <name>validateText</name>
+      <arguments>
+        <text type="string" use="required"></text>
+        <exists type="boolean" default="true"></exists>
+        <xpath type="string"></xpath>
+      </arguments>     
+    </webAction>
+    
+    
+    <webAction>
+      <name>uploadFile</name>
+      <arguments>
+        <filename type="string" use="required"></filename>
+      </arguments>
+      <project>Blueriq</project> 
+    </webAction>
+    
+  </webActions>
+      
+      
+  <flows>
+    <flow>
+      <name>#START</name>
+    </flow>
+    <flow>
+      <name>AFWAV</name>
+    </flow>
+    <flow>
+      <name>AVA</name>
+    </flow>
+    <flow>
+      <name>AVAB</name>
+    </flow>
+    <flow>
+      <name>AVBH</name>
+    </flow>
+    <flow>
+      <name>AVI</name>
+    </flow>
+    <flow>
+      <name>AVV</name>
+    </flow>
+    <flow>
+      <name>AVW</name>
+    </flow>
+    <flow>
+      <name>BAV</name>
+    </flow>
+    <flow>
+      <name>BPMDT</name>
+    </flow>
+    <flow>
+      <name>CBAV</name>
+    </flow>
+    <flow>
+      <name>HBVL</name>
+    </flow>
+    <flow>
+      <name>IBAV</name>
+    </flow>
+    <flow>
+      <name>MC2</name>
+    </flow>
+    <flow>
+      <name>MC3</name>
+    </flow>
+    <flow>
+      <name>MC4</name>
+    </flow>
+    <flow>
+      <name>PMB</name>
+    </flow>
+    <flow>
+      <name>RVAV</name>
+    </flow>
+    <flow>
+      <name>TAV</name>
+    </flow>
+    <flow>
+      <name>TERMAFH</name>
+    </flow>
+    <flow>
+      <name>VBAV</name>
+    </flow>
+    <flow>
+      <name>VVC</name>
+    </flow>
+    <flow>
+      <name>VWBO</name>
+    </flow>
+    <flow>
+      <name>WSAKF</name>
+    </flow>
+    
+    <flow>
+      <name>ADAC</name>
+    </flow>
+    <flow>
+      <name>ADAV</name>
+    </flow>
+    <flow>
+      <name>ADAVB</name>
+    </flow>
+    <flow>
+      <name>ADI</name>
+    </flow>
+    <flow>
+      <name>ADV</name>
+    </flow>
+    <flow>
+      <name>ADW</name>
+    </flow>
+    <flow>
+      <name>BAD</name>
+    </flow>
+    <flow>
+      <name>BPMDTD</name>
+    </flow>
+    <flow>
+      <name>CBAD</name>
+    </flow>
+    <flow>
+      <name>HBDB</name>
+    </flow>
+    <flow>
+      <name>MC1</name>
+    </flow>
+    <flow>
+      <name>MC2</name>
+    </flow>
+    <flow>
+      <name>MC3</name>
+    </flow>
+    <flow>
+      <name>MC4</name>
+    </flow>
+    <flow>
+      <name>PMBD</name>
+    </flow>
+    <flow>
+      <name>TERMAFH</name>
+    </flow>
+    <flow>
+      <name>VWBO</name>
+    </flow>
+    <flow>
+      <name>WADKF</name>
+    </flow>
+    
+    <flow>
+      <name>ABAC</name>
+    </flow>
+    <flow>
+      <name>ABAV</name>
+    </flow>
+    <flow>
+      <name>ABAVB</name>
+    </flow>
+    <flow>
+      <name>ABI</name>
+    </flow>
+    <flow>
+      <name>ABV</name>
+    </flow>
+    <flow>
+      <name>ABW</name>
+    </flow>
+    <flow>
+      <name>BAB</name>
+    </flow>
+    <flow>
+      <name>BPMNTVS</name>
+    </flow>
+    <flow>
+      <name>CBAB</name>
+    </flow>
+    <flow>
+      <name>HBVS</name>
+    </flow>
+    <flow>
+      <name>MC1</name>
+    </flow>
+    <flow>
+      <name>MC2</name>
+    </flow>
+    <flow>
+      <name>MC3</name>
+    </flow>
+    <flow>
+      <name>MC4</name>
+    </flow>
+    <flow>
+      <name>PMBVS</name>
+    </flow>
+    <flow>
+      <name>TERMAFH</name>
+    </flow>
+    <flow>
+      <name>VWBO</name>
+    </flow>
+    <flow>
+      <name>WABKF</name>
+    </flow>
+  </flows>
+    
+</up>  
