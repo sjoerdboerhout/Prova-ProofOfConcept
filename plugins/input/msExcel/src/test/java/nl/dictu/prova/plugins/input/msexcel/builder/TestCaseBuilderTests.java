@@ -11,7 +11,7 @@ import java.io.File;
 /**
  * Tests for TestCaseBuilder class
  *
- * @author Hielke de Haan°
+ * @author Hielke de Haan
  */
 public class TestCaseBuilderTests
 {
@@ -33,7 +33,7 @@ public class TestCaseBuilderTests
     LOGGER.debug(testCase);
   }
 
-  @Test
+  @Test(expected = Exception.class)
   public void testBuildTestCase2() throws Exception
   {
     TestCase testCase = new TestCase(testRoot + "/functional/deelname/Deelname.xlsm/WEB_DLN_001".replace("/", File.separator));

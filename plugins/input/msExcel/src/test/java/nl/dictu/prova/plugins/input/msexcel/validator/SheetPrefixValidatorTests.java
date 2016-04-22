@@ -22,7 +22,7 @@ public class SheetPrefixValidatorTests
   @Before
   public void setUp() throws IOException
   {
-    workbook = new XSSFWorkbook(this.getClass().getResourceAsStream("../WebTestCase.xlsm"));
+    workbook = new XSSFWorkbook(this.getClass().getResourceAsStream("../tests/functional/projectSubsidies/verlening/AVBH/AVBH.xlsm"));
   }
 
   @Test
