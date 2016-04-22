@@ -1,11 +1,13 @@
 package nl.dictu.prova.framework.shell;
 
 import static org.junit.Assert.assertTrue;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
+import static org.junit.Assert.fail;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import nl.dictu.prova.Junit;
+import nl.dictu.prova.framework.TestAction;
 
 public class ShellActionFactoryTest
 {
@@ -14,44 +16,33 @@ public class ShellActionFactoryTest
    */
   @BeforeClass 
   public static void oneTimeSetUp()
-  {    
-  }
-
-  /*
-   *  One-time cleanup code
-   */
-  @AfterClass 
-  public static void oneTimeTearDown()
-  {    
-  }
-
-  /*
-   *  Before each test
-   */
-  @Before 
-  public void setUp()
-  {    
-  }
-
-  /*
-   *  After each test
-   */
-  @After 
-  public void tearDown()
   {
+    Junit.configure();
   }
 
   /*
-   * Issue ID:    PROVA-X
-   * Requirement: ...
+   * Issue ID:    PROVA-38
+   * Requirement: A factory produces specific actions with a common interface 
    * 
-   * Test description
+   * Test if the action word gives the correct action
    */
   @Test
-  public void implementRealTest() 
+  public void TestExecute() 
   {
-    // TODO: Implement Unit Tests
-    assertTrue(false);
-    System.out.println("@Test - implementRealTest");
-  } 
+    try
+    {
+      TestAction testAction = ShellActionFactory.getAction("Execute");
+      assertTrue(testAction instanceof Execute);
+      
+      testAction = ShellActionFactory.getAction("execute");
+      assertTrue(testAction instanceof Execute);
+      
+      testAction = ShellActionFactory.getAction("EXECUTE");
+      assertTrue(testAction instanceof Execute);
+    }
+    catch (Exception eX)
+    {
+      fail(eX.getMessage());
+    }
+  }   
 }

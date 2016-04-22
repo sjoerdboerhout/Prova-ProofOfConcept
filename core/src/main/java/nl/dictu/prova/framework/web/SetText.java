@@ -1,6 +1,8 @@
 package nl.dictu.prova.framework.web;
 
 import nl.dictu.prova.framework.TestAction;
+import nl.dictu.prova.framework.parameters.Text;
+import nl.dictu.prova.framework.parameters.Xpath;
 
 /**
  * Handles the Prova function 'set text' to set the text of an element on a
@@ -11,14 +13,76 @@ import nl.dictu.prova.framework.TestAction;
  */
 public class SetText extends TestAction
 {
-  public SetText()
-  {
-    // TODO Auto-generated constructor
-  }
+  // Action attribute names
+  public final static String ATTR_XPATH = "XPATH";
+  public final static String ATTR_VALUE = "VALUE";
+   
+  // Declaration and default value
+  private Xpath xPath;
+  private Text text;
 
-  @Override
-  public void execute()
+  /**
+   * Constructor
+   * @throws Exception 
+   */
+  public SetText() throws Exception
   {
-    // TODO Auto-generated method
+    super();
+    
+    // Create parameters with (optional) defaults and limits
+    xPath = new Xpath();
+    
+    text = new Text();
+    text.setMinLength(0);
+  }
+  
+
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value) throws Exception
+  {
+    switch(key.toUpperCase())
+    {
+      case ATTR_XPATH:  
+        xPath.setValue(value); 
+      break;
+      
+      case ATTR_PARAMETER:
+      case ATTR_VALUE:
+        text.setValue(value); 
+      break;
+    }  
+  }
+  
+
+  /**
+   * Check if all requirements are met to execute this action
+   */
+  @Override
+  public boolean isValid()
+  {
+    if(!xPath.isValid()) return false;
+    if(!text.isValid())  return false;
+    
+    return true;
+  }
+  
+
+  /**
+   * Execute this action in the active output plug-in
+   */
+  @Override
+  public void execute() throws Exception
+  {
+    // TODO Implement function
+    System.out.println( "Set text of '" + xPath + "' to '" + text.getValue() + "'");
   }
 }
