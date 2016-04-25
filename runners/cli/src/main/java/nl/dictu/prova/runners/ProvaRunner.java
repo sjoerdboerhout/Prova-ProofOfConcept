@@ -56,6 +56,8 @@ public abstract class ProvaRunner
     // Load the default Prova settings
     LOGGER.trace("Load the default Prova properties from resource file");
     provaProperties.putAll(loadPropertiesFromResource("/config/prova-defaults.prop"));  
+    provaProperties.put("prova.root.dir", rootDir);
+    
   }
   
   
@@ -197,7 +199,8 @@ public abstract class ProvaRunner
       fRootPath = new File(pathSeparator + pathSeparator + sRootPath)
                           .getParentFile()
                           .getParentFile()
-                          .getParentFile();
+                          .getParentFile()
+                          .getAbsoluteFile();
       
       LOGGER.info("Root location of Prova: '{}'", fRootPath.getAbsolutePath());
     }

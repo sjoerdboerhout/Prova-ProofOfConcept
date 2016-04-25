@@ -21,7 +21,7 @@ public class TestCase
   final static Logger LOGGER = LogManager.getLogger();
   
   // Unique test case ID for identification
-  private String     id           = "";
+  private String     id       = "";
   private TestStatus status   = TestStatus.NOTRUN;
   private String     summary  = "";
   

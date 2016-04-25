@@ -11,7 +11,7 @@ import nl.dictu.prova.framework.TestCase;
  */
 public interface InputPlugin
 {
-  public void init(TestRunner testRunner);
+  public void init(TestRunner testRunner) throws Exception;
   
   public void setTestRoot(String testRoot) throws Exception;
   public void setLabels(String[] labels);
@@ -22,4 +22,6 @@ public interface InputPlugin
   public void loadTestCase(TestCase testCase) throws Exception;
   
   public void shutDown();
+  
+  public String getName();
 }

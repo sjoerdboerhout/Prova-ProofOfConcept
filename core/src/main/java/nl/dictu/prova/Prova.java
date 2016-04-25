@@ -11,6 +11,7 @@ import nl.dictu.prova.framework.TestSuite;
 import nl.dictu.prova.plugins.input.InputPlugin;
 import nl.dictu.prova.plugins.output.OutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
+import nl.dictu.prova.util.PluginLoader;
 
 /**
  * Core class Prova facilitates the whole process of executing the tests
@@ -167,20 +168,58 @@ public class Prova implements Runnable, TestRunner
    */
   private void init() throws Exception
   {
+    PluginLoader pluginLoader = new PluginLoader();
+    String pluginName = "";
+    
     try
     {
       LOGGER.info("Initializing Prova");
       
-      // TODO: Read project configuration
+      if(LOGGER.isTraceEnabled())         
+      {
+        for(String key : this.properties.stringPropertyNames())
+        {
+          LOGGER.trace(key + " => " + properties.getProperty(key));
+        }  
+      }
+
+      LOGGER.debug("Load plug-in files");
+      pluginLoader.addFiles(properties.getProperty("prova.root.dir") +
+                            properties.getProperty("prova.plugins.dir"), 
+                            properties.getProperty("prova.plugins.ext"));
+     
       
-      // TODO: Load and initialize input plug-in
+      LOGGER.debug("Load and initialize input plug-in");
+      pluginName = properties.getProperty("prova.plugins.in.package") +
+                   properties.getProperty("prova.plugins.in").toLowerCase() + "." +
+                   properties.getProperty("prova.plugins.in");
+      
+      inputPlugin = pluginLoader.getInstanceOf(pluginName, InputPlugin.class);
+         
+      if(inputPlugin != null)
+        inputPlugin.init(this);
+      else
+        throw new Exception("Could not load input plugin '" + pluginName + "'");
+      
+      
       // TODO: Load and initialize output plug-in
+      LOGGER.debug("Load and initialize output plug-in");
+      
       // TODO: Load and initialize report plug-in(s)
+      LOGGER.debug("Load and initialize reporting plug-in");
+    }
+    catch(ClassNotFoundException eX)
+    {
+      throw new Exception("Plugin '" + pluginName + "' not found!");
     }
     catch(Exception eX)
     {
       LOGGER.error(eX);
       throw eX;
+    }
+    finally
+    {
+      pluginLoader.close();
     }
   }
     

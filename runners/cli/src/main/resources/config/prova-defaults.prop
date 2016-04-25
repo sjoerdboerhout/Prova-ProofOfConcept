@@ -3,29 +3,36 @@
 # Prova properties
 #
 ################################################################################
-prova.conf.dir				= config/
-prova.conf.file.default		= prova-defaults
-prova.conf.file.test		= prova-defaults-test
-prova.conf.file.user		= 
-prova.conf.file.ext			= .prop
+prova.conf.dir					= config/
+prova.conf.file.default			= prova-defaults
+prova.conf.file.test			= prova-defaults-test
+prova.conf.file.user			= 
+prova.conf.file.ext				= .prop
 
-prova.environment			= S
+prova.environment				= S
 
-prova.results.file			= 
+prova.results.file				= 
 
-prova.tests.filters			=
-prova.tests.root			= /Users/sjoerd/Workspaces/Prova/tests
-prova.tests.run				= true
-prova.tests.start			= 0
-prova.tests.timeout			= 60000
+prova.tests.filters				=
+prova.tests.root				= tests
+prova.tests.run					= true
+prova.tests.start				= 0
+prova.tests.timeout				= 60000
 
-prova.plugins.in			= MsExcel
+prova.plugins.dir				= plugins/
+prova.plugins.ext				= .jar
 
-prova.plugins.out.web		= Selenium
+prova.plugins.in.package		= nl.dictu.prova.plugins.input.
+prova.plugins.in				= MsExcel
 
-prova.plugins.out.shell		= ShellCommand
+prova.plugins.out.web.package	= nl.dictu.prova.plugins.output.web.
+prova.plugins.out.web			= Selenium
 
-prova.plugins.reporting		= SimpleReport
+prova.plugins.out.shell.package	= nl.dictu.prova.plugins.output.shell.
+prova.plugins.out.shell			= ShellCommand
+
+prova.plugins.reporting.package	= nl.dictu.prova.plugins.reporting.
+prova.plugins.reporting			= SimpleReport
 
 ################################################################################
 #

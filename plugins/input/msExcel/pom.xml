@@ -20,6 +20,12 @@
   <packaging>jar</packaging>
 
   <properties>
+    <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
+  
+    <commons.io.version>2.4</commons.io.version>
+    <commons.collections.version>3.2.2</commons.collections.version>
+    <commons.lang.version>2.6</commons.lang.version>
+    
     <apache-poi.version>3.14</apache-poi.version>
     <apache-poi-ooxml.version>3.14</apache-poi-ooxml.version>
     <apache-poi-ooxml-schemas.version>3.14</apache-poi-ooxml-schemas.version>
@@ -27,6 +33,12 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>nl.dictu.prova</groupId>
+      <artifactId>core</artifactId>
+      <version>${prova.core.version}</version>
+    </dependency>
+    
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
@@ -52,25 +64,21 @@
     </dependency>
 
     <dependency>
-      <groupId>nl.dictu.prova</groupId>
-      <artifactId>core</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
-    </dependency>
-
-    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <version>2.4</version>
+      <version>${commons.io.version}</version>
     </dependency>
+    
     <dependency>
       <groupId>commons-collections</groupId>
       <artifactId>commons-collections</artifactId>
-      <version>3.2.2</version>
+      <version>${commons.collections.version}</version>
     </dependency>
+    
     <dependency>
       <groupId>commons-lang</groupId>
       <artifactId>commons-lang</artifactId>
-      <version>2.6</version>
+      <version>${commons.lang.version}</version>
     </dependency>
 
   </dependencies>

@@ -51,7 +51,6 @@ public class Cli extends ProvaRunner
       // Initialize
       cli.init(args);
       
-      // Run
       cli.run();
     }
     catch(Exception eX)
