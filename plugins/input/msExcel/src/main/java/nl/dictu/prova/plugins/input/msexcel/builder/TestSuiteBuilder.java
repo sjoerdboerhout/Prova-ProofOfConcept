@@ -27,7 +27,7 @@ public class TestSuiteBuilder
   private static final FileFilter directoryFilter = file -> file.isDirectory() && !file.getName().equals("testdata");
   private static final FileFilter excelFilter = file -> !file.isDirectory() && !file.getName().startsWith("~") && Arrays.asList("xlsm", "xlsx").contains(FilenameUtils.getExtension(file.getName()));
 
-  TestSuite buildTestSuite(File rootDirectory) throws Exception
+  public TestSuite buildTestSuite(File rootDirectory) throws Exception
   {
     LOGGER.trace("Directory: {}", rootDirectory::getPath);
     TestSuite testSuite = new TestSuite(rootDirectory.getPath());
@@ -71,7 +71,7 @@ public class TestSuiteBuilder
                   // if it is, add a new test case to the test suite
                   // if it isn't, ignore the sheet
                   String tagName = workbookReader.getTagName(cellContent);
-                  LOGGER.debug("Found tag: {}", tagName);
+                  LOGGER.trace("Found tag: {}", tagName);
                   if ("tcid".equals(tagName))
                   {
                     testSuite.addTestCase(new TestCase(excelFile.getPath() + File.separator + workbookReader.readProperty(row, cell)));

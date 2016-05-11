@@ -46,6 +46,8 @@ public class UploadFile extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     {
       case ATTR_XPATH:  
@@ -56,7 +58,9 @@ public class UploadFile extends TestAction
       case ATTR_FILENAME:
         fileName.setValue(value); 
       break;
-    }  
+    }
+    
+    xPath.setAttribute(key, value);
   }
   
 
@@ -66,6 +70,7 @@ public class UploadFile extends TestAction
   @Override
   public boolean isValid()
   {
+    if(testRunner == null)  return false;
     if(!xPath.isValid())    return false;
     if(!fileName.isValid()) return false;
         
@@ -80,6 +85,20 @@ public class UploadFile extends TestAction
   public void execute() throws Exception
   {
     // TODO Implement function
+    // Set corect (hidden) fields and click on buttons
+    
     System.out.println( "Upload file '" + fileName + "' to " + xPath);
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Upload file '" + fileName + "' to " + xPath.getValue());
   }
 }

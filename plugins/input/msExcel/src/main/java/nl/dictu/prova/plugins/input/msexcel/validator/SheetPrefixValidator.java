@@ -26,19 +26,35 @@ public class SheetPrefixValidator
   private final static List<String> ALLOWED_PREFIXES = Arrays.asList("WEB", "SH");
   private Sheet sheet;
 
+  /**
+   * Constructor with reference to a workbook sheet
+   * @param sheet
+   */
   public SheetPrefixValidator(Sheet sheet)
   {
     this.sheet = sheet;
   }
 
+  /**
+   * 
+   * 
+   * @return
+   */
   public boolean validate()
   {
     String sheetNamePrefix = getSheetNamePrefix(sheet);
     boolean allowed = ALLOWED_PREFIXES.contains(sheetNamePrefix);
-    LOGGER.debug("Prefix = {}: {}", sheetNamePrefix, allowed ? "process" : "ignore");
+    LOGGER.trace("Prefix = {}: {}", sheetNamePrefix, allowed ? "process" : "ignore");
     return allowed;
   }
 
+  /**
+   * Check if the name of the given sheet contains a prefix.
+   * If a prefix is found return it. Otherwise return NULL.
+   * 
+   * @param sheet
+   * @return
+   */
   private String getSheetNamePrefix(Sheet sheet)
   {
     Pattern pattern = Pattern.compile("^([A-Za-z0-9]+)_[A-Za-z0-9_]+$");

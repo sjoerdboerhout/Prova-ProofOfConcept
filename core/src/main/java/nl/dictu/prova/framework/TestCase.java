@@ -42,7 +42,7 @@ public class TestCase
    */
   public TestCase(String id) throws Exception
   {
-    LOGGER.trace("Construct a new TestCase");
+    LOGGER.debug("Construct a new TestCase with id '{}'", () -> id);
     
     setId(id);
   }
@@ -84,7 +84,7 @@ public class TestCase
    */
   public void setStatus(TestStatus status)
   {
-    LOGGER.trace("Set status to: {}", () -> status.name());
+    LOGGER.debug("Set status of tc '{}' to: {}", () -> this.getId(), () -> status.name());
     
     this.status = status;
   }
@@ -196,7 +196,7 @@ public class TestCase
    */
   public void addSetUpAction(TestAction setUpAction)
   {
-    LOGGER.debug("Add test action {}", () -> setUpAction.toString());
+    LOGGER.debug("Add test action '{}'", () -> setUpAction.toString());
     setUpActions.add(setUpAction);
   }
 
@@ -218,7 +218,6 @@ public class TestCase
     tearDownActions.add(tearDownAction);
   }
 
-
   
   /**
    * Run this test case by executing all it's actions.
@@ -231,7 +230,7 @@ public class TestCase
     
     try
     {
-      LOGGER.debug("EXECUTE: " + this.toString());
+      LOGGER.debug("EXEC TC: " + this.toString());
       
       for(TestAction setUpAction : setUpActions)
       {
@@ -302,11 +301,10 @@ public class TestCase
   @Override
   public String toString()
   {
-    return String.format( "TC: ID: %s (S: %d, A: %d, T: %d)", 
+    return String.format( "ID: %s (S: %d, A: %d, T: %d)", 
                           id, 
                           this.setUpActions.size(),
                           this.testActions.size(), 
                           this.tearDownActions.size());
-  }
-
+  }  
 }

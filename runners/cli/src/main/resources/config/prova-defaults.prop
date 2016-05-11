@@ -14,12 +14,12 @@ prova.environment				= S
 prova.results.file				= 
 
 prova.tests.filters				=
-prova.tests.root				= tests
+prova.tests.root				= projects/
 prova.tests.run					= true
 prova.tests.start				= 0
 prova.tests.timeout				= 60000
 
-prova.plugins.dir				= plugins/
+prova.plugins.dir				= bin/
 prova.plugins.ext				= .jar
 
 prova.plugins.in.package		= nl.dictu.prova.plugins.input.

@@ -59,7 +59,10 @@ public class Execute extends TestAction
   @Override
   public boolean isValid() throws Exception
   {
-    return command.isValid();
+    if(testRunner == null)  return false;
+    if(!command.isValid())  return false;
+    
+    return true;
   }
   
   
@@ -74,5 +77,17 @@ public class Execute extends TestAction
     
     // TODO Implement function
     System.out.println("Execute command '" + command + "' on the Shell");
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return(this.getClass().getName() + ": Execute command '" + command + "' on the Shell");
   }
 }

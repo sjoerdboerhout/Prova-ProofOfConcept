@@ -76,19 +76,23 @@ public class PluginLoader extends URLClassLoader
    * @param path
    * @throws Exception
    */
-  public void addFiles(String dirName, String fileExt) throws Exception
+  public void addFiles(String dirName, String fileExt)
   {
     try
     {
-      LOGGER.trace("Try to load all plugins from '{}' with ext '{}' to plugin loader.", 
+      LOGGER.debug("Try to load all plugins from '{}' with ext '{}' to plugin loader.", 
                    () -> dirName, () -> fileExt);
       
-      addAllFiles(new File(dirName), fileExt);
+      File dir = new File(dirName);
+      
+      if(dir.exists() && dir.canRead())
+        addAllFiles(dir, fileExt);
+      else
+        throw new Exception("Directory name for plugins doesn't exist.(" + dirName + ")");
     }
     catch(Exception eX)
     {
-      LOGGER.trace("Exception: {}", eX.getMessage());
-      throw eX;      
+      LOGGER.warn(eX.getMessage());
     }
   }
   
@@ -105,14 +109,12 @@ public class PluginLoader extends URLClassLoader
     {
       try
       {
-        LOGGER.trace("Evaluating file '{}'", () -> file.getAbsolutePath());
-        
         if(file.isFile() && file.canRead())
         {
           if(file.getAbsolutePath().toLowerCase().endsWith(fileExt.toLowerCase()))
           {
             super.addURL(new URL("jar:file://" + file.getAbsolutePath() + "!/"));
-            LOGGER.debug("Added '{}' to classpath", () -> "jar:file://" + file.getAbsolutePath() + "!/");
+            LOGGER.trace("Added '{}' to classpath", () -> "jar:file://" + file.getAbsolutePath() + "!/");
           }
         }
         else if(file.isDirectory() && file.canRead())

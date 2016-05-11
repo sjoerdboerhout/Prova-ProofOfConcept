@@ -24,13 +24,15 @@ public class TestDataBuilder
   private final static Logger LOGGER = LogManager.getLogger();
   private WorkbookReader workbookReader;
 
-  LinkedHashMap<String, Map<String, String>> buildTestData(String path) throws Exception
+  public LinkedHashMap<String, Map<String, String>> buildTestData(String path) throws Exception
   {
+    LOGGER.trace("Build testdata for: {}", path);
+    
     Workbook workbook = new XSSFWorkbook(new File(path));
     workbookReader = new WorkbookReader(workbook);
     LinkedHashMap<String, Map<String, String>> testData = new LinkedHashMap<>();
 
-    for (Sheet sheet : workbook)
+    for(Sheet sheet : workbook)
     {
       LOGGER.trace("Sheet: {}", sheet::getSheetName);
       readSheet(sheet).forEach(testData::put);
@@ -75,9 +77,11 @@ public class TestDataBuilder
                 {
                   LOGGER.debug("Found value '{}' for key '{}' in column '{}'", value, key, headers.get(colNum));
                   testData.get(headers.get(colNum)).put(key, value);
-                } else
+                } 
+                else
                 {
                   LOGGER.debug("No value found for key '{}' in column '{}'; copying from column '{}'", key, headers.get(colNum), headers.get(colNum - 1));
+                  // TODO not only 1 column but until column 2 reached
                   testData.get(headers.get(colNum)).put(key, testData.get(headers.get(colNum - 1)).get(key));
                 }
               }

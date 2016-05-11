@@ -51,6 +51,8 @@ public class ValidateElement extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     {
       case ATTR_XPATH:  
@@ -65,7 +67,9 @@ public class ValidateElement extends TestAction
       case ATTR_TIMEOUT:
         timeOut.setValue(value); 
       break;
-    }  
+    }
+    
+    xPath.setAttribute(key, value);
   }
   
 
@@ -75,6 +79,7 @@ public class ValidateElement extends TestAction
   @Override
   public boolean isValid()
   {
+    if(testRunner == null)  return false;
     if(!xPath.isValid())    return false;
     if(!exists.isValid())   return false;
     if(!timeOut.isValid())  return false;
@@ -89,9 +94,23 @@ public class ValidateElement extends TestAction
   @Override
   public void execute() throws Exception
   {
-    // TODO Implement function
-    System.out.println("Validate that element '" + xPath.getValue() + "' " +
-                       (exists.getValue() ? "" : "doesn't ") + "exists. " +
-                       "TimeOut: " + timeOut.getValue());
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    testRunner.getWebActionPlugin().doValidateElement(xPath.getValue(), exists.getValue(), timeOut.getValue());
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Validate that element '" + xPath.getValue() + "' " +
+           (exists.getValue() ? "does" : "doesn't ") + "exist. " +
+           "TimeOut: " + timeOut.getValue());
   }
 }

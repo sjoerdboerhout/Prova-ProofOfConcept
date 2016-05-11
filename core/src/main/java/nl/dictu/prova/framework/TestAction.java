@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import nl.dictu.prova.TestRunner;
+import nl.dictu.prova.plugins.output.OutputPlugin;
 
 /**
  * Contains all the common functions of a test action.
@@ -17,10 +18,12 @@ public abstract class TestAction
   
   public final static String ATTR_PARAMETER = "PARAMETER";
   
-  protected TestRunner testRunner;
-  protected Exception  lastValidationException = null;
+  protected TestRunner   testRunner;
+  protected OutputPlugin outputPlugin;
+  protected Exception    lastValidationException = null;
  
   public abstract void setAttribute(String key, String value) throws Exception;
+  
   public abstract void execute() throws Exception;
   public abstract boolean isValid() throws Exception;
   

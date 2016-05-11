@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
 import nl.dictu.prova.framework.exceptions.TestActionException;
+import nl.dictu.prova.plugins.input.InputPlugin;
 
 /**
  * Contains a tree of (sub) test suites and test cases.
@@ -35,7 +36,7 @@ public class TestSuite
    */
   public TestSuite(String id) throws Exception
   {
-    LOGGER.trace("Create new test suite with id '{}'", () -> id);
+    LOGGER.debug("Create new test suite with id '{}'", () -> id);
     
     setId(id);
   }
@@ -357,60 +358,7 @@ public class TestSuite
     return testCases;
   }
  
-  /**
-   * Execute all tests in this test suite and sub test suites
-   */
-  public void execute()
-  {
-    try
-    {
-      LOGGER.debug("RUN:     " + this.toString());
-      
-      // First execute all test cases
-      for(Map.Entry<String, TestCase> entry : testCases.entrySet())
-      {
-        try
-        {
-          entry.getValue().execute();
-        }
-        catch(SetUpActionException eX)
-        {
-          LOGGER.warn(eX);
-        }
-        catch(TestActionException eX)
-        {
-          LOGGER.debug(eX);
-        }
-        catch(TearDownActionException eX)
-        {
-          LOGGER.warn(eX);
-        }
-        catch(Exception eX)
-        {
-          LOGGER.error(eX);
-        }
-      }
-      
-      // Second, execute all sub test suites
-      for(Map.Entry<String, TestSuite> entry : testSuites.entrySet())
-      {
-        try
-        {
-          entry.getValue().execute();
-        }
-        catch(Exception eX)
-        {
-          LOGGER.error(eX);
-        }
-      }
-    }
-    catch(Exception eX)
-    {
-      LOGGER.error(eX);
-    }
-
-  }
-
+  
   /**
    * Summarize this object for logging purpose
    * 
@@ -419,7 +367,7 @@ public class TestSuite
   @Override
   public String toString()
   {
-    return String.format( "TS: ID: %s%s (TC: %d, TS: %d)", 
+    return String.format( "ID: %s%s (TC: %d, TS: %d)", 
                           id, 
                           parent != null ? ", parent: " + parent.getId() : "",
                           numberOfTestCases(), 

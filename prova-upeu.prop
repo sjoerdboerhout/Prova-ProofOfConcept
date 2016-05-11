@@ -1,0 +1,35 @@
+################################################################################
+#
+# Prova properties
+#
+################################################################################
+prova.environment			= S
+
+prova.results.file			= 
+
+prova.tests.filters			=
+prova.tests.root			= tests/
+prova.tests.run				= true
+prova.tests.start			= 0
+prova.tests.timeout			= 60000
+
+prova.plugins.in			= MsExcel
+
+prova.plugins.out.web		= Selenium
+
+prova.plugins.out.shell		= ShellCommand
+
+prova.plugins.reporting		= SimpleReport
+
+################################################################################
+#
+# LOG4J 2 properties
+#
+################################################################################
+prova.log.level             = debug
+prova.log.dir.root          = log
+prova.log.dir.history       = $${date:yyyy-MM-dd}-%i
+prova.log.ext.txt           = log
+prova.log.pattern.console	= %d{HH:mm:ss} %-5p - %msg%n
+prova.log.pattern.file      = %d{yyyy-MM-dd HH:mm:ss,SSS} [%c:%t:%L] %-5p - %msg%n
+ 

@@ -42,7 +42,7 @@ public class Click extends TestAction
     numberOfClicks.setMinValue(1);
     numberOfClicks.setMaxValue(3);
     
-    waitUntilPageLoaded = new Bool(false);
+    waitUntilPageLoaded = new Bool(true);
   }
 
   
@@ -58,6 +58,8 @@ public class Click extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     {
       case ATTR_XPATH:  
@@ -72,11 +74,12 @@ public class Click extends TestAction
         numberOfClicks.setValue(value);
       break;
       
-      case ATTR_PARAMETER:
       case ATTR_WAITUNTILPAGELOADED:  
         waitUntilPageLoaded.setValue(value); 
       break;
     }
+    
+    xPath.setAttribute(key, value);
   }
   
 
@@ -86,6 +89,8 @@ public class Click extends TestAction
   @Override
   public boolean isValid() throws Exception
   {
+
+    if(testRunner == null)             return false;
     if(!xPath.isValid())               return false;
     if(!rightClick.isValid())          return false;
     if(!numberOfClicks.isValid())      return false;
@@ -95,17 +100,30 @@ public class Click extends TestAction
   }
 
   
-  
   /**
    * Execute this action in the active output plug-in
    */
   @Override
   public void execute() throws Exception
   {
-    // TODO Implement function
-    System.out.println( "Click on element '" + xPath.getValue() + 
-                        "' with " + numberOfClicks.getValue() + 
-                        (rightClick.getValue() ? " right " : " left ") + " clicks." +
-                        "Wait for page loaded: " + waitUntilPageLoaded.getValue());
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    testRunner.getWebActionPlugin().doClick(xPath.getValue(), rightClick.getValue(), waitUntilPageLoaded.getValue());
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return( "'" + this.getClass().getSimpleName().toUpperCase() + "': Click on element '" + xPath.getValue() + 
+            "' with " + numberOfClicks.getValue() + 
+            (rightClick.getValue() ? " right" : " left") + " clicks. " +
+            "Wait for page loaded: " + waitUntilPageLoaded.getValue());
   }
 }

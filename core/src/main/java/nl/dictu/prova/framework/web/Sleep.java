@@ -42,6 +42,8 @@ public class Sleep extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     { 
       case ATTR_PARAMETER:
@@ -58,7 +60,8 @@ public class Sleep extends TestAction
   @Override
   public boolean isValid()
   {
-    if(!waitTime.isValid())  return false;
+    if(testRunner == null)  return false;
+    if(!waitTime.isValid()) return false;
     
     return true;
   }
@@ -70,7 +73,21 @@ public class Sleep extends TestAction
   @Override
   public void execute() throws Exception
   {
-    // TODO Implement function
-    System.out.println( "Sleep for '" + waitTime.getValue() + "' Ms");
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    testRunner.getWebActionPlugin().doSleep(waitTime.getValue());
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Sleep for '" + waitTime.getValue() + "' Ms");
   }
 }

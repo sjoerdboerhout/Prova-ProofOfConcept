@@ -24,6 +24,7 @@ public class TestDataBuilderTests
   {
     testRoot = new File(this.getClass().getResource("../CellReaderTests.xlsx").getFile()).getParentFile().getPath()
             + File.separator + "tests";
+    LOGGER.info("TestRoot: '{}'", () -> testRoot);
   }
 
   @Test

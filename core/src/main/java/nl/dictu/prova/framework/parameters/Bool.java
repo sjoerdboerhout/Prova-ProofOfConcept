@@ -116,4 +116,16 @@ public class Bool extends Parameter
     
     return false;
   }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': " + this.value);
+  }
 }

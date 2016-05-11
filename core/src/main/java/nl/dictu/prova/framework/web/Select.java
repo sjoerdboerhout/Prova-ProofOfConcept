@@ -46,17 +46,20 @@ public class Select extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     {
       case ATTR_XPATH:  
         xPath.setValue(value); 
       break;
       
-      case ATTR_PARAMETER:
       case ATTR_SELECT:
         select.setValue(value); 
       break;
-    } 
+    }
+    
+    xPath.setAttribute(key, value);
   }
   
 
@@ -66,8 +69,9 @@ public class Select extends TestAction
   @Override
   public boolean isValid()
   {
-    if(!xPath.isValid())  return false;
-    if(!select.isValid()) return false;
+    if(testRunner == null)  return false;
+    if(!xPath.isValid())    return false;
+    if(!select.isValid())   return false;
     
     return true;
   }
@@ -79,7 +83,25 @@ public class Select extends TestAction
   @Override
   public void execute() throws Exception
   {
+    LOGGER.trace("Execute test action: {}", () -> this.getClass().getSimpleName());
+    
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    LOGGER.trace("Execute test action '{}' in Output plugin '{}'", () -> this.getClass().getSimpleName());
+    testRunner.getWebActionPlugin().doSelect(xPath.getValue(), select.getValue());
     // TODO Implement function
-    System.out.println( (select.getValue() ? "Select" : "Deselect") + " '" + xPath.getValue() + "'");
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': " + (select.getValue() ? "Select" : "Deselect") + " '" + xPath.getValue() + "'");
   }
 }

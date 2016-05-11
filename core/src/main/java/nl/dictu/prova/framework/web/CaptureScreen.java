@@ -44,6 +44,8 @@ public class CaptureScreen extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     {
       case ATTR_PARAMETER:
@@ -60,7 +62,8 @@ public class CaptureScreen extends TestAction
   @Override
   public boolean isValid()
   {
-    if(!fileName.isValid())  return false;
+    if(testRunner == null)  return false;
+    if(!fileName.isValid()) return false;
     
     return true;
   }
@@ -72,7 +75,21 @@ public class CaptureScreen extends TestAction
   @Override
   public void execute() throws Exception
   {
-    // TODO Implement function
-    System.out.println("Save a screendump to file '" + fileName.getValue() + "'");
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    testRunner.getWebActionPlugin().doCaptureScreen(fileName.getValue());
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Save a screendump to file '" + fileName.getValue() + "'");
   }
 }

@@ -126,4 +126,15 @@ public class Text extends Parameter
     this.maxLength = maxLength;
   }
 
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': " + this.value);
+  }
 }

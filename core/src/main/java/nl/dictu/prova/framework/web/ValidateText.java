@@ -21,19 +21,9 @@ public class ValidateText extends TestAction
   public final static String ATTR_TIMEOUT = "TIMEOUT";
   public final static String ATTR_XPATH   = "XPATH";
 
-  // Validation rules
- // private final Integer valueMinLength     = 1;
-  //private final Boolean valueNullAllowed   = false;
-  //private final Integer timeOutMin         = 1;
-  //private final Integer timeOutMax         = 180000;
-  //private final Boolean timeOutNullAllowed = false;
-  //private final Integer xPathMinLength     = 1;
-  //private final Boolean xPathNullAllowed   = false;
-
-  // Declaration and default value 
   private Text    text;
   private Bool    exists;
-  private TimeOut timeOut;// = 60000; // Ms
+  private TimeOut timeOut;
   private Xpath   xPath;
   
   
@@ -48,7 +38,7 @@ public class ValidateText extends TestAction
     // Create parameters with (optional) defaults and limits
     text = new Text();
     exists = new Bool(true);
-    timeOut = new TimeOut(60000);
+    timeOut = new TimeOut(60000); // Ms
     xPath = new Xpath();
     
   }
@@ -66,6 +56,8 @@ public class ValidateText extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     {
       case ATTR_PARAMETER:
@@ -84,8 +76,9 @@ public class ValidateText extends TestAction
       case ATTR_XPATH:
         xPath.setValue(value); 
       break;
-      
-    }  
+    }
+    
+    xPath.setAttribute(key, value); 
   }
   
 
@@ -95,10 +88,11 @@ public class ValidateText extends TestAction
   @Override
   public boolean isValid()
   {
-    if(!text.isValid())    return false;
-    if(!exists.isValid())  return false;
-    if(!timeOut.isValid()) return false;
-    if(!xPath.isValid())   return false;
+    if(testRunner == null)  return false;
+    if(!text.isValid())     return false;
+    if(!exists.isValid())   return false;
+    if(!timeOut.isValid())  return false;
+    if(!xPath.isValid())    return false;
     
     return true;
   }  
@@ -110,10 +104,24 @@ public class ValidateText extends TestAction
   @Override
   public void execute() throws Exception
   {
-    // TODO Implement function
-    System.out.println( "Validate that text '" + text.getValue() + "' " +
-                          (exists.getValue() ? "" : "doesn't ") + "exists. " +
-                          (xPath.getValue().length() > 0 ? "Element: " + xPath : "") +
-                          "TimeOut: " + timeOut.getValue() );
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    testRunner.getWebActionPlugin().doValidateText(xPath.getValue(), text.getValue(), exists.getValue(), timeOut.getValue()); 
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Validate that text '" + text.getValue() + "' " +
+          (exists.getValue() ? "" : "doesn't ") + "exists. " +
+          (xPath.getValue().length() > 0 ? "Element: " + xPath.getValue() + ". " : "") +
+          " TimeOut: " + timeOut.getValue() );
   }
 }

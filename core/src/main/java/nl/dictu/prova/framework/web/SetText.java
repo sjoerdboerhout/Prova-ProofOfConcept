@@ -49,6 +49,8 @@ public class SetText extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     {
       case ATTR_XPATH:  
@@ -59,7 +61,9 @@ public class SetText extends TestAction
       case ATTR_VALUE:
         text.setValue(value); 
       break;
-    }  
+    }
+    
+    xPath.setAttribute(key, value);  
   }
   
 
@@ -69,8 +73,9 @@ public class SetText extends TestAction
   @Override
   public boolean isValid()
   {
-    if(!xPath.isValid()) return false;
-    if(!text.isValid())  return false;
+    if(testRunner == null)  return false;
+    if(!xPath.isValid())    return false;
+    if(!text.isValid())     return false;
     
     return true;
   }
@@ -83,6 +88,18 @@ public class SetText extends TestAction
   public void execute() throws Exception
   {
     // TODO Implement function
-    System.out.println( "Set text of '" + xPath + "' to '" + text.getValue() + "'");
+    System.out.println( "Set text of '" + xPath.getValue() + "' to '" + text.getValue() + "'");
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Set text of '" + xPath.getValue() + "' to '" + text.getValue() + "'");
   }
 }

@@ -34,4 +34,16 @@ public class Url extends Text
     // TODO Implement a proper filename validation
     return validateString(text, minLength, maxLength);
   }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': " + this.value);
+  }
  }

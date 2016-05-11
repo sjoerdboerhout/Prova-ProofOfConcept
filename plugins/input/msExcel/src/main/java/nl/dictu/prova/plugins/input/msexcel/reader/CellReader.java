@@ -78,7 +78,7 @@ public class CellReader
   private String evaluateFormula(Cell cell) throws Exception
   {
     final String LOG_PREFIX = getLogPrefix(cell);
-    LOGGER.debug(LOG_PREFIX + "evaluating formula");
+    LOGGER.trace(LOG_PREFIX + "evaluating formula");
 
     try
     {
@@ -118,7 +118,7 @@ public class CellReader
   private String evaluateCachedFormulaResult(Cell cell) throws Exception
   {
     final String LOG_PREFIX = getLogPrefix(cell);
-    LOGGER.debug(LOG_PREFIX + "evaluating cached formula result");
+    LOGGER.trace(LOG_PREFIX + "evaluating cached formula result");
 
     switch (cell.getCachedFormulaResultType())
     {

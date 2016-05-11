@@ -28,7 +28,6 @@ public abstract class ProvaRunner
   
   protected Prova       prova;
   protected Properties  provaProperties;
-  protected String      rootDir;
   
   /**
    * Constructor.
@@ -36,7 +35,6 @@ public abstract class ProvaRunner
   protected ProvaRunner()
   {
     logLevel        = LogLevel.DEBUG;
-    rootDir         = "/config/";
     provaProperties = new Properties();
   }
   
@@ -50,13 +48,12 @@ public abstract class ProvaRunner
    */
   protected void init() throws Exception
   { 
-    rootDir     = getProvaRootPath();
     prova       = new Prova();
       
     // Load the default Prova settings
     LOGGER.trace("Load the default Prova properties from resource file");
     provaProperties.putAll(loadPropertiesFromResource("/config/prova-defaults.prop"));  
-    provaProperties.put("prova.root.dir", rootDir);
+    provaProperties.put(Config.PROVA_DIR, getProvaRootPath());
     
   }
   
@@ -76,7 +73,7 @@ public abstract class ProvaRunner
       logLevel = LogLevel.lookup(name); 
       
       // Log4j2 configuration uses the systems properties.
-      System.setProperty("prova.log.level", logLevel.name());
+      System.setProperty(Config.PROVA_LOG_LEVEL, logLevel.name());
       
       // TODO add support for updating the log level per logger
       
@@ -114,7 +111,7 @@ public abstract class ProvaRunner
     try
     {
       // Log4j2 configuration uses the systems properties.
-      System.setProperty("prova.log.filename", logFile);
+      System.setProperty(Config.PROVA_LOG_FILENAME, logFile);
       
       // Force a reconfiguration of Log4j to activate the settings immediately
       LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
@@ -140,7 +137,7 @@ public abstract class ProvaRunner
       LOGGER.trace("Update log pattern for console to: '{}'", newPattern);
       
       // Log4j2 configuration uses the systems properties.
-      System.setProperty("prova.log.pattern.console", newPattern);
+      System.setProperty(Config.PROVA_LOG_PATTERN_CONS, newPattern);
     
       // Force a reconfiguration of Log4j to activate the settings immediately
       LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
@@ -166,7 +163,7 @@ public abstract class ProvaRunner
       LOGGER.trace("Update log pattern for file to: '{}'", newPattern);
       
       // Log4j2 configuration uses the systems properties.
-      System.setProperty("prova.log.pattern.file", newPattern);
+      System.setProperty(Config.PROVA_LOG_PATTERN_FILE, newPattern);
     
       // Force a reconfiguration of Log4j to activate the settings immediately
       LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
@@ -199,10 +196,9 @@ public abstract class ProvaRunner
       fRootPath = new File(pathSeparator + pathSeparator + sRootPath)
                           .getParentFile()
                           .getParentFile()
-                          .getParentFile()
                           .getAbsoluteFile();
       
-      LOGGER.info("Root location of Prova: '{}'", fRootPath.getAbsolutePath());
+      LOGGER.info("Root location of Prova: '{}/'", fRootPath.getAbsolutePath());
     }
     catch(Exception eX)
     {
@@ -231,13 +227,13 @@ public abstract class ProvaRunner
       LOGGER.debug("Load default property files for Prova");
       
       // <rootPath>\config\prova-defaults.properties
-      properties.putAll(loadPropertiesFromFile(rootDir +
+      properties.putAll(loadPropertiesFromFile(provaProperties.getProperty(Config.PROVA_DIR) +
                                                provaProperties.getProperty(Config.PROVA_CONF_DIR) +
                                                provaProperties.getProperty(Config.PROVA_CONF_FILE_DEF) +
                                                provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT)));
       
       // <rootPath>\config\prova-defaults-test.properties
-      properties.putAll(loadPropertiesFromFile(rootDir + 
+      properties.putAll(loadPropertiesFromFile(provaProperties.getProperty(Config.PROVA_DIR) + 
                                                provaProperties.getProperty(Config.PROVA_CONF_DIR) +
                                                provaProperties.getProperty(Config.PROVA_CONF_FILE_TEST) +
                                                provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT)));
@@ -245,14 +241,14 @@ public abstract class ProvaRunner
       LOGGER.debug("Load project property files for project '{}'", () -> provaProperties.getProperty(Config.PROVA_PROJECT));
       
       // <rootPath>\config\prova-<projectName>.properties
-      properties.putAll(loadPropertiesFromFile(rootDir + 
+      properties.putAll(loadPropertiesFromFile(provaProperties.getProperty(Config.PROVA_DIR) +
                                                provaProperties.getProperty(Config.PROVA_CONF_DIR) + 
                                                "prova-" + 
                                                provaProperties.getProperty(Config.PROVA_PROJECT).toLowerCase() +
                                                provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT)));
   
       // <rootPath>\config\prova-<projectName>-test.properties
-      properties.putAll(loadPropertiesFromFile(rootDir + 
+      properties.putAll(loadPropertiesFromFile(provaProperties.getProperty(Config.PROVA_DIR) +
                                                provaProperties.getProperty(Config.PROVA_CONF_DIR) + 
                                                "prova-" + 
                                                provaProperties.getProperty(Config.PROVA_PROJECT).toLowerCase() +

@@ -42,6 +42,8 @@ public class SendKeys extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     {
       case ATTR_PARAMETER:
@@ -58,7 +60,8 @@ public class SendKeys extends TestAction
   @Override
   public boolean isValid()
   {
-    if(!keys.isValid())  return false;
+    if(testRunner == null)  return false;
+    if(!keys.isValid())     return false;
     
     return true;
   }
@@ -70,7 +73,21 @@ public class SendKeys extends TestAction
   @Override
   public void execute() throws Exception
   {
-    // TODO Implement function
-    System.out.println("Send keys '" + keys.getValue() + "' to browser.");
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    testRunner.getWebActionPlugin().doSendKeys(keys.getValue());
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Send keys '" + keys.getValue() + "' to browser.");
   }
 }

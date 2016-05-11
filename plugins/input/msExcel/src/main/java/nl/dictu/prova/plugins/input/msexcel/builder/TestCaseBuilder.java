@@ -1,5 +1,7 @@
 package nl.dictu.prova.plugins.input.msexcel.builder;
 
+import nl.dictu.prova.Config;
+import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.framework.TestStatus;
@@ -20,6 +22,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author Hielke de Haan
@@ -32,14 +35,16 @@ public class TestCaseBuilder
   private Workbook workbook;
   private WorkbookReader workbookReader;
   private WebActionFactory webActionFactory;
+  private TestRunner testRunner;
 
-  public TestCaseBuilder(String testRootPath) throws IOException
+  public TestCaseBuilder(String testRootPath, TestRunner testRunner) throws IOException
   {
     this.testRootPath = testRootPath;
+    this.testRunner = testRunner;
     this.webActionFactory = new WebActionFactory();
   }
 
-  TestCase buildTestCase(TestCase testCase) throws Exception
+  public TestCase buildTestCase(TestCase testCase) throws Exception
   {
     workbookPath = getPathFromTCID(testCase.getId());
     LOGGER.trace("Path: {}", workbookPath);
@@ -70,7 +75,7 @@ public class TestCaseBuilder
           if (workbookReader.isTag(firstCellContent))
           {
             String tagName = workbookReader.getTagName(firstCellContent);
-            LOGGER.debug("Found tag: {}", tagName);
+            LOGGER.trace("Found tag: {}", tagName);
             switch (tagName)
             {
               case "beschrijving":
@@ -138,6 +143,7 @@ public class TestCaseBuilder
   private List<TestAction> readTestActionsFromReference(Map<String, String> rowMap) throws Exception
   {
     Sheet nextSheet;
+    
     if (rowMap.get("package").isEmpty())
     {
       LOGGER.debug("Find sheet {} in same workbook", rowMap.get("test"));
@@ -145,7 +151,8 @@ public class TestCaseBuilder
 
       if (nextSheet == null)
         throw new Exception("Sheet " + rowMap.get("test") + " not found in workbook " + workbookPath);
-    } else
+    } 
+    else
     {
       LOGGER.debug("Find sheet {} in package {}", rowMap.get("test"), rowMap.get("package"));
       String nextPath = getWorkbookFromPackage(rowMap.get("package"));
@@ -165,20 +172,24 @@ public class TestCaseBuilder
   {
     List<TestAction> testActions = new ArrayList<>();
     MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
+    
     while (rowNum.intValue() < sheet.getLastRowNum())
     {
       Row row = sheet.getRow(rowNum.intValue());
+      
       if (row != null)
       {
         Cell firstCell = row.getCell(0);
         if (firstCell != null)
         {
           String firstCellContent = workbookReader.evaluateCellContent(firstCell);
+          
           if (workbookReader.isTag(firstCellContent))
           {
             // get tag
             String tagName = workbookReader.getTagName(firstCellContent);
-            LOGGER.debug("Found tag: {}", tagName);
+            LOGGER.trace("Found tag: {}", tagName);
+            
             switch (tagName)
             {
               case "sectie":
@@ -204,16 +215,27 @@ public class TestCaseBuilder
       {
         case "sectie":
           TestAction testAction = webActionFactory.getAction(rowMap.get("actie"));
+          String locatorName = rowMap.get("locator").toLowerCase();
+          
+          LOGGER.debug("Action: '{}', Locator: '{}' (xpath: {})", 
+                        rowMap.get("actie").toUpperCase(), 
+                        locatorName,
+                        testRunner.getPropertyValue(Config.PROVA_OUT_WEB_LOCATOR_PFX + "." + locatorName));
+          
+          testAction.setTestRunner(testRunner);
+          testAction.setAttribute("xpath", testRunner.getPropertyValue(Config.PROVA_OUT_WEB_LOCATOR_PFX + "." + locatorName));
+          
           for (String key : rowMap.keySet())
           {
             if (!key.equals("actie"))
             {
-              // TODO testAction.setAttribute(key, rowMap.get(key));
+              // TODO 
+              testAction.setAttribute(key, rowMap.get(key));
               // TODO substitute parameters
-              LOGGER.trace("Read {} action attribute {} = {}", rowMap.get("actie"), key, rowMap.get(key));
+              LOGGER.trace("Read '{}' action attribute '{}' = '{}'", rowMap.get("actie").toUpperCase(), key, rowMap.get(key));
             }
           }
-          LOGGER.trace("Read {} action {}", rowMap.get("actie"), testAction);
+          LOGGER.trace("Read '{}' action '{}'", rowMap.get("actie"), testAction);
           testActions.add(testAction);
           break;
         case "tc":
@@ -283,5 +305,4 @@ public class TestCaseBuilder
   {
     return testRootPath + File.separator + _package.replace(".", File.separator) + ".xlsm";
   }
-
 }

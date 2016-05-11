@@ -746,19 +746,4 @@ public class TestSuiteTest
     assertEquals(2,testRoot.numberOfTestCases(false));
     assertEquals(20,testRoot.numberOfTestCases(true));
   }  
-  
-
-  /*
-   * Issue ID:    PROVA-32
-   * Requirement: ...
-   * 
-   * Execute all test suites and test cases
-   */
-  @Test
-  @Ignore
-  public void execute() 
-  {
-    // TODO implement a proper test!
-    testRoot.execute();
-  }  
 }

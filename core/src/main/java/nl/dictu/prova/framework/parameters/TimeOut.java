@@ -35,4 +35,16 @@ public class TimeOut extends Number
     super.setMaxValue(1800000);     // 30 minutes
     super.setValue(defaultTimeOut);
   }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': " + this.value);
+  }
 }

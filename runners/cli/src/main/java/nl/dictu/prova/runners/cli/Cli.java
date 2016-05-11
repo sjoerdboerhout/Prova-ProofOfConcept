@@ -97,7 +97,7 @@ public class Cli extends ProvaRunner
       
       // Update log level immediately if it was supplied as option
       if(cliProperties.containsKey("prova.log.level"))
-        setDebugLevel(this.getClass().getName(), cliProperties.getProperty("prova.log.level"));
+        setDebugLevel(this.getClass().getName(), cliProperties.getProperty(Config.PROVA_LOG_LEVEL));
       
       // Detect Prova rootdir
       // Load default settings
@@ -195,7 +195,7 @@ public class Cli extends ProvaRunner
       if(cmdLine.hasOption("version"))    this.printVersion();
       
       if(cmdLine.hasOption("config"))     properties.setProperty(Config.PROVA_CONF_FILE_USER, cmdLine.getOptionValue("config"));
-      if(cmdLine.hasOption("env"))        properties.setProperty(Config.PROVA_ENVIRONMENT,    cmdLine.getOptionValue("env"));
+      if(cmdLine.hasOption("env"))        properties.setProperty(Config.PROVA_ENV,            cmdLine.getOptionValue("env"));
       if(cmdLine.hasOption("filters"))    properties.setProperty(Config.PROVA_TESTS_FILTERS,  cmdLine.getOptionValue("filters"));
       if(cmdLine.hasOption("loglevel"))   properties.setProperty(Config.PROVA_LOG_LEVEL,      cmdLine.getOptionValue("loglevel"));
       if(cmdLine.hasOption("out"))        properties.setProperty(Config.PROVA_RESULTS_FILE,   cmdLine.getOptionValue("out"));

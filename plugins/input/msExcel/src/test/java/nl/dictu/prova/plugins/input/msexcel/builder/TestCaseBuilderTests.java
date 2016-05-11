@@ -29,7 +29,7 @@ public class TestCaseBuilderTests
   public void testBuildTestCase1() throws Exception
   {
     TestCase testCase = new TestCase(testRoot + "/functional/projectSubsidies/verlening/AVBH/AVBH.xlsm/WEB_ADAC_001".replace("/", File.separator));
-    testCase = new TestCaseBuilder(testRoot).buildTestCase(testCase);
+    testCase = new TestCaseBuilder(testRoot,null).buildTestCase(testCase);
     LOGGER.debug(testCase);
   }
 
@@ -37,7 +37,7 @@ public class TestCaseBuilderTests
   public void testBuildTestCase2() throws Exception
   {
     TestCase testCase = new TestCase(testRoot + "/functional/deelname/Deelname.xlsm/WEB_DLN_001".replace("/", File.separator));
-    testCase = new TestCaseBuilder(testRoot).buildTestCase(testCase);
+    testCase = new TestCaseBuilder(testRoot,null).buildTestCase(testCase);
     LOGGER.debug(testCase);
   }
 }

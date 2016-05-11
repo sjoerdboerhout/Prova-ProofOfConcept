@@ -149,4 +149,16 @@ public class Number extends Parameter
     
     this.maxValue = maxValue;
   }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': " + this.value);
+  }
 }

@@ -2,12 +2,17 @@ package nl.dictu.prova;
 
 import java.lang.Thread.State;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.framework.TestSuite;
+import nl.dictu.prova.framework.exceptions.SetUpActionException;
+import nl.dictu.prova.framework.exceptions.TearDownActionException;
+import nl.dictu.prova.framework.exceptions.TestActionException;
 import nl.dictu.prova.plugins.input.InputPlugin;
 import nl.dictu.prova.plugins.output.OutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
@@ -184,15 +189,15 @@ public class Prova implements Runnable, TestRunner
       }
 
       LOGGER.debug("Load plug-in files");
-      pluginLoader.addFiles(properties.getProperty("prova.root.dir") +
-                            properties.getProperty("prova.plugins.dir"), 
-                            properties.getProperty("prova.plugins.ext"));
+      pluginLoader.addFiles(properties.getProperty(Config.PROVA_DIR) +
+                            properties.getProperty(Config.PROVA_PLUGINS_DIR), 
+                            properties.getProperty(Config.PROVA_PLUGINS_EXT));
      
       
       LOGGER.debug("Load and initialize input plug-in");
-      pluginName = properties.getProperty("prova.plugins.in.package") +
-                   properties.getProperty("prova.plugins.in").toLowerCase() + "." +
-                   properties.getProperty("prova.plugins.in");
+      pluginName = properties.getProperty(Config.PROVA_PLUGINS_INPUT_PACKAGE) +
+                   properties.getProperty(Config.PROVA_PLUGINS_INPUT).toLowerCase() + "." +
+                   properties.getProperty(Config.PROVA_PLUGINS_INPUT);
       
       inputPlugin = pluginLoader.getInstanceOf(pluginName, InputPlugin.class);
          
@@ -204,7 +209,18 @@ public class Prova implements Runnable, TestRunner
       
       // TODO: Load and initialize output plug-in
       LOGGER.debug("Load and initialize output plug-in");
+      pluginName = properties.getProperty("prova.plugins.out.web.package") +
+          properties.getProperty("prova.plugins.out.web").toLowerCase() + "." +
+          properties.getProperty("prova.plugins.out.web");
+
+      webOutputPlugin = pluginLoader.getInstanceOf(pluginName, OutputPlugin.class);
       
+      if(webOutputPlugin != null)
+        webOutputPlugin.init(this);
+      else
+        throw new Exception("Could not load web output plugin '" + pluginName + "'");
+
+
       // TODO: Load and initialize report plug-in(s)
       LOGGER.debug("Load and initialize reporting plug-in");
     }
@@ -219,7 +235,7 @@ public class Prova implements Runnable, TestRunner
     }
     finally
     {
-      pluginLoader.close();
+      //pluginLoader.close();
     }
   }
     
@@ -236,8 +252,20 @@ public class Prova implements Runnable, TestRunner
     {
       LOGGER.info("Setting up Prova.");
       
-      // TODO: Search for test scripts
+      // Set the root location of the test scripts.
+      inputPlugin.setTestRoot(properties.getProperty(Config.PROVA_TESTS_ROOT));
+       
+      // Set filters for test case labels
+      inputPlugin.setLabels(properties.getProperty(Config.PROVA_TESTS_FILTERS).split(","));
+      
+      // TODO Add support for specific test cases
+      // inputPlugin.setTestCaseFilter(String[] testCases);
+      
+      // Search for test scripts and read the headers
+      inputPlugin.setUp();
+      
       // TODO: Build structure of test suites and test cases
+      
       // TODO: Run one time setup script(s)
     }
     catch(Exception eX)
@@ -254,12 +282,12 @@ public class Prova implements Runnable, TestRunner
   {
     try
     {
-      LOGGER.info("Executing Prova");
+      LOGGER.info("Start executing test scripts");
       
       // Start test execution
       if(rootTestSuite != null)
-      {  
-        rootTestSuite.execute();
+      {
+        executeTestSuite(rootTestSuite); 
       }
       else
       {
@@ -272,6 +300,79 @@ public class Prova implements Runnable, TestRunner
       throw eX;
     }  
   }
+  
+  /**
+   * Execute the given test suite recursively
+   * 
+   * @param testSuite
+   */
+  private void executeTestSuite(TestSuite testSuite)
+  {
+    try
+    {
+      LOGGER.debug("EXEC TS: {}", () -> testSuite.toString());
+      
+      // First execute all test cases
+      for(Map.Entry<String, TestCase> entry : testSuite.getTestCases().entrySet())
+      {
+        try
+        {
+          // Load all details of the test script
+          inputPlugin.loadTestCase(entry.getValue());
+          
+          if(webOutputPlugin != null)
+            webOutputPlugin.setUp(entry.getValue());
+          
+          if(shellOutputPlugin != null)
+            shellOutputPlugin.setUp(entry.getValue());
+          
+          // Execute the test script
+          entry.getValue().execute();
+          
+          if(webOutputPlugin != null)
+            webOutputPlugin.tearDown(entry.getValue());
+          
+          if(shellOutputPlugin != null)
+            shellOutputPlugin.tearDown(entry.getValue());
+        }
+        catch(SetUpActionException eX)
+        {
+          LOGGER.warn(eX);
+        }
+        catch(TestActionException eX)
+        {
+          LOGGER.debug(eX);
+        }
+        catch(TearDownActionException eX)
+        {
+          LOGGER.warn(eX);
+        }
+        catch(Exception eX)
+        {
+          LOGGER.error(eX);
+        }
+      }
+      
+      // Second, execute all sub test suites
+      for(Map.Entry<String, TestSuite> entry : testSuite.getTestSuites().entrySet())
+      {
+        try
+        {
+          executeTestSuite(entry.getValue());
+        }
+        catch(Exception eX)
+        {
+          LOGGER.error(eX);
+        }
+      }
+    }
+    catch(Exception eX)
+    {
+      LOGGER.error(eX);
+    }
+  }
+  
+  
     
   /**
    *  TearDown after test execution
@@ -355,6 +456,8 @@ public class Prova implements Runnable, TestRunner
   @Override
   public OutputPlugin getWebActionPlugin()
   {
+    LOGGER.trace("Request for web action plugin. ({})", () -> this.webOutputPlugin.getName() );
+    
     return this.webOutputPlugin;
   }
 
@@ -366,6 +469,8 @@ public class Prova implements Runnable, TestRunner
   @Override
   public OutputPlugin getShellActionPlugin()
   {
+    LOGGER.trace("Request for shell action plugin. ({})", () -> this.shellOutputPlugin.getName() );
+    
     return this.shellOutputPlugin;
   }
 
@@ -395,5 +500,50 @@ public class Prova implements Runnable, TestRunner
     this.properties.putAll(properties);
   }
   
+  /**
+   * Get the value of the property with key <key>
+   * 
+   * @param key
+   * @return
+   * @throws Exception
+   */
+  @Override
+  public String getPropertyValue(String key) throws Exception
+  {
+    LOGGER.trace("Get value of property: '{}' ({})", 
+                  () -> key, 
+                  () -> properties.containsKey(key) ? properties.getProperty(key) : "Not found");
+    
+    return properties.getProperty(key);
+  }
+  
+  /**
+   * Set the value of the property with key <key> to <value
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setPropertyValue(String key, String value) throws Exception
+  {
+    LOGGER.trace("Set value of property with key '{}' to '{}'", () -> key, () -> value);
+    
+    properties.setProperty(key, value);
+  }
+  
+
+  
+  /**
+   * Print all properties (for debug purpose)
+   * 
+   */
+  public void printAllProperties() throws Exception
+  {
+    for(String key : this.properties.stringPropertyNames())
+    {
+      System.out.println(key + " => " + properties.getProperty(key));
+    }
+  }
    
 }

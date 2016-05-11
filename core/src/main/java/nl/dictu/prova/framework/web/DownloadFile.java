@@ -46,6 +46,8 @@ public class DownloadFile extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
     switch(key.toUpperCase())
     {
       case ATTR_XPATH:
@@ -57,7 +59,7 @@ public class DownloadFile extends TestAction
       case ATTR_SAVEAS:  
         saveAs.setValue(value); 
       break;
-    } 
+    }
   }
   
 
@@ -67,8 +69,9 @@ public class DownloadFile extends TestAction
   @Override
   public boolean isValid()
   {
-    if(!url.isValid())    return false;
-    if(!saveAs.isValid()) return false;
+    if(testRunner == null)  return false;
+    if(!url.isValid())      return false;
+    if(!saveAs.isValid())   return false;
     
     return true;
   }
@@ -80,7 +83,21 @@ public class DownloadFile extends TestAction
   @Override
   public void execute() throws Exception
   {
-    // TODO Implement function
-    System.out.println( "Save '" + url.getValue() + "' as " + saveAs.getValue());
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    this.testRunner.getWebActionPlugin().doDownloadFile(url.getValue(), saveAs.getValue());
+  }
+
+
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Save '" + url.getValue() + "' as " + saveAs.getValue());
   }
 }
