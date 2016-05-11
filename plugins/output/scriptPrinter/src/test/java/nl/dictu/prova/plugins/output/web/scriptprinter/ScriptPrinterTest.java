@@ -1,4 +1,4 @@
-package nl.dictu.prova.plugins.output.scriptprinter;
+package nl.dictu.prova.plugins.output.web.scriptprinter;
 
 import org.junit.*;
 import static org.junit.Assert.*;
