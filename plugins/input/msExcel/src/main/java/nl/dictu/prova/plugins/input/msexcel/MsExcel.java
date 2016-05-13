@@ -53,6 +53,8 @@ public class MsExcel implements InputPlugin
   {
     try
     {
+      LOGGER.trace("Set new test root: '{}'", () -> newTestRoot);
+    	
       File testRoot = new File(newTestRoot);
       
       if(!testRoot.isDirectory())

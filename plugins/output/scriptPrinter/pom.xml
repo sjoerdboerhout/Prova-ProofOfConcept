@@ -21,18 +21,6 @@
 
   <properties>
     <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
-  </properties>
-
-  <dependencies>
-    <dependency>
-      <groupId>nl.dictu.prova</groupId>
-      <artifactId>core</artifactId>
-      <version>${prova.core.version}</version>
-    </dependency>
-  </dependencies>
-
-  <properties>
-    <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
 
     <prova.install.dir>${project.parent.basedir}</prova.install.dir>
     <artifact.install.dir>${prova.install.dir}/${prova.plugins.output.path}</artifact.install.dir>

@@ -4,6 +4,7 @@ import nl.dictu.prova.framework.TestCase;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -26,6 +27,7 @@ public class TestCaseBuilderTests
   }
 
   @Test
+  @Ignore
   public void testBuildTestCase1() throws Exception
   {
     TestCase testCase = new TestCase(testRoot + "/functional/projectSubsidies/verlening/AVBH/AVBH.xlsm/WEB_ADAC_001".replace("/", File.separator));

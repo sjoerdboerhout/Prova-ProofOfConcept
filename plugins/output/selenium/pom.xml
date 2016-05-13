@@ -25,6 +25,8 @@
     <artifact.package>nl.dictu.prova.plugins.output.selenium</artifact.package>
     <artifact.mainclass>Selenium</artifact.mainclass>
     <dir.lib.rel>../../lib</dir.lib.rel>
+
+    <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
 		
     <selenium-java.version>2.53.0</selenium-java.version>
     <selenium-server.version>2.53.0</selenium-server.version>
@@ -32,6 +34,12 @@
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>nl.dictu.prova</groupId>
+      <artifactId>core</artifactId>
+      <version>${prova.core.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.seleniumhq.selenium</groupId>
       <artifactId>selenium-java</artifactId>
@@ -44,11 +52,13 @@
       <version>${selenium-server.version}</version>
     </dependency>
 
+    <!--
     <dependency>
       <groupId>com.github.detro</groupId>
       <artifactId>phantomjsdriver</artifactId>
       <version>${phantomjsdriver.version}</version>
     </dependency>
+  -->
   </dependencies>
 
   <build>

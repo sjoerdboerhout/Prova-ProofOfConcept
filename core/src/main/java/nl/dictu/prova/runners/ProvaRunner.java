@@ -189,16 +189,27 @@ public abstract class ProvaRunner
     
     try
     {
+      LOGGER.trace("Find PROVA rootpath. File separator = '{}'", pathSeparator);
+    	
       // Get the root path of the Prova installation
       sRootPath = Prova.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+      
+      LOGGER.trace("rootpath #1: {}", sRootPath);
+      
       sRootPath = URLDecoder.decode(sRootPath, "utf-8");
-      sRootPath = sRootPath.substring(1,sRootPath.lastIndexOf(pathSeparator));
+      
+      LOGGER.trace("rootpath #2: {}", sRootPath);
+      
+      sRootPath = sRootPath.substring(1,sRootPath.lastIndexOf('/'));
+      
+      LOGGER.trace("rootpath #3: {}", sRootPath);
+      
       fRootPath = new File(pathSeparator + pathSeparator + sRootPath)
                           .getParentFile()
                           .getParentFile()
                           .getAbsoluteFile();
       
-      LOGGER.info("Root location of Prova: '{}/'", fRootPath.getAbsolutePath());
+      LOGGER.info("Root location of Prova: '{}{}'", fRootPath.getAbsolutePath(),pathSeparator);
     }
     catch(Exception eX)
     {

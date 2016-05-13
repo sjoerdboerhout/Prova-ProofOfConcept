@@ -371,13 +371,35 @@ public class TestCaseTest
    * Check a valid issue id results in an exception
    */
   @Test
-  public void checkValidProperty() 
+  public void checkValidPriority() 
   {
     try
     {
       TestCase testCase = new TestCase("qwerty");
       testCase.setPriority("high");
       assertTrue(testCase.getPriority().equals("high"));
+    }
+    catch(Exception eX)
+    {
+      fail(eX.getMessage());
+    }
+  }
+
+  
+  /*
+   * Issue ID:    PROVA-X
+   * Requirement: Each test has an issue id as link to a requirement
+   * 
+   * Check a valid issue id results in an exception
+   */
+  @Test
+  public void checkProjectName() 
+  {
+    try
+    {
+      TestCase testCase = new TestCase("qwerty");
+      testCase.setProjectName("Sheep");
+      assertTrue(testCase.getProjectName().equals("Sheep"));
     }
     catch(Exception eX)
     {

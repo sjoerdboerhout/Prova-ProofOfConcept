@@ -25,6 +25,8 @@ public class TestCase
   private TestStatus status   = TestStatus.NOTRUN;
   private String     summary  = "";
   
+  private String projectName  = "";
+  
   // Test case information
   private String issueId  = "";
   private String priority = "";
@@ -97,7 +99,31 @@ public class TestCase
   public TestStatus getStatus()
   {
     return this.status;
+  }  
+  
+
+  /**
+   * Update the project name for this test script
+   * 
+   * @param projectName
+   */
+  public void setProjectName(String projectName)
+  {
+    LOGGER.debug("Set project name of tc '{}' to: {}", () -> this.projectName, () -> projectName);
+    
+    this.projectName = projectName;
   }
+  
+  /**
+   * Get the current project name of this test
+   * 
+   * @return
+   */
+  public String getProjectName()
+  {
+    return this.projectName;
+  }
+
   
   /**
    * Set a summary for this test. Usefull when the test could not be

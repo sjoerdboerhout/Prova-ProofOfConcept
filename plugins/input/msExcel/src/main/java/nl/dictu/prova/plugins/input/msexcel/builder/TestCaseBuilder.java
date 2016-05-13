@@ -91,7 +91,7 @@ public class TestCaseBuilder
                 testCase.setPriority(workbookReader.readProperty(row, firstCell));
                 break;
               case "project":
-                // TODO add field to TestCase
+                testCase.setProjectName(workbookReader.readProperty(row, firstCell));
                 break;
               case "requirement":
                 // TODO add field to TestCase
@@ -220,10 +220,10 @@ public class TestCaseBuilder
           LOGGER.debug("Action: '{}', Locator: '{}' (xpath: {})", 
                         rowMap.get("actie").toUpperCase(), 
                         locatorName,
-                        testRunner.getPropertyValue(Config.PROVA_OUT_WEB_LOCATOR_PFX + "." + locatorName));
+                        testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName));
           
           testAction.setTestRunner(testRunner);
-          testAction.setAttribute("xpath", testRunner.getPropertyValue(Config.PROVA_OUT_WEB_LOCATOR_PFX + "." + locatorName));
+          testAction.setAttribute("xpath", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName));
           
           for (String key : rowMap.keySet())
           {

@@ -56,6 +56,7 @@ public class Cli extends ProvaRunner
     catch(Exception eX)
     {
       LOGGER.fatal(eX);
+      eX.printStackTrace();
     }
     finally
     {
