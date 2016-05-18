@@ -16,6 +16,7 @@ import nl.dictu.prova.plugins.reporting.ReportingPlugin;
  */
 public interface TestRunner
 {
+  public Boolean                    hasPropertyValue(String key);
   public String                     getPropertyValue(String key) throws Exception;
   public void                       setPropertyValue(String key, String value) throws Exception;
   public void                       printAllProperties() throws Exception;

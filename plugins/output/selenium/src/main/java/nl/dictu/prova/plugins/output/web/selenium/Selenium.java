@@ -10,6 +10,8 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.safari.SafariDriver;
 
@@ -74,8 +76,18 @@ public class Selenium implements OutputPlugin
       
       if(browserType.equalsIgnoreCase("FireFox"))
       {
-        LOGGER.trace("Try to load webdriver 'FireFox'");
-        webdriver = new FirefoxDriver();
+        if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE))
+        {
+          ProfilesIni profile = new ProfilesIni();
+          FirefoxProfile ffProfile = profile.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+          LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+          webdriver = new FirefoxDriver(ffProfile);
+        }
+        else
+        {
+          LOGGER.trace("Try to load webdriver 'FireFox'");
+          webdriver = new FirefoxDriver();
+        }
       }
       else if(browserType.equalsIgnoreCase("Chrome"))
       {

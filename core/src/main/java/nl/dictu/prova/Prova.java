@@ -529,6 +529,22 @@ public class Prova implements Runnable, TestRunner
   }
   
   /**
+   * Check if a property with the value <key> exists in property collection
+   * 
+   * @param key
+   * @return
+   */
+  @Override
+  public Boolean hasPropertyValue(String key)
+  {
+    LOGGER.trace("Has property: '{}': ({})", 
+                  () -> key, 
+                  () -> properties.containsKey(key) ? properties.getProperty(key) : "No");
+    
+    return properties.containsKey(key);
+  }
+  
+  /**
    * Get the value of the property with key <key>
    * 
    * @param key
