@@ -9,7 +9,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * Load a Jar file from a given URL
+ * Load a Jar file from a given URL 
  * 
  * @author Sjoerd Boerhout
  * @since 2016-04-22
@@ -29,6 +29,7 @@ public class PluginLoader extends URLClassLoader
   {
     super(urls);
   }
+  
   
   /**
    * Constructor with url(s)
@@ -63,7 +64,7 @@ public class PluginLoader extends URLClassLoader
     }
     catch(Exception eX)
     {
-      LOGGER.trace("Exception: {}", eX.getMessage());
+      LOGGER.trace("Unhandled exception: {}", eX.getMessage());
       throw eX;      
     }
   }
@@ -73,8 +74,8 @@ public class PluginLoader extends URLClassLoader
    * Add all files from the given directory with correct file extension
    * to the Java class path
    * 
-   * @param path
-   * @throws Exception
+   * @param dirName
+   * @param fileExt
    */
   public void addFiles(String dirName, String fileExt)
   {
@@ -88,7 +89,7 @@ public class PluginLoader extends URLClassLoader
       if(dir.exists() && dir.canRead())
         addAllFiles(dir, fileExt);
       else
-        throw new Exception("Directory name for plugins doesn't exist.(" + dirName + ")");
+        throw new Exception("Directory name for plugins can't be read.(" + dirName + ")");
     }
     catch(Exception eX)
     {
@@ -100,10 +101,9 @@ public class PluginLoader extends URLClassLoader
    * Add all file's with given file extension to the class path.
    * 
    * @param rootDir
-   * @param fileExt
-   * @throws Exception 
+   * @param fileExt 
    */
-  private void addAllFiles(File rootDir, String fileExt) throws Exception
+  private void addAllFiles(File rootDir, String fileExt)
   {
     for(File file : rootDir.listFiles())
     {
@@ -128,7 +128,7 @@ public class PluginLoader extends URLClassLoader
       }
       catch(Exception eX)
       {
-        throw eX;
+        LOGGER.warn(eX.getMessage());
       }
     }
   }
@@ -145,13 +145,13 @@ public class PluginLoader extends URLClassLoader
   {
     try
     {
-      LOGGER.debug("Try to load class '{}' of type '{}'", () -> className, () -> classType.getName());
+      LOGGER.trace("Try to load class '{}' of type '{}'", () -> className, () -> classType.getName());
       
       return classType.cast(this.loadClass(className).newInstance());
     }
     catch(Exception eX)
     {
-      LOGGER.error("Exception: {}", eX.getMessage());
+      LOGGER.trace("Exception: {}", eX.getMessage());
       throw eX;      
     }
   }

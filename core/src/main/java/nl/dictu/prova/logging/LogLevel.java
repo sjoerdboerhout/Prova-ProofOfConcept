@@ -38,14 +38,14 @@ package nl.dictu.prova.logging;
  * All:     Equivalent to previous item. Enables all logging.
  * 
  * @author Sjoerd Boerhout
- * @since  0.0.1
+ * @since  2016-04-01
  */
 public enum LogLevel
 { 
   OFF(0),
   FATAL(1),
   ERROR(2),
-  WARNING(3),
+  WARN(3),
   INFO(4),
   DEBUG(5),
   TRACE(6),

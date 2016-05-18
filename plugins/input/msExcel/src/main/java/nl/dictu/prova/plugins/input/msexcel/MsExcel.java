@@ -49,18 +49,22 @@ public class MsExcel implements InputPlugin
    * it can be read correctly.
    */
   @Override
-  public void setTestRoot(String newTestRoot) throws Exception
+  public void setTestRoot(String newTestRoot, String projectName) throws Exception
   {
     try
-    {
-      LOGGER.trace("Set new test root: '{}'", () -> newTestRoot);
+    { 
+      LOGGER.trace("Set new test root: '{}'", newTestRoot);
     	
+      // First remove space before and after the test root
+      newTestRoot = newTestRoot.trim();
+      projectName = projectName.trim();
+      
       File testRoot = new File(newTestRoot);
       
       if(!testRoot.isDirectory())
       {
         LOGGER.trace("Test root not found. Try as sub-directory of Prova's default test root.");
-        testRoot = new File(testRunner.getPropertyValue(Config.PROVA_DIR) + newTestRoot);
+        testRoot = new File(testRunner.getPropertyValue(Config.PROVA_DIR) + System.getProperty("file.separator") + newTestRoot);
       }
       
       if(!testRoot.isDirectory())
@@ -68,15 +72,24 @@ public class MsExcel implements InputPlugin
       
       if(!testRoot.canRead())
         throw new Exception("Test root can not be read! (" + newTestRoot + ")");
+
+      // Save new test root
+      testRunner.setPropertyValue(Config.PROVA_TESTS_ROOT, testRoot.getAbsolutePath());
+
+      // Check if a directory for the given project name exists
+      testRoot = new File(testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT) + System.getProperty("file.separator") + projectName);
+      LOGGER.trace("Test if a project dir is available: '{}'", testRoot.getAbsolutePath());
+      if(testRoot.isDirectory())
+      {
+        LOGGER.trace("Project dir is available: '{}'", testRoot.getAbsolutePath());
+        testRunner.setPropertyValue(Config.PROVA_TESTS_ROOT, testRoot.getAbsolutePath());
+      }
       
-      LOGGER.trace("Update test root to '{}'", testRoot.getAbsolutePath() + "/");
-      testRunner.setPropertyValue(Config.PROVA_TESTS_ROOT, testRoot.getAbsolutePath() + "/");
-      
+      LOGGER.info("Active test root: '{}'", testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT));
     }
     catch(Exception eX)
     {
-      eX.printStackTrace();
-      throw eX;
+      throw new Exception("Unable to read test root '" + newTestRoot + "'");
     }
   }
 

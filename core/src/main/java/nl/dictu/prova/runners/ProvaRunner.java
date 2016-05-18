@@ -17,49 +17,68 @@ import nl.dictu.prova.Prova;
 
 /**
  * Contains all the common function needed to configure and start Prova.
+ * This class is extended by a runner.
  * 
  * @author  Sjoerd Boerhout
  * @since   2016-04-16
  */
 public abstract class ProvaRunner
 {
-  protected static LogLevel logLevel;
   protected final static Logger LOGGER = LogManager.getLogger();
   
   protected Prova       prova;
   protected Properties  provaProperties;
+  protected String      pathSeparator;
+  
   
   /**
-   * Constructor.
+   * Constructor
    */
   protected ProvaRunner()
   {
-    logLevel        = LogLevel.DEBUG;
     provaProperties = new Properties();
+    provaProperties.putAll(System.getProperties());
+    
+    pathSeparator = provaProperties.getProperty(Config.PROVA_OS_FILE_SEPARATOR);
   }
   
+  
   /**
-   *  Setup Prova runner with 
+   *  Init Prova runner with:
    * - Creates a Prova instance
-   * - Initializes the properties
    * - Get Prova root path
+   * - Load the properties from file
    * 
    * @throws Exception
    */
   protected void init() throws Exception
   { 
-    prova       = new Prova();
+    LOGGER.trace("Create a new Prova instance");
+    prova = new Prova();
       
-    // Load the default Prova settings
-    LOGGER.trace("Load the default Prova properties from resource file");
-    provaProperties.putAll(loadPropertiesFromResource("/config/prova-defaults.prop"));  
+    LOGGER.trace("Try to detect the Prova root directory");
     provaProperties.put(Config.PROVA_DIR, getProvaRootPath());
     
+    // Load the default Prova settings from resource file
+    LOGGER.trace("Load the hard coded Prova default properties");
+    provaProperties.putAll(loadPropertiesFromResource("/config/prova-defaults.prop"));  
+    
+    // Try to load the default properties file
+    LOGGER.trace("Start loading default property files");
+    provaProperties.putAll(loadDefaultPropertyFiles()); 
+    
+    // Check if a project name was supplied
+    if(provaProperties.containsKey(Config.PROVA_PROJECT))
+    {
+      // Read project property file(s)
+      LOGGER.trace("Start loading project property files");
+      provaProperties.putAll(loadProjectPropertyFiles()); 
+    }
   }
   
   
   /**
-   * Update the log level of Prova
+   * Update the log level of the current Prova instance
    * 
    * @param logger
    * @param name
@@ -67,11 +86,18 @@ public abstract class ProvaRunner
    */
   public String setDebugLevel(String logger, String name)
   {
+    LogLevel logLevel = null;
+    
     try
     {
+      LOGGER.trace("Try to update loglevel of '{}' to '{}'", logger, name);
+
       String currLogLevel;
       logLevel = LogLevel.lookup(name); 
       
+      if(logLevel == null)
+        throw new Exception("Invalid debug level '" + name + "'");
+
       // Log4j2 configuration uses the systems properties.
       System.setProperty(Config.PROVA_LOG_LEVEL, logLevel.name());
       
@@ -82,7 +108,7 @@ public abstract class ProvaRunner
       currLogLevel = ctx.getLogger(LogManager.ROOT_LOGGER_NAME).getLevel().name();
       ctx.reconfigure();
       
-      // Check if log level changed
+      // Check if log level is changed
       if(!currLogLevel.equalsIgnoreCase(name))
       {
         if(LOGGER.isInfoEnabled())
@@ -95,14 +121,15 @@ public abstract class ProvaRunner
     }
     catch(Exception eX)
     {
-      LOGGER.warn(eX);
+      LOGGER.error(eX);
     }
     
     return logLevel.name();
   }
   
+  
   /**
-   * Update the location to save the Prova log files 
+   * Update the location to save the current Prova log file
    * 
    * @param logFile
    */
@@ -110,6 +137,8 @@ public abstract class ProvaRunner
   {     
     try
     {
+      LOGGER.trace("Update loglevel file to '{}'", logFile);
+      
       // Log4j2 configuration uses the systems properties.
       System.setProperty(Config.PROVA_LOG_FILENAME, logFile);
       
@@ -126,7 +155,7 @@ public abstract class ProvaRunner
   /**
    * Override the log pattern with a new pattern.
    * The pattern is set for both console and file logging
-   * This function assumes a valid Log4j2 is supplied!
+   * Note: This function assumes that a valid Log4j2 pattern is supplied!
    * 
    * @param newPattern
    */
@@ -149,10 +178,11 @@ public abstract class ProvaRunner
     }
   }
 
+  
   /**
    * Override the log pattern with a new pattern.
    * The pattern is set for both console and file logging
-   * This function assumes a valid Log4j2 is supplied!
+   * Note: This function assumes that a valid Log4j2 pattern is supplied!
    * 
    * @param newPattern
    */
@@ -177,7 +207,9 @@ public abstract class ProvaRunner
   
   
   /**
-   * Initialize the Prova runner
+   * Retrieve the Prova root path based on the location of the current JAR-file
+   * Assuming it is placed in the defined directory structure the root-dir
+   * is 2 levels up.
    *
    * @throws Exception
    */
@@ -185,7 +217,6 @@ public abstract class ProvaRunner
   {
     String sRootPath = "";
     File   fRootPath;
-    String pathSeparator = System.getProperty("file.separator");
     
     try
     {
@@ -193,86 +224,128 @@ public abstract class ProvaRunner
     	
       // Get the root path of the Prova installation
       sRootPath = Prova.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-      
-      LOGGER.trace("rootpath #1: {}", sRootPath);
-      
       sRootPath = URLDecoder.decode(sRootPath, "utf-8");
-      
-      LOGGER.trace("rootpath #2: {}", sRootPath);
-      
       sRootPath = sRootPath.substring(1,sRootPath.lastIndexOf('/'));
-      
-      LOGGER.trace("rootpath #3: {}", sRootPath);
-      
       fRootPath = new File(pathSeparator + pathSeparator + sRootPath)
                           .getParentFile()
                           .getParentFile()
                           .getAbsoluteFile();
       
-      LOGGER.info("Root location of Prova: '{}{}'", fRootPath.getAbsolutePath(),pathSeparator);
+      LOGGER.info("Root location of Prova: '{}'", fRootPath.getAbsolutePath());
     }
     catch(Exception eX)
     {
-      LOGGER.fatal(eX);
+      LOGGER.trace("Exception while retrieving Prova rootpath", eX);
       throw eX;
     }
 
-    return (fRootPath.getAbsolutePath() + "/");
+    return (fRootPath.getAbsolutePath());
   }
   
   
   /**
-   * Search for property files and load all properties
+   * Search for the default property files and load all properties
    * Searches for:
-   * - prova-defaults.properties
-   * - prova-defaults-test.properties
-   * - prova-<projectName>.properties
-   * - prova-<projectName>-test.properties
+   * - prova_defaults.prop
+   * - prova_defaults-test.prop
    */
-  protected Properties loadPropertyFiles() throws Exception
+  protected Properties loadDefaultPropertyFiles()
   {
     Properties properties = new Properties();
+    String fileName = "";
     
     try
     {
-      LOGGER.debug("Load default property files for Prova");
+      LOGGER.trace("Load default property files for Prova");
       
-      // <rootPath>\config\prova-defaults.properties
-      properties.putAll(loadPropertiesFromFile(provaProperties.getProperty(Config.PROVA_DIR) +
-                                               provaProperties.getProperty(Config.PROVA_CONF_DIR) +
-                                               provaProperties.getProperty(Config.PROVA_CONF_FILE_DEF) +
-                                               provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT)));
+      // <rootPath>\config\prova_defaults.properties
+      fileName = provaProperties.getProperty(Config.PROVA_DIR) +
+                 pathSeparator +
+                 provaProperties.getProperty(Config.PROVA_CONF_DIR) +
+                 pathSeparator +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_PFX) +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_DEF) +
+                 "." +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT);
+              
+      LOGGER.debug("Try to load default property file '{}'", fileName);
+      properties.putAll(loadPropertiesFromFile(fileName));
       
-      // <rootPath>\config\prova-defaults-test.properties
-      properties.putAll(loadPropertiesFromFile(provaProperties.getProperty(Config.PROVA_DIR) + 
-                                               provaProperties.getProperty(Config.PROVA_CONF_DIR) +
-                                               provaProperties.getProperty(Config.PROVA_CONF_FILE_TEST) +
-                                               provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT)));
       
-      LOGGER.debug("Load project property files for project '{}'", () -> provaProperties.getProperty(Config.PROVA_PROJECT));
-      
-      // <rootPath>\config\prova-<projectName>.properties
-      properties.putAll(loadPropertiesFromFile(provaProperties.getProperty(Config.PROVA_DIR) +
-                                               provaProperties.getProperty(Config.PROVA_CONF_DIR) + 
-                                               "prova-" + 
-                                               provaProperties.getProperty(Config.PROVA_PROJECT).toLowerCase() +
-                                               provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT)));
-  
-      // <rootPath>\config\prova-<projectName>-test.properties
-      properties.putAll(loadPropertiesFromFile(provaProperties.getProperty(Config.PROVA_DIR) +
-                                               provaProperties.getProperty(Config.PROVA_CONF_DIR) + 
-                                               "prova-" + 
-                                               provaProperties.getProperty(Config.PROVA_PROJECT).toLowerCase() +
-                                               "-test" +
-                                               provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT)));
+      // <rootPath>\config\prova_defaults-test.properties
+      fileName = provaProperties.getProperty(Config.PROVA_DIR) + 
+                 pathSeparator +
+                 provaProperties.getProperty(Config.PROVA_CONF_DIR) +
+                 pathSeparator +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_PFX) +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_DEF) +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_TEST) +
+                 "." +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT);
+       
+      LOGGER.debug("Try to load project property test file '{}'", fileName);
+      properties.putAll(loadPropertiesFromFile(fileName));      
     }
     catch(Exception eX)
     {
-      throw eX;
+      LOGGER.warn("Failed to load default property file '{}' ({})", fileName, eX);
     }
     
     return properties;
   }
+
+  
+  /**
+   * Search for the default property files and load all properties
+   * Searches for:
+   * - prova_<projectName>.prop
+   * - prova_<projectName>-test.prop
+   */
+  protected Properties loadProjectPropertyFiles()
+  {
+    Properties properties = new Properties();
+    String fileName = "";
+    
+    try
+    {
+      LOGGER.trace("Load project property files for Prova");
+      
+      // <rootPath>\config\prova-<projectName>.prop
+      fileName = provaProperties.getProperty(Config.PROVA_DIR) +
+                 pathSeparator +
+                 provaProperties.getProperty(Config.PROVA_CONF_DIR) + 
+                 pathSeparator + 
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_PFX) +
+                 provaProperties.getProperty(Config.PROVA_PROJECT).toLowerCase() +
+                 "." +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT);
+              
+      LOGGER.debug("Try to load project property file '{}'", fileName);
+      properties.putAll(loadPropertiesFromFile(fileName));
+      
+      
+      // <rootPath>\config\prova_<projectName>-test.prop
+      fileName = provaProperties.getProperty(Config.PROVA_DIR) +
+                 pathSeparator +
+                 provaProperties.getProperty(Config.PROVA_CONF_DIR) + 
+                 pathSeparator + 
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_PFX) +
+                 provaProperties.getProperty(Config.PROVA_PROJECT).toLowerCase() +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_TEST) +
+                 "." +
+                 provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT);
+              
+      LOGGER.debug("Try to load project property file '{}'", fileName);
+      properties.putAll(loadPropertiesFromFile(fileName));
+    }
+    catch(Exception eX)
+    {
+      LOGGER.warn("Failed to load project property file '{}' ({})", fileName, eX);
+    }
+    
+    return properties;
+  }
+
   
   /**
    * Load a set of properties from a resource
@@ -287,7 +360,7 @@ public abstract class ProvaRunner
     InputStream inputStream = null;
     
     try
-    {
+    {      
       inputStream = this.getClass().getResourceAsStream(fileName);
     
       properties.load(inputStream);
@@ -298,12 +371,13 @@ public abstract class ProvaRunner
       {
         for(String key : properties.stringPropertyNames())
         {
-          LOGGER.trace(key + " => " + properties.getProperty(key));
+          LOGGER.trace("> " + key + " => " + properties.getProperty(key));
         }
       }
     }
     catch(Exception eX) 
     {
+      LOGGER.trace("Failed to load hard coded default property file", eX.getMessage());
       throw eX;
     }
     finally
@@ -315,8 +389,9 @@ public abstract class ProvaRunner
     return properties;
   }
   
+  
   /**
-   * Load a set of properties from file
+   * Load a set of properties from given file
    * 
    * @param fileName
    * @return
@@ -343,13 +418,13 @@ public abstract class ProvaRunner
         {
           for(String key : properties.stringPropertyNames())
           {
-            LOGGER.trace(key + " => " + properties.getProperty(key));
+            LOGGER.trace("> " + key + " => " + properties.getProperty(key));
           }
         }
       }
       else
       {
-        LOGGER.warn("Property file '{}' not found.", () -> fileName);
+        LOGGER.warn("Property file '{}' not found", () -> fileName);
       }
     }
     catch(Exception eX)
@@ -359,6 +434,7 @@ public abstract class ProvaRunner
     
     return properties;
   }
+  
 
   /**
    * Save the supplied properties to the given filename. 
@@ -378,5 +454,30 @@ public abstract class ProvaRunner
     {
       LOGGER.error(eX);
     }
+  }
+
+  
+  /**
+   * Start the execution of Prova and wait until it's finished
+   *
+   * @throws Exception
+   */
+  protected void run() throws Exception
+  {
+    try
+    {
+      // Start Prova execution (in it's own thread)
+      LOGGER.trace("Start Prova");
+      prova.start(); 
+      
+      // Wait until Prova thread finished executing
+      LOGGER.trace("Wait until Prova thread exists");
+      prova.join();
+    }
+    catch(Exception eX)
+    {
+      LOGGER.trace("Exception: '{}'", eX.getMessage());
+      throw eX;
+    }     
   }
 }

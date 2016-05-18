@@ -18,7 +18,7 @@ public class LogLevelTest
   OFF(0),
   FATAL(1),
   ERROR(2),
-  WARNING(3),
+  WARN(3),
   INFO(4),
   DEBUG(5),
   TRACE(6),
@@ -37,7 +37,7 @@ public class LogLevelTest
     assertTrue(LogLevel.OFF.getValue()      == 0);
     assertTrue(LogLevel.FATAL.getValue()    == 1);
     assertTrue(LogLevel.ERROR.getValue()    == 2);
-    assertTrue(LogLevel.WARNING.getValue()  == 3);
+    assertTrue(LogLevel.WARN.getValue()  == 3);
     assertTrue(LogLevel.INFO.getValue()     == 4);
     assertTrue(LogLevel.DEBUG.getValue()    == 5);
     assertTrue(LogLevel.TRACE.getValue()    == 6);
@@ -71,9 +71,9 @@ public class LogLevelTest
   @Test
   public void checkWarning()
   {    
-    assertTrue( LogLevel.lookup("warning").name().equals("WARNING") );
-    assertTrue( LogLevel.lookup("WARNING").name().equals("WARNING") );
-    assertTrue( LogLevel.lookup("WARNING").toString().equals("WARNING") );
+    assertTrue( LogLevel.lookup("warn").name().equals("WARN") );
+    assertTrue( LogLevel.lookup("WARN").name().equals("WARN") );
+    assertTrue( LogLevel.lookup("WARN").toString().equals("WARN") );
   }
 
   @Test

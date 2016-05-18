@@ -13,7 +13,7 @@ public interface InputPlugin
 {
   public void init(TestRunner testRunner) throws Exception;
   
-  public void setTestRoot(String testRoot) throws Exception;
+  public void setTestRoot(String testRoot, String projectName) throws Exception;
   public void setLabels(String[] labels);
   public void setTestCaseFilter(String[] testCases);
   

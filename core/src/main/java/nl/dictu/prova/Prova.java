@@ -29,7 +29,8 @@ public class Prova implements Runnable, TestRunner
   final static Logger LOGGER = LogManager.getLogger();
 
   private Thread                      thread;
-
+  private PluginLoader                pluginLoader;
+  
   private InputPlugin                 inputPlugin;
   private OutputPlugin                shellOutputPlugin;
   private OutputPlugin                webOutputPlugin;
@@ -48,18 +49,20 @@ public class Prova implements Runnable, TestRunner
   public void setUp(String project, Properties provaProperties)
   {
     try
-    {          
-      if(project.trim().length() < 1)
+    {   
+      LOGGER.info("Setting up Prova. Project name '{}'", project);
+      
+      if(project == null ||
+         project.trim().length() < 1)
       {
-        throw new Exception("Invalid project name supplied! (" + project + ")");
+        project = "Prova";
       }
       
       thread = new Thread(this, project);
-      
-      // Add all System properties
-      properties.putAll(System.getProperties());
+      pluginLoader = new PluginLoader();
       
       // Add all properties read from the config files
+      LOGGER.info("Setting up Prova with {} properties", () -> provaProperties.size());
       properties.putAll(provaProperties);
     }
     catch(Exception eX)
@@ -67,6 +70,7 @@ public class Prova implements Runnable, TestRunner
       LOGGER.fatal(eX);
     }
   }
+  
   
   /**
    * Start Prova execution
@@ -77,6 +81,7 @@ public class Prova implements Runnable, TestRunner
     this.thread.start();
   }
 
+  
   /**
    * Initiate stop of Prova execution
    */
@@ -86,6 +91,7 @@ public class Prova implements Runnable, TestRunner
     this.thread.interrupt();
   }
 
+  
   /**
    * Request a join of the thread 
    */
@@ -103,6 +109,7 @@ public class Prova implements Runnable, TestRunner
     }
   }
 
+  
   /**
    * Check if the Prova thread was interrupted 
    */
@@ -113,6 +120,7 @@ public class Prova implements Runnable, TestRunner
     return this.thread.isInterrupted();
   }
 
+  
   /**
    * Request the current state of the thread 
    */
@@ -164,6 +172,7 @@ public class Prova implements Runnable, TestRunner
     }
   }
   
+  
   /**
    * Initialize Prova and set everything ready for test execution.
    * - Read projects properties file(s)
@@ -173,7 +182,6 @@ public class Prova implements Runnable, TestRunner
    */
   private void init() throws Exception
   {
-    PluginLoader pluginLoader = new PluginLoader();
     String pluginName = "";
     
     try
@@ -182,19 +190,21 @@ public class Prova implements Runnable, TestRunner
       
       if(LOGGER.isTraceEnabled())         
       {
-        for(String key : this.properties.stringPropertyNames())
+        LOGGER.trace("Provided set properties: ");
+        for(String key : properties.stringPropertyNames())
         {
-          LOGGER.trace(key + " => " + properties.getProperty(key));
+          LOGGER.trace("> " + key + " => " + properties.getProperty(key));
         }  
       }
 
-      LOGGER.debug("Load plug-in files");
+      LOGGER.debug("Load all plug-in files in dir: '{}'", properties.getProperty(Config.PROVA_PLUGINS_DIR));
       pluginLoader.addFiles(properties.getProperty(Config.PROVA_DIR) +
+                            properties.getProperty(Config.PROVA_OS_FILE_SEPARATOR) +
                             properties.getProperty(Config.PROVA_PLUGINS_DIR), 
                             properties.getProperty(Config.PROVA_PLUGINS_EXT));
      
       
-      LOGGER.debug("Load and initialize input plug-in");
+      LOGGER.debug("Load and initialize input plug-in '{}'", () -> properties.getProperty("prova.plugins.in"));
       pluginName = properties.getProperty(Config.PROVA_PLUGINS_INPUT_PACKAGE) +
                    properties.getProperty(Config.PROVA_PLUGINS_INPUT).toLowerCase() + "." +
                    properties.getProperty(Config.PROVA_PLUGINS_INPUT);
@@ -208,10 +218,10 @@ public class Prova implements Runnable, TestRunner
       
       
       // TODO: Load and initialize output plug-in
-      LOGGER.debug("Load and initialize output plug-in");
+      LOGGER.debug("Load and initialize output plug-in '{}'", () -> properties.getProperty("prova.plugins.out.web"));
       pluginName = properties.getProperty("prova.plugins.out.web.package") +
-          properties.getProperty("prova.plugins.out.web").toLowerCase() + "." +
-          properties.getProperty("prova.plugins.out.web");
+                   properties.getProperty("prova.plugins.out.web").toLowerCase() + "." +
+                   properties.getProperty("prova.plugins.out.web");
 
       webOutputPlugin = pluginLoader.getInstanceOf(pluginName, OutputPlugin.class);
       
@@ -233,12 +243,9 @@ public class Prova implements Runnable, TestRunner
       LOGGER.error(eX);
       throw eX;
     }
-    finally
-    {
-      //pluginLoader.close();
-    }
   }
     
+  
   /**
    *  Index and prepare test scripts for test execution.
    *  - Search for test scripts
@@ -253,13 +260,14 @@ public class Prova implements Runnable, TestRunner
       LOGGER.info("Setting up Prova.");
       
       // Set the root location of the test scripts.
-      inputPlugin.setTestRoot(properties.getProperty(Config.PROVA_TESTS_ROOT));
+      inputPlugin.setTestRoot(properties.getProperty(Config.PROVA_TESTS_ROOT),
+                              properties.getProperty(Config.PROVA_PROJECT));
        
       // Set filters for test case labels
       inputPlugin.setLabels(properties.getProperty(Config.PROVA_TESTS_FILTERS).split(","));
       
-      // TODO Add support for specific test cases
-      // inputPlugin.setTestCaseFilter(String[] testCases);
+      // Set filters for test case labels
+      inputPlugin.setTestCaseFilter(properties.getProperty(Config.PROVA_TESTS_FILTERS).split(","));
       
       // Search for test scripts and read the headers
       inputPlugin.setUp();
@@ -320,6 +328,12 @@ public class Prova implements Runnable, TestRunner
           // Load all details of the test script
           inputPlugin.loadTestCase(entry.getValue());
           
+          if(!Boolean.parseBoolean(this.getPropertyValue(Config.PROVA_TESTS_EXECUTE)))
+          {
+            LOGGER.info("Skip execution of the test script as requested by the user.");
+            break;
+          }
+            
           if(webOutputPlugin != null)
             webOutputPlugin.setUp(entry.getValue());
           
@@ -411,6 +425,8 @@ public class Prova implements Runnable, TestRunner
       // TODO: Shutdown input plug-in
       // TODO: Shutdown output plug-in
       // TODO: Shutdown report plug-in(s)
+      
+      pluginLoader.close();
     }
     catch(Exception eX)
     {
