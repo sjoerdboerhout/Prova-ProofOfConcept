@@ -1,7 +1,9 @@
 package nl.dictu.prova;
 
 import java.lang.Thread.State;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
 
@@ -203,6 +205,16 @@ public class Prova implements Runnable, TestRunner
                             properties.getProperty(Config.PROVA_PLUGINS_DIR), 
                             properties.getProperty(Config.PROVA_PLUGINS_EXT));
      
+      if(LOGGER.isTraceEnabled())
+      {
+        Enumeration<URL> roots = pluginLoader.getResources("");
+        LOGGER.trace("Loaded directories in classloader: ");
+        while(roots.hasMoreElements())
+        {
+          URL root = roots.nextElement();
+          LOGGER.trace("> " + root.getFile());
+        }
+      }
       
       LOGGER.debug("Load and initialize input plug-in '{}'", () -> properties.getProperty("prova.plugins.in"));
       pluginName = properties.getProperty(Config.PROVA_PLUGINS_INPUT_PACKAGE) +

@@ -54,8 +54,8 @@ public class PluginLoader extends URLClassLoader
     {
       LOGGER.trace("Try to add file to plugin loader: {}", path);
       
-      String urlPath = "jar:file://" + path + "!/";
-      super.addURL(new URL(urlPath));
+      super.addURL(new File(path).toURI().toURL());
+      LOGGER.trace("Added '{}' to classpath", new File(path).toURI().toURL());
     }
     catch(MalformedURLException eX)
     {
@@ -113,8 +113,8 @@ public class PluginLoader extends URLClassLoader
         {
           if(file.getAbsolutePath().toLowerCase().endsWith(fileExt.toLowerCase()))
           {
-            super.addURL(new URL("jar:file://" + file.getAbsolutePath() + "!/"));
-            LOGGER.trace("Added '{}' to classpath", () -> "jar:file://" + file.getAbsolutePath() + "!/");
+            super.addURL(file.toURI().toURL());
+            LOGGER.trace("Added '{}' to classpath", file.toURI().toURL());
           }
         }
         else if(file.isDirectory() && file.canRead())
