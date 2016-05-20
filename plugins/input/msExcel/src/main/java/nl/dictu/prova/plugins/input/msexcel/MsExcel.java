@@ -110,7 +110,7 @@ public class MsExcel implements InputPlugin
   @Override
   public void setUp() throws Exception
   {
-    LOGGER.debug("SetUp: input plugin MsExcel reader!");
+    LOGGER.debug("SetUp: input plugin MsExcel reader! ({})", testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT));
     
     try
     {
@@ -131,13 +131,19 @@ public class MsExcel implements InputPlugin
   @Override
   public void loadTestCase(TestCase testCase) throws Exception
   {
-    // TODO Auto-generated method stub
-    LOGGER.debug("LOAD TC: '{}'", () -> testCase.toString());
-    
-    TestCaseBuilder testCaseBuilder = new TestCaseBuilder(testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT), this.testRunner);
-    
-    testCaseBuilder.buildTestCase(testCase);
-    LOGGER.debug("LOADED TC: '{}'", () -> testCase.toString());
+    try
+    {
+      LOGGER.debug("Load TC: '{}'", () -> testCase.toString());
+      
+      TestCaseBuilder testCaseBuilder = new TestCaseBuilder(testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT), this.testRunner);
+      
+      testCaseBuilder.buildTestCase(testCase);
+      LOGGER.info("Loaded TC: '{}'", () -> testCase.toString());
+    }
+    catch(Exception eX)
+    {
+      LOGGER.error(eX);
+    }
   }
 
   @Override

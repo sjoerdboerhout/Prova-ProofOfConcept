@@ -16,6 +16,9 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.ListIterator;
+import java.util.Map;
 
 /**
  * @author Hielke de Haan
@@ -25,7 +28,8 @@ public class TestSuiteBuilder
 {
   private static final Logger LOGGER = LogManager.getLogger();
   private static final FileFilter directoryFilter = file -> file.isDirectory() && !file.getName().equals("testdata");
-  private static final FileFilter excelFilter = file -> !file.isDirectory() && !file.getName().startsWith("~") && Arrays.asList("xlsm", "xlsx").contains(FilenameUtils.getExtension(file.getName()));
+  private static final FileFilter excelFlowFileFilter = file -> !file.isDirectory() && !file.getName().startsWith("~") && Arrays.asList("xlsm").contains(FilenameUtils.getExtension(file.getName()));
+  //private static final FileFilter excelDataFileFilter = file -> !file.isDirectory() && !file.getName().startsWith("~") && Arrays.asList("xlsx").contains(FilenameUtils.getExtension(file.getName()));
 
   public TestSuite buildTestSuite(File rootDirectory) throws Exception
   {
@@ -44,13 +48,14 @@ public class TestSuiteBuilder
 
   private TestSuite addTestCases(TestSuite testSuite) throws Exception
   {
-    File[] excelFiles = new File(testSuite.getId()).listFiles(excelFilter);
+    File[] excelFiles = new File(testSuite.getId()).listFiles(excelFlowFileFilter);
 
     for (File excelFile : excelFiles)
     {
       LOGGER.trace("File: {}", excelFile);
       Workbook workbook = new XSSFWorkbook(excelFile);
       WorkbookReader workbookReader = new WorkbookReader(workbook);
+      LinkedList<String> testDataSets = null;
 
       for (Sheet sheet : workbook)
       {
@@ -74,7 +79,35 @@ public class TestSuiteBuilder
                   LOGGER.trace("Found tag: {}", tagName);
                   if ("tcid".equals(tagName))
                   {
-                    testSuite.addTestCase(new TestCase(excelFile.getPath() + File.separator + workbookReader.readProperty(row, cell)));
+                    LOGGER.debug("FOUND A TEST CASE! NOW COUNT THE NUMBER OF DATA SETS! ({})", workbookReader.readProperty(row, cell));
+                    
+                    // TODO Get testdata dir from settings
+                    testDataSets = collectDataSets( excelFile.getParentFile().getPath(), 
+                                                    getFileNameWithoutExtension(excelFile.getName()),
+                                                    workbookReader.readProperty(row, cell),
+                                                    "testdata");
+                    
+                    if(testDataSets != null)
+                    {
+                      for(int i=0; i<testDataSets.size(); i++)
+                      {
+                        String identifier = excelFile.getPath() + 
+                                            File.separator + 
+                                            workbookReader.readProperty(row, cell) +
+                                            File.separator + File.separator +
+                                            testDataSets.get(i);
+                        
+                        LOGGER.trace("Create TestCase: '{}'", identifier);
+                        
+                        
+                        testSuite.addTestCase(new TestCase(identifier));
+                      }
+                    }
+                    else
+                    {
+                      // No data file found. Just create one test case.
+                      testSuite.addTestCase(new TestCase(excelFile.getPath() + File.separator + workbookReader.readProperty(row, cell))); 
+                    }
                   }
                   break; // exit for
                 }
@@ -87,5 +120,153 @@ public class TestSuiteBuilder
     return testSuite;
   }
 
+  /**
+   * Scan for data files for the given test case.
+   * 
+   * @param flowFilePath
+   * @param testCaseName
+   */
+  private LinkedList<String> collectDataSets(String flowFilePath, String flowName, String testCaseName, String testDataDir)
+  { 
+    LinkedList<String> dataSetsList = new LinkedList<String>();
+    
+    FileFilter dataDirFilter =  dir -> dir.isDirectory() && 
+                                !dir.getName().startsWith("~") && 
+                                dir.getName().endsWith(flowName);
+    
+    FileFilter dataFileFilter = file -> !file.isDirectory() && 
+                                !file.getName().startsWith("~") &&
+                                file.getName().contains(flowName + "_" + testCaseName) &&
+                                Arrays.asList("xlsx").contains(FilenameUtils.getExtension(file.getName()));
+    
+    try
+    {
+      String startDir = flowFilePath + File.separator + testDataDir;
+      
+      LOGGER.trace("Get data sets in dir: '{}' for file '{}' for flow '{}'", startDir, flowName, testCaseName);
 
+      // Locate all data files in the test data directory
+      File[] allDataFiles = new File(startDir).listFiles(dataFileFilter);
+
+      for(File excelFile : allDataFiles)
+      {
+        LOGGER.trace("> DATA File: '{}'", excelFile);
+        dataSetsList.addAll(getDataSets(excelFile));
+      }
+
+      // Locate all flow directories
+      File[] allDataDirs = new File(startDir).listFiles(dataDirFilter);
+      
+      for(File dataDir : allDataDirs)
+      {
+        LOGGER.trace("> DATA Dir: '{}'", dataDir);
+        
+        allDataFiles = dataDir.listFiles(dataFileFilter);
+        
+        for(File dataFile : allDataFiles)
+        {
+          LOGGER.trace("> DATA File: '{}'", dataFile);
+          dataSetsList.addAll(getDataSets(dataFile));
+        }
+      }
+    }
+    catch(Exception eX)
+    {
+      LOGGER.error("Exception occured while retrieving the data sets for TC '{}'/'{}'", flowFilePath,testCaseName, eX);
+    }
+    finally
+    {
+      if(LOGGER.isTraceEnabled())
+      {
+        LOGGER.trace("List of collected data set names: (count={})", () -> dataSetsList.size());
+        for(int i=0; i<dataSetsList.size(); i++)
+        {
+          LOGGER.trace("> " + dataSetsList.get(i));
+        }
+      }
+    }
+    
+    return dataSetsList;
+  }
+  
+  
+  /**
+   * 
+   * @param flowFilePath
+   * @param testCaseName
+   */
+  private LinkedList<String> getDataSets(File dataFile)
+  { 
+    LinkedList<String> dataSetsList = new LinkedList<String>();
+    
+    try
+    {
+      String path = null;
+      LOGGER.trace("Count data sets in file: '{}'", dataFile.getAbsolutePath());
+      
+      dataSetsList.addAll(new TestDataBuilder().getTestDataSetNames(dataFile));
+      
+      for(int i=0; i<dataSetsList.size(); i++)
+      {
+        path = stripFilePathToDir(dataFile,"testdata") + File.separator + dataSetsList.get(i);
+        LOGGER.trace("> " + path);
+        
+        dataSetsList.set(i, path);
+      }
+      
+    }
+    catch(Exception eX)
+    {
+      LOGGER.error("Exception occured while retrieving the data sets in data file '{}''", dataFile, eX);
+    }
+    
+    return dataSetsList;
+  }
+
+  /**
+   * Strip the file extension from a given filename
+   * 
+   * @param fileName
+   * @return
+   */
+  private String getFileNameWithoutExtension(String fileName)
+  {
+    int pos = fileName.lastIndexOf(".");
+   
+    LOGGER.trace("Strip file extension from '{}' (Pos:{})", fileName, pos);
+    
+    if(pos > 0)
+    {
+      return fileName.substring(0, pos);
+    }
+    else
+    {
+      return fileName;
+    }
+  }
+
+
+  /**
+   * Strip the file path until a given directory
+   * 
+   * @param file
+   * @param dirName
+   * @return
+   */
+  private String stripFilePathToDir(File file, String dirName)
+  { 
+    try
+    {
+      String[] tokens = file.getAbsolutePath().split(File.separator + dirName + File.separator);
+    
+      LOGGER.trace("Split '{}' on '{}' ({})", file.getAbsolutePath(), dirName, tokens.length);
+     
+      return(tokens.length > 1 ? tokens[1] : tokens[0]);
+    }
+    catch(Exception eX)
+    {
+      LOGGER.warn(eX);
+      return file.getAbsolutePath();
+    }
+  }
 }

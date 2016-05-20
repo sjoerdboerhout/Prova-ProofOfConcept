@@ -327,7 +327,7 @@ public class TestCase
   @Override
   public String toString()
   {
-    return String.format( "ID: %s (S: %d, A: %d, T: %d)", 
+    return String.format( "ID: %s (Setup: %d, Actions: %d, Teardown: %d)", 
                           id, 
                           this.setUpActions.size(),
                           this.testActions.size(), 

@@ -8,6 +8,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * Tests for TestDataBuilder class
@@ -30,7 +31,11 @@ public class TestDataBuilderTests
   @Test
   public void testBuildTestData() throws Exception
   {
-    LinkedHashMap<String, Map<String, String>> testData = new TestDataBuilder().buildTestData(testRoot + "/functional/projectSubsidies/deelbetaling/ADAC/testdata/ADAC_WEB_ADAC_001.xlsx".replace("/", File.separator));
-    LOGGER.trace(testData);
+    Properties testData = new TestDataBuilder().buildTestData(testRoot + "/functional/projectSubsidies/deelbetaling/ADAC/testdata/ADAC_WEB_ADAC_001.xlsx".replace("/", File.separator), "TEST 01");
+    
+    for(String key : testData.stringPropertyNames())
+    {
+      LOGGER.debug("> " + key + " => " + testData.getProperty(key));
+    }
   }
 }

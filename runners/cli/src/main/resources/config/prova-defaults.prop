@@ -17,6 +17,7 @@ prova.results.file                 =
 
 prova.tests.filters                =
 prova.tests.root                   = projects
+prova.tests.data.dir               = testdata
 prova.tests.execute                = true
 prova.tests.start                  = 0
 prova.timeout                      = 60000

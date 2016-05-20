@@ -330,54 +330,65 @@ public class Prova implements Runnable, TestRunner
   {
     try
     {
-      LOGGER.debug("EXEC TS: {}", () -> testSuite.toString());
+      LOGGER.info("Execute TS: '{}' ({})", () -> testSuite.getId(), () -> testSuite.numberOfTestCases(true));
+      
+      for(Map.Entry<String, TestCase> entry : testSuite.getTestCases().entrySet())
+      {
+          LOGGER.debug("> TC: '{}'", () -> entry.getValue().getId());
+      }
       
       // First execute all test cases
       for(Map.Entry<String, TestCase> entry : testSuite.getTestCases().entrySet())
       {
         try
         {
+          LOGGER.debug("Start with TC: '{}'", () -> entry.getValue().getId());
+          
           // Load all details of the test script
           inputPlugin.loadTestCase(entry.getValue());
           
-          if(!Boolean.parseBoolean(this.getPropertyValue(Config.PROVA_TESTS_EXECUTE)))
+          if(Boolean.parseBoolean(this.getPropertyValue(Config.PROVA_TESTS_EXECUTE)))
           {
-            LOGGER.info("Skip execution of the test script as requested by the user.");
-            break;
-          }
+            // (re-)set up output plug-in(s) for a new test case
+            if(webOutputPlugin != null)
+              webOutputPlugin.setUp(entry.getValue());
             
-          if(webOutputPlugin != null)
-            webOutputPlugin.setUp(entry.getValue());
-          
-          if(shellOutputPlugin != null)
-            shellOutputPlugin.setUp(entry.getValue());
-          
-          // Execute the test script
-          entry.getValue().execute();
-          
-          if(webOutputPlugin != null)
-            webOutputPlugin.tearDown(entry.getValue());
-          
-          if(shellOutputPlugin != null)
-            shellOutputPlugin.tearDown(entry.getValue());
+            if(shellOutputPlugin != null)
+              shellOutputPlugin.setUp(entry.getValue());
+            
+            // Execute the test script
+            entry.getValue().execute();
+            
+            // Tear down output plug-in(s) after the test case
+            if(webOutputPlugin != null)
+              webOutputPlugin.tearDown(entry.getValue());
+            
+            if(shellOutputPlugin != null)
+              shellOutputPlugin.tearDown(entry.getValue());
+          }
+          else
+          {
+            LOGGER.info("Skip execution of the test script as requested by the user. ({})", entry.getValue().getId());
+          }
         }
         catch(SetUpActionException eX)
         {
-          LOGGER.warn(eX);
+          LOGGER.warn("Setup action failure", eX);
         }
         catch(TestActionException eX)
         {
-          LOGGER.debug(eX);
+          LOGGER.debug("Test action failure", eX);
         }
         catch(TearDownActionException eX)
         {
-          LOGGER.warn(eX);
+          LOGGER.warn("Teardown action failure", eX);
         }
         catch(Exception eX)
         {
-          LOGGER.error(eX);
+          LOGGER.error("Unhandled Exception: ", eX);
         }
       }
+      LOGGER.debug("executeTestSuite: BLAAT");
       
       // Second, execute all sub test suites
       for(Map.Entry<String, TestSuite> entry : testSuite.getTestSuites().entrySet())
@@ -394,6 +405,7 @@ public class Prova implements Runnable, TestRunner
     }
     catch(Exception eX)
     {
+      LOGGER.debug("SCHAAP");
       LOGGER.error(eX);
     }
   }

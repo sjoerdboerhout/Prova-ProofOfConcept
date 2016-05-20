@@ -95,14 +95,18 @@ public class CellReader
         case Cell.CELL_TYPE_BLANK:
           return "";
         case Cell.CELL_TYPE_ERROR:
-          LOGGER.warn(LOG_PREFIX + "formula could not be evaluated: {}", () -> getErrorString(cell));
+          LOGGER.warn(LOG_PREFIX + "formula couldn't not be evaluated. Returning cached result. ({})", () -> getErrorString(cell));
           return evaluateCachedFormulaResult(cell);
         default:
           throw new Exception("Unknown formula result type: " + cellValue.getCellType());
       }
-    } catch (Exception e)
+    } 
+    catch (Exception e)
     {
-      LOGGER.warn(LOG_PREFIX + "formula could not be evaluated: {}", e::getMessage);
+      // Little hack to prevent known warning for macro SheetName()
+      if(!LOG_PREFIX.contains("!B2"))
+        LOGGER.warn(LOG_PREFIX + "Exception while evaluating formula: {}", e::getMessage);
+      
       return evaluateCachedFormulaResult(cell);
     }
   }
