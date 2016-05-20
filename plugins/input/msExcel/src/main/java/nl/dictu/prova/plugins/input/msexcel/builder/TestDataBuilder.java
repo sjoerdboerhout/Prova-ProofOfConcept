@@ -99,15 +99,18 @@ public class TestDataBuilder
               if (cell != null)
               {
                 String value = workbookReader.evaluateCellContent(cell);
-                if (!value.isEmpty())
+                
+                // Empty values are only allowed in column 1
+                // or keep all columns empty.
+                if(value.isEmpty() && (colNum > 1))
+                {
+                  LOGGER.debug("No value found for key '{}' in column '{}'; copying from column '{}' ({})", key, headers.get(colNum), headers.get(colNum - 1), colNum);
+                  testData.get(headers.get(colNum)).put(key, testData.get(headers.get(colNum - 1)).get(key));
+                }
+                else
                 {
                   LOGGER.debug("Found value '{}' for key '{}' in column '{}'", value, key, headers.get(colNum));
                   testData.get(headers.get(colNum)).put(key, value);
-                } 
-                else
-                {
-                  LOGGER.debug("No value found for key '{}' in column '{}'; copying from column '{}'", key, headers.get(colNum), headers.get(colNum - 1));
-                  testData.get(headers.get(colNum)).put(key, testData.get(headers.get(colNum - 1)).get(key));
                 }
               }
             }

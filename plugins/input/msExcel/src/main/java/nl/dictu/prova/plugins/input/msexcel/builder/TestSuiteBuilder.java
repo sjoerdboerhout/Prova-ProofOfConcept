@@ -257,9 +257,19 @@ public class TestSuiteBuilder
   { 
     try
     {
-      String[] tokens = file.getAbsolutePath().split(File.separator + dirName + File.separator);
+      String fileSeparator = File.separator;
+      
+      // If separator is a single \ then we have to double it to prevent regex failure!
+      if(fileSeparator.equals("\\"))
+      {
+    	  fileSeparator = File.separator + File.separator;
+      }
+      
+      LOGGER.trace("Split '{}' on '{}' (File separator: '{}')", file.getAbsolutePath(), dirName, fileSeparator);
+      
+      String[] tokens = file.getAbsolutePath().split(fileSeparator + dirName + fileSeparator);
     
-      LOGGER.trace("Split '{}' on '{}' ({})", file.getAbsolutePath(), dirName, tokens.length);
+      LOGGER.trace("Splitted '{}' on '{}' ({})", file.getAbsolutePath(), dirName, tokens.length);
      
       return(tokens.length > 1 ? tokens[1] : tokens[0]);
     }

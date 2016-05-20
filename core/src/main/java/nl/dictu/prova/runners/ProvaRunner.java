@@ -268,7 +268,7 @@ public abstract class ProvaRunner
                  "." +
                  provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT);
               
-      LOGGER.debug("Try to load default property file '{}'", fileName);
+      LOGGER.trace("Try to load default property file '{}'", fileName);
       properties.putAll(loadPropertiesFromFile(fileName));
       
       
@@ -283,7 +283,7 @@ public abstract class ProvaRunner
                  "." +
                  provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT);
        
-      LOGGER.debug("Try to load project property test file '{}'", fileName);
+      LOGGER.trace("Try to load project property test file '{}'", fileName);
       properties.putAll(loadPropertiesFromFile(fileName));      
     }
     catch(Exception eX)
@@ -320,7 +320,7 @@ public abstract class ProvaRunner
                  "." +
                  provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT);
               
-      LOGGER.debug("Try to load project property file '{}'", fileName);
+      LOGGER.trace("Try to load project property file '{}'", fileName);
       properties.putAll(loadPropertiesFromFile(fileName));
       
       
@@ -335,7 +335,7 @@ public abstract class ProvaRunner
                  "." +
                  provaProperties.getProperty(Config.PROVA_CONF_FILE_EXT);
               
-      LOGGER.debug("Try to load project property file '{}'", fileName);
+      LOGGER.trace("Try to load project property file '{}'", fileName);
       properties.putAll(loadPropertiesFromFile(fileName));
     }
     catch(Exception eX)
