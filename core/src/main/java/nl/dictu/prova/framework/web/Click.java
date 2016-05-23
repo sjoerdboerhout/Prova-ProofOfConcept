@@ -106,6 +106,8 @@ public class Click extends TestAction
   @Override
   public void execute() throws Exception
   {
+    LOGGER.trace("Execute test action: {}", () -> this.toString());
+    
     if(!isValid())
       throw new Exception("Action is not validated!");
     
@@ -122,8 +124,8 @@ public class Click extends TestAction
   public String toString()
   {
     return( "'" + this.getClass().getSimpleName().toUpperCase() + "': Click on element '" + xPath.getValue() + 
-            "' with " + numberOfClicks.getValue() + 
-            (rightClick.getValue() ? " right" : " left") + " clicks. " +
-            "Wait for page loaded: " + waitUntilPageLoaded.getValue());
+            "' with " + numberOfClicks.getValue() + " clicks.");
+           // (rightClick.getValue() ? " right" : " left") + " clicks. " +
+           // "Wait for page loaded: " + waitUntilPageLoaded.getValue());
   }
 }

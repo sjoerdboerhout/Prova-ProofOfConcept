@@ -109,7 +109,7 @@ public class TestCase
    */
   public void setProjectName(String projectName)
   {
-    LOGGER.debug("Set project name of tc '{}' to: {}", () -> this.projectName, () -> projectName);
+    LOGGER.debug("Update project name of tc from '{}' to {}", () -> this.projectName, () -> projectName);
     
     this.projectName = projectName;
   }
@@ -222,7 +222,7 @@ public class TestCase
    */
   public void addSetUpAction(TestAction setUpAction)
   {
-    LOGGER.debug("Add test action '{}'", () -> setUpAction.toString());
+    LOGGER.debug("Add setup action '{}'", () -> setUpAction.toString());
     setUpActions.add(setUpAction);
   }
 
@@ -240,7 +240,7 @@ public class TestCase
    */
   public void addTearDownAction(TestAction tearDownAction)
   {
-    LOGGER.debug("Add test action {}", () -> tearDownAction.toString());
+    LOGGER.debug("Add teardown action {}", () -> tearDownAction.toString());
     tearDownActions.add(tearDownAction);
   }
 
@@ -256,7 +256,7 @@ public class TestCase
     
     try
     {
-      LOGGER.debug("EXEC TC: " + this.toString());
+      LOGGER.debug("RUN TC: " + this.toString());
       
       for(TestAction setUpAction : setUpActions)
       {

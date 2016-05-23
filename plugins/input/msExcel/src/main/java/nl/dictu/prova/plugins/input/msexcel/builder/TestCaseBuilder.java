@@ -51,7 +51,7 @@ public class TestCaseBuilder
    */
   public TestCaseBuilder(String testRootPath, TestRunner testRunner) throws IOException
   {
-    LOGGER.debug("TestCaseBuilder: Path: {}", testRootPath);
+    LOGGER.trace("TestCaseBuilder: Path: {}", testRootPath);
     
     this.testRootPath = testRootPath;
     this.testRunner = testRunner;
@@ -68,27 +68,32 @@ public class TestCaseBuilder
    * @throws Exception
    */
   public TestCase buildTestCase(TestCase testCase) throws Exception
-  {
-    //TestDataBuilder testdataBuilder;
+  {   
+    LOGGER.trace("START BUILDING A TESTCASE FOR '{}'", testCase.getId() );
     
     flowWorkbookPath = getFlowPathFromTCID(testCase.getId());
     dataWorkbookPath = getDataPathFromTCID(testCase.getId());
     dataSetName      = getKeywordSetFromTCID(testCase.getId());
     
-    
-    LOGGER.debug("Load data file: '{}'", dataWorkbookPath);
-    if(new File(dataWorkbookPath).isFile())
+    if(dataWorkbookPath.length() > 0)
     {
-      testDataKeywords.putAll(new TestDataBuilder().buildTestData(dataWorkbookPath, dataSetName));
+      LOGGER.debug("Try to load data file: '{}'", dataWorkbookPath);
       
-      if(LOGGER.isTraceEnabled())
-        printTestDataKeywords(testDataKeywords);
+      if(new File(dataWorkbookPath).isFile())
+      {
+        testDataKeywords.putAll(new TestDataBuilder().buildTestData(dataWorkbookPath, dataSetName));
+        
+        if(LOGGER.isTraceEnabled())
+          printTestDataKeywords(testDataKeywords);
+      }
+      else
+      {
+        throw new Exception(dataWorkbookPath + " is not a valid file!");
+      } 
     }
     else
-    {
-      throw new Exception(dataWorkbookPath + " is not a valid file!");
-    }
-    
+      LOGGER.debug("No data file found for tc: '{}'", testCase.getId());
+        
     
     LOGGER.debug("Load flow data file: '{}'", flowWorkbookPath);
     if(new File(flowWorkbookPath).isFile())
@@ -172,7 +177,7 @@ public class TestCaseBuilder
                 parseTestCaseSection(testCase, sheet, rowNum, tagName);
                 break;
               default:
-                LOGGER.warn("Ignoring unknown tag {}", tagName);
+                LOGGER.warn("Ignoring unknown tag {} ({})", tagName, testCase.getId());
             }
           }
         }
@@ -324,7 +329,7 @@ public class TestCaseBuilder
           TestAction testAction = webActionFactory.getAction(rowMap.get("actie"));
           String locatorName = rowMap.get("locator").toLowerCase();
           
-          LOGGER.debug("Action: '{}', Locator: '{}' (xpath: {})", 
+          LOGGER.trace("Action: '{}', Locator: '{}' (xpath: {})", 
                         rowMap.get("actie").toUpperCase(), 
                         locatorName,
                         testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName));
@@ -449,8 +454,11 @@ public class TestCaseBuilder
    */
   private String getFlowPathFromTCID(String tcid)
   {
+    LOGGER.trace("Get flow path from TCID: '{}'", tcid);
+    
     // Split the flow and data file (if exists in tcid)
-    tcid = tcid.substring(0, tcid.lastIndexOf(File.separator + File.separator));
+    if(tcid.contains(File.separator + File.separator))
+      tcid = tcid.substring(0, tcid.lastIndexOf(File.separator + File.separator));
     
     // Strip the sheet name at the end of the TCID
     LOGGER.trace("Flow path from TCID: '{}'", tcid.substring(0, tcid.lastIndexOf(File.separator)));
@@ -466,10 +474,26 @@ public class TestCaseBuilder
    */
   private String getDataPathFromTCID(String tcid) throws Exception
   {
+    LOGGER.trace("Get data path from TCID: '{}'", tcid);
+    
     String path = getFlowPathFromTCID(tcid);
     String separator = File.separator + File.separator;
 
-    path = path.substring(0,  path.lastIndexOf(File.separator));
+    path = path.substring(0, path.lastIndexOf(File.separator));
+    
+    // If tcid doesn't contain a data path then return with an empty string
+    if(!tcid.contains(separator) || !tcid.contains(".xlsx"))
+      return "";
+
+    // TODO Remove debug code
+    /*
+    LOGGER.trace("> path: '{}'", path);
+    LOGGER.trace("> sep: '{}'", File.separator);
+    LOGGER.trace("> test data dir: '{}'", this.testRunner.getPropertyValue(Config.PROVA_TESTS_DATA_DIR));
+    LOGGER.trace("> sep: '{}'", File.separator);
+    LOGGER.trace("> ...: '{}'", tcid.substring(tcid.lastIndexOf(separator) + separator.length(), 
+                                                tcid.lastIndexOf(".xlsx") + ".xlsx".length()));
+    */    
     
     path += File.separator +
             this.testRunner.getPropertyValue(Config.PROVA_TESTS_DATA_DIR) +
@@ -477,7 +501,7 @@ public class TestCaseBuilder
             tcid.substring(tcid.lastIndexOf(separator) + separator.length(), 
                           tcid.lastIndexOf(".xlsx") + ".xlsx".length());
     
-    LOGGER.trace("Data path from TCID: '{}'", path);
+    LOGGER.trace("Data path extracted from TCID: '{}'", path);
         
     return path;
   }
@@ -493,11 +517,14 @@ public class TestCaseBuilder
   {
     LOGGER.trace("Get Keyword Set From TCID: '{}'", tcid);
     
-    tcid = tcid.substring(tcid.lastIndexOf(File.separator) + File.separator.length(), tcid.length());
-
-    LOGGER.trace("Found keyword set from TCID: '{}'", tcid);
+    String keyWordSet = "";
     
-    return tcid;
+    if(tcid.contains("xlsx"))
+      keyWordSet = tcid.substring(tcid.lastIndexOf(File.separator) + File.separator.length(), tcid.length());
+          
+    LOGGER.debug("Found keyword set from TCID: '{}' (tcid)", keyWordSet, tcid);
+    
+    return keyWordSet;
   }
   
   

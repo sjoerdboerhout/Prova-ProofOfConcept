@@ -84,10 +84,15 @@ public class UploadFile extends TestAction
   @Override
   public void execute() throws Exception
   {
-    // TODO Implement function
-    // Set corect (hidden) fields and click on buttons
+    LOGGER.trace("Execute test action: {}", () -> this.toString());
     
-    System.out.println( "Upload file '" + fileName + "' to " + xPath);
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    // TODO implement function
+    // testRunner.getWebActionPlugin().doClick(xPath, rightClick, waitUntilPageLoaded);
+    // testRunner.getWebActionPlugin().doSetText(xPath, text);
+    // testRunner.getWebActionPlugin().doClick(xPath, rightClick, waitUntilPageLoaded);
   }
 
 

@@ -104,12 +104,12 @@ public class TestDataBuilder
                 // or keep all columns empty.
                 if(value.isEmpty() && (colNum > 1))
                 {
-                  LOGGER.debug("No value found for key '{}' in column '{}'; copying from column '{}' ({})", key, headers.get(colNum), headers.get(colNum - 1), colNum);
+                  LOGGER.trace("No value found for key '{}' in column '{}'; copying from column '{}' ({})", key, headers.get(colNum), headers.get(colNum - 1), colNum);
                   testData.get(headers.get(colNum)).put(key, testData.get(headers.get(colNum - 1)).get(key));
                 }
                 else
                 {
-                  LOGGER.debug("Found value '{}' for key '{}' in column '{}'", value, key, headers.get(colNum));
+                  LOGGER.trace("Found value '{}' for key '{}' in column '{}'", value, key, headers.get(colNum));
                   testData.get(headers.get(colNum)).put(key, value);
                 }
               }
@@ -117,7 +117,7 @@ public class TestDataBuilder
           } 
           else
           {
-            LOGGER.debug("Row {} is empty; skipping row", row.getRowNum());
+            LOGGER.trace("Row {} is empty; skipping row", row.getRowNum());
           }
         }
         else
@@ -181,7 +181,7 @@ public class TestDataBuilder
           {
             if(!entry.getValue().toLowerCase().equals("keywords"))
             {
-              LOGGER.trace("Add test data set '{}'", () -> sheet.getSheetName() + File.separator + entry.getValue());
+              LOGGER.debug("Add test data set '{}'", () -> sheet.getSheetName() + File.separator + entry.getValue());
               testDataSets.add(sheet.getSheetName() + File.separator + entry.getValue());
             }
           }

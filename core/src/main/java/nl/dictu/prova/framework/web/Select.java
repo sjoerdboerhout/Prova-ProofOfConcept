@@ -83,14 +83,12 @@ public class Select extends TestAction
   @Override
   public void execute() throws Exception
   {
-    LOGGER.trace("Execute test action: {}", () -> this.getClass().getSimpleName());
+    LOGGER.trace("Execute test action: {}", () -> this.toString());
     
     if(!isValid())
       throw new Exception("Action is not validated!");
     
-    LOGGER.trace("Execute test action '{}' in Output plugin '{}'", () -> this.getClass().getSimpleName());
     testRunner.getWebActionPlugin().doSelect(xPath.getValue(), select.getValue());
-    // TODO Implement function
   }
 
 

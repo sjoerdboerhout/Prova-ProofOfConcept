@@ -70,6 +70,8 @@ public class TestSuiteBuilder
               if (cell != null)
               {
                 String cellContent = workbookReader.evaluateCellContent(cell);
+                String identifier;
+                
                 if (workbookReader.isTag(cellContent))
                 {
                   // examine the first tag that is encountered and check if it is a [TCID] tag
@@ -79,26 +81,22 @@ public class TestSuiteBuilder
                   LOGGER.trace("Found tag: {}", tagName);
                   if ("tcid".equals(tagName))
                   {
-                    LOGGER.debug("FOUND A TEST CASE! NOW COUNT THE NUMBER OF DATA SETS! ({})", workbookReader.readProperty(row, cell));
-                    
-                    // TODO Get testdata dir from settings
                     testDataSets = collectDataSets( excelFile.getParentFile().getPath(), 
                                                     getFileNameWithoutExtension(excelFile.getName()),
                                                     workbookReader.readProperty(row, cell),
                                                     "testdata");
                     
-                    if(testDataSets != null)
+                    if(testDataSets.size() > 0)
                     {
                       for(int i=0; i<testDataSets.size(); i++)
                       {
-                        String identifier = excelFile.getPath() + 
-                                            File.separator + 
-                                            workbookReader.readProperty(row, cell) +
-                                            File.separator + File.separator +
-                                            testDataSets.get(i);
+                        identifier = excelFile.getPath() + 
+                                     File.separator + 
+                                     workbookReader.readProperty(row, cell) +
+                                     File.separator + File.separator +
+                                     testDataSets.get(i);
                         
-                        LOGGER.trace("Create TestCase: '{}'", identifier);
-                        
+                        LOGGER.debug("Create TestCase: '{}' (with data file)", identifier);
                         
                         testSuite.addTestCase(new TestCase(identifier));
                       }
@@ -106,7 +104,10 @@ public class TestSuiteBuilder
                     else
                     {
                       // No data file found. Just create one test case.
-                      testSuite.addTestCase(new TestCase(excelFile.getPath() + File.separator + workbookReader.readProperty(row, cell))); 
+                      identifier = excelFile.getPath() + File.separator + workbookReader.readProperty(row, cell);
+                      
+                      LOGGER.debug("Create TestCase: '{}' (no data file)", identifier);
+                      testSuite.addTestCase(new TestCase(identifier)); 
                     }
                   }
                   break; // exit for
@@ -146,6 +147,9 @@ public class TestSuiteBuilder
       LOGGER.trace("Get data sets in dir: '{}' for file '{}' for flow '{}'", startDir, flowName, testCaseName);
 
       // Locate all data files in the test data directory
+      if(!new File(startDir).isDirectory())
+        return dataSetsList;
+      
       File[] allDataFiles = new File(startDir).listFiles(dataFileFilter);
 
       for(File excelFile : allDataFiles)

@@ -87,8 +87,12 @@ public class SetText extends TestAction
   @Override
   public void execute() throws Exception
   {
-    // TODO Implement function
-    System.out.println( "Set text of '" + xPath.getValue() + "' to '" + text.getValue() + "'");
+    LOGGER.trace("Execute test action: {}", () -> this.getClass().getSimpleName());
+    
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    testRunner.getWebActionPlugin().doSetText(xPath.getValue(), text.getValue());
   }
 
 

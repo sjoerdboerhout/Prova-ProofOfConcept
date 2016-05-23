@@ -113,8 +113,7 @@ public class Selenium implements OutputPlugin
       {
         throw new Exception("Unsupported browser '" + browserType + "' requested.");
       }
-      
-      
+           
       
       // Compose the setting name of the project url.
       String url =  Config.PROVA_ENV_PFX + "." +
@@ -122,16 +121,19 @@ public class Selenium implements OutputPlugin
                     testCase.getProjectName().toLowerCase();
   
       LOGGER.trace("URL property name '{}', value: '{}'", url, testRunner.getPropertyValue(url));
-      
+            
       // Get the setting with the url
       url = testRunner.getPropertyValue(url);
       
       // TODO fix timeout
       //webdriver.manage().timeouts().implicitlyWait(maxTimeOut, TimeUnit.MILLISECONDS);
-      webdriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+      //webdriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+      webdriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+      
+      LOGGER.debug("Open URL: '{}'", url);
       webdriver.get(url);
       
-      LOGGER.debug("Selenium is ready to start the test!");
+      LOGGER.trace("Selenium is ready to start the test!");
     }
     catch(Exception eX)
     {
@@ -163,7 +165,7 @@ public class Selenium implements OutputPlugin
   @Override
   public void doClick(String xPath, Boolean rightClick, Boolean waitUntilPageLoaded) throws Exception
   {
-    LOGGER.trace("Click with {} on '{}', Wait for page = {}", (rightClick ? "right" : "left"), xPath, waitUntilPageLoaded);
+    LOGGER.debug("> Click with {} on '{}', Wait for page = {}", (rightClick ? "right" : "left"), xPath, waitUntilPageLoaded);
     
     int count = 0;
     
@@ -188,7 +190,11 @@ public class Selenium implements OutputPlugin
       catch(Exception eX)
       {
         if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception while clicking on '{}': {} (retry count: {})", xPath, eX.getMessage(), count);
+          
           throw eX;
+        }
       }
     }
   }
@@ -206,7 +212,7 @@ public class Selenium implements OutputPlugin
   @Override
   public void doSelect(String xPath, Boolean select) throws Exception
   {
-    LOGGER.trace("{}select '{}'", (select ? "" : "de-"), xPath);
+    LOGGER.debug("> {}Select '{}'", (select ? "" : "De-"), xPath);
     
     int count = 0;
     
@@ -229,7 +235,11 @@ public class Selenium implements OutputPlugin
       catch(Exception eX)
       {
         if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception while selecting '{}': {} (retry count: {})", xPath, eX.getMessage(), count);
+          
           throw eX;
+        }
       }
     }
   }
@@ -247,7 +257,7 @@ public class Selenium implements OutputPlugin
   @Override
   public void doSetText(String xPath, String text) throws Exception
   {
-    LOGGER.trace("Set '{}' with text '{}'", xPath, text);
+    LOGGER.debug("> Set '{}' with text '{}'", xPath, text);
     
     int count = 0;
     
@@ -257,15 +267,17 @@ public class Selenium implements OutputPlugin
       {
         WebElement element = webdriver.findElement(By.xpath(xPath));
         
-        if(element == null)
+        if(element == null || !element.isEnabled())
+        {
           throw new Exception("Element '" + xPath + "' not found.");
-      
+        }
+        
         // Select the element.
         element.click();
         
         // To prevent typing in existing text first select all and then replace
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"),text);
-        
+        //element.sendKeys(Keys.TAB);
         
         // Action succeeded. Return.
         return;
@@ -273,7 +285,12 @@ public class Selenium implements OutputPlugin
       catch(Exception eX)
       {
         if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception while setting text '{}' in '{}': {} (retry count: {})", 
+                        xPath, text, eX.getMessage(), count);
+          
           throw eX;
+        }
       }
     }    
   }

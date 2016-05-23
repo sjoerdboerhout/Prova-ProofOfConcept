@@ -330,19 +330,15 @@ public class Prova implements Runnable, TestRunner
   {
     try
     {
+      LOGGER.debug("--------------------------------------------------------------------------------");
       LOGGER.info("Execute TS: '{}' ({})", () -> testSuite.getId(), () -> testSuite.numberOfTestCases(true));
-      
-      for(Map.Entry<String, TestCase> entry : testSuite.getTestCases().entrySet())
-      {
-          LOGGER.debug("> TC: '{}'", () -> entry.getValue().getId());
-      }
       
       // First execute all test cases
       for(Map.Entry<String, TestCase> entry : testSuite.getTestCases().entrySet())
       {
         try
         {
-          LOGGER.debug("Start with TC: '{}'", () -> entry.getValue().getId());
+          //LOGGER.debug("Start with TC: '{}'", () -> entry.getValue().getId());
           
           // Load all details of the test script
           inputPlugin.loadTestCase(entry.getValue());
@@ -388,7 +384,6 @@ public class Prova implements Runnable, TestRunner
           LOGGER.error("Unhandled Exception: ", eX);
         }
       }
-      LOGGER.debug("executeTestSuite: BLAAT");
       
       // Second, execute all sub test suites
       for(Map.Entry<String, TestSuite> entry : testSuite.getTestSuites().entrySet())
