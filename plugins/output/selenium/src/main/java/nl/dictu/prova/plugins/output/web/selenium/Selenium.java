@@ -248,9 +248,29 @@ public class Selenium implements OutputPlugin
   @Override
   public void doSendKeys(String keys) throws Exception
   {
-    // TODO Auto-generated method stub
-    throw new Exception("doSendKeys is not supported yet.");
-    
+    try
+    {
+      LOGGER.trace("> Send key '{}' to browser", keys);
+      
+      keys = keys.replace("<DOWN>", Keys.DOWN);
+      keys = keys.replace("<END>", Keys.END);
+      keys = keys.replace("<ESC>", Keys.ESCAPE);
+      keys = keys.replace("<HOME>", Keys.HOME);
+      keys = keys.replace("<INSERT>", Keys.INSERT);
+      keys = keys.replace("<LEFT>", Keys.LEFT);
+      keys = keys.replace("<RIGHT>", Keys.RIGHT);
+      keys = keys.replace("<TAB>", Keys.TAB);
+      keys = keys.replace("<UP>", Keys.UP);
+      
+      LOGGER.debug("> Send keys '{}' to browser", keys);
+      
+      webdriver.switchTo().activeElement().sendKeys(keys);
+    }
+    catch(Exception eX)
+    {
+      LOGGER.debug("Exception while sending keys '{}'", keys);
+      throw eX;
+    }
   }
 
 
