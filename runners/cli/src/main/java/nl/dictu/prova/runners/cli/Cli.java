@@ -14,6 +14,8 @@ import nl.dictu.prova.Config;
 import nl.dictu.prova.runners.ProvaRunner;
 
 /**
+ * PROVA-18 - Command Line Interface
+ * 
  * Run Prova from the command line. 
  * - Parse command line arguments
  * - Set log options
@@ -46,7 +48,6 @@ public class Cli extends ProvaRunner
    */
   public static void main(String[] args)
   {
-    
     int statusCode = 0;
     
     try
@@ -55,10 +56,9 @@ public class Cli extends ProvaRunner
       
       System.out.println("Hello world, I am Prova the testing framework!");
       
-      // Create a new CLI instance
       Cli cli = new Cli();
-      
-      // Initialize 
+
+      // Init sequence and handle command line options
       cli.init(args);
       
       // Start Prova execution and wait until it is finished
@@ -85,10 +85,10 @@ public class Cli extends ProvaRunner
    */
   private Cli() throws Exception
   {
-    // Call the parents constructor
+    // Call the parent constructor
     super();
     
-    LOGGER.trace("Constructor, init variables");
+    LOGGER.trace("Init local variables");
      
     // Create new instances for all command line handling tools
     cmdLineParser = new DefaultParser();
@@ -127,7 +127,7 @@ public class Cli extends ProvaRunner
       cliArguments  = parseCliArguments(args, options);
       
       // Update log level immediately if it was supplied as a cli option
-      LOGGER.trace("Check if a log level was supplied on the cli: '{}'", cliProperties.containsKey(Config.PROVA_LOG_LEVEL));
+      LOGGER.trace("Check if a log level was supplied on the cli: '{}'", () -> cliProperties.containsKey(Config.PROVA_LOG_LEVEL));
       if(cliProperties.containsKey(Config.PROVA_LOG_LEVEL))
       {
         setDebugLevel(this.getClass().getName(), cliProperties.getProperty(Config.PROVA_LOG_LEVEL));
