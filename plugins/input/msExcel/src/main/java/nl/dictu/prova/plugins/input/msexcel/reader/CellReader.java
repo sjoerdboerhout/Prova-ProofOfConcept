@@ -37,7 +37,7 @@ public class CellReader
   public String evaluateCellContent(Cell cell) throws Exception
   {
     final String LOG_PREFIX = getLogPrefix(cell);
-    LOGGER.trace(LOG_PREFIX + "evaluating content '{}'", () -> cell);
+    LOGGER.trace(LOG_PREFIX + "evaluating cell content '{}'", () -> cell);
 
     String result;
 
@@ -46,21 +46,26 @@ public class CellReader
       case Cell.CELL_TYPE_BOOLEAN:
         result = getBooleanString(cell);
         break;
+        
       case Cell.CELL_TYPE_STRING:
         result = cell.getStringCellValue();
         break;
+        
       case Cell.CELL_TYPE_NUMERIC:
         if (DateUtil.isCellDateFormatted(cell))
           result = getDateString(cell);
         else
           result = getNumericString(cell);
         break;
+        
       case Cell.CELL_TYPE_FORMULA:
         result = evaluateFormula(cell);
         break;
+        
       case Cell.CELL_TYPE_BLANK:
         result = "";
         break;
+        
       default:
         throw new Exception(LOG_PREFIX + "unknown cell type " + cell.getCellType());
     }
@@ -78,34 +83,46 @@ public class CellReader
   private String evaluateFormula(Cell cell) throws Exception
   {
     final String LOG_PREFIX = getLogPrefix(cell);
+    
+    LOGGER.trace("\n\n\n");
     LOGGER.trace(LOG_PREFIX + "evaluating formula");
 
     try
     {
       CellValue cellValue = formulaEvaluator.evaluate(cell);
 
+      LOGGER.trace("Type of value: '{}'", cellValue.getCellType());
+      
       switch (cellValue.getCellType())
       {
         case Cell.CELL_TYPE_BOOLEAN:
           return getBooleanString(cellValue);
+          
         case Cell.CELL_TYPE_STRING:
           return cellValue.getStringValue();
+          
         case Cell.CELL_TYPE_NUMERIC:
-          return getNumericString(cellValue);
+          if (DateUtil.isCellDateFormatted(cell))
+            return getDateString(cell);
+          else
+            return getNumericString(cell);
+          
         case Cell.CELL_TYPE_BLANK:
           return "";
+          
         case Cell.CELL_TYPE_ERROR:
           LOGGER.warn(LOG_PREFIX + "formula couldn't not be evaluated. Returning cached result. ({})", () -> getErrorString(cell));
           return evaluateCachedFormulaResult(cell);
+          
         default:
           throw new Exception("Unknown formula result type: " + cellValue.getCellType());
       }
     } 
-    catch (Exception e)
+    catch (Exception eX)
     {
-      // Little hack to prevent known warning for macro SheetName()
+      // Little hack to prevent the known warning for macro SheetName()
       if(!LOG_PREFIX.contains("!B2"))
-        LOGGER.warn(LOG_PREFIX + "Exception while evaluating formula: {}", e::getMessage);
+        LOGGER.warn(LOG_PREFIX + "Exception while evaluating formula: {}", () -> eX.getMessage());
       
       return evaluateCachedFormulaResult(cell);
     }
@@ -180,6 +197,8 @@ public class CellReader
    */
   private String getNumericString(Cell cell)
   {
+    LOGGER.trace("getNumericString C: '{}'", () -> cell);
+    
     return new DataFormatter().formatCellValue(cell).replace(",", ".");
   }
 
@@ -191,6 +210,8 @@ public class CellReader
    */
   private String getNumericString(CellValue cellValue)
   {
+    LOGGER.trace("getNumericString CV: '{}'", () -> cellValue.getNumberValue());
+    
     return getNumericString(cellValue.getNumberValue());
   }
 
@@ -202,6 +223,8 @@ public class CellReader
    */
   private String getNumericString(double d)
   {
+    LOGGER.trace("getNumericString D: '{}'", () -> d);
+    
     return String.valueOf(d).replace(",", ".");
   }
 
@@ -213,7 +236,17 @@ public class CellReader
    */
   private String getDateString(Cell cell)
   {
-    return new CellDateFormatter(cell.getCellStyle().getDataFormatString()).format(cell.getDateCellValue());
+    LOGGER.trace("getDateString: '{}'", () -> cell);
+    
+    String dateFormat = cell.getCellStyle().getDataFormatString();
+
+    // TODO POI should respect the format set in Excel...  
+    // Because we use - more than / this hack is implemented.
+    dateFormat = dateFormat.replaceAll("/", "-");
+    
+    LOGGER.trace("Format date '{}' with '{}'", cell.getDateCellValue(), dateFormat);
+    
+    return new CellDateFormatter(dateFormat).format(cell.getDateCellValue());
   }
 
   /**
