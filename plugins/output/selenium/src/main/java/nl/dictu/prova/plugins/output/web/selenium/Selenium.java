@@ -189,19 +189,14 @@ public class Selenium implements OutputPlugin
   @Override
   public void doClick(String xPath, Boolean rightClick, Boolean waitUntilPageLoaded) throws Exception
   {
-    LOGGER.debug("> Click with {} on '{}', Wait for page = {}", (rightClick ? "right" : "left"), xPath, waitUntilPageLoaded);
-    
     int count = 0;
     
     while(true)
     {
       try
       {
-        WebElement element = webdriver.findElement(By.xpath(xPath));
-        
-        if(element == null)
-          throw new Exception("Element '" + xPath + "' not found.");
-      
+        WebElement element = findElement(xPath);      
+             
         // TODO support right click
         if(rightClick) throw new Exception("Right click is not supported yet.");
         
@@ -216,26 +211,15 @@ public class Selenium implements OutputPlugin
         
         return;
       }
-      catch(NoSuchElementException eX)
-      {
-        LOGGER.debug("Element not found. Wait for it and try again. ({})", xPath);
-        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
-      }
-      catch(TimeoutException eX)
-      {
-        LOGGER.debug("TimeOut Exception. Wait for it and try again. ({})", xPath);
-        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
-      }
       catch(Exception eX)
-      {
-        LOGGER.debug("Exception while clicking on element '{}' retry count: '{}', Type: '{}' : '{}'", 
-          xPath,  
-          count, 
-          eX.getClass().getSimpleName(),
-          eX.getMessage());
-        
+      { 
         if(++count > maxRetries)
-        { 
+        {
+          LOGGER.debug("Exception while clicking on element '{}', Type: '{}' : '{}'", 
+            xPath,
+            eX.getClass().getSimpleName(),
+            eX.getMessage());
+          
           throw eX;
         }
       }
@@ -248,7 +232,6 @@ public class Selenium implements OutputPlugin
   {
     // TODO Auto-generated method stub
     throw new Exception("doDownloadFile is not supported yet.");
-    
   }
 
 
@@ -263,23 +246,19 @@ public class Selenium implements OutputPlugin
     {
       try
       {
-        WebElement element = webdriver.findElement(By.xpath(xPath));
-        
-        if(element == null)
-          throw new Exception("Element '" + xPath + "' not found.");
-      
+        WebElement element = findElement(xPath);
+             
         // Check if current and desired state are not equal
         if(select != element.isSelected())
           element.click();
-        
-        // Action succeeded. Return.
+      
         return;
       }
       catch(Exception eX)
       {
         if(++count > maxRetries)
-        {
-          LOGGER.debug("Exception while selecting '{}': {} (retry count: {})", xPath, eX.getMessage(), count);
+        { 
+          LOGGER.debug("Exception while selecting '{}': {})", xPath, eX.getMessage());
           
           throw eX;
         }
@@ -328,12 +307,7 @@ public class Selenium implements OutputPlugin
     {
       try
       {
-        WebElement element = webdriver.findElement(By.xpath(xPath));
-        
-        if(element == null || !element.isEnabled())
-        {
-          throw new Exception("Element '" + xPath + "' not found.");
-        }
+        WebElement element = findElement(xPath);
         
         // Select the element.
         element.click();
@@ -341,20 +315,19 @@ public class Selenium implements OutputPlugin
         // To prevent typing in existing text first select all and then replace
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"),text);
         
-        // Action succeeded. Return.
         return;
       }
       catch(Exception eX)
       {
+        LOGGER.debug("Exception while setting text '{}' in '{}': {}", 
+                        xPath, text, eX.getMessage());
+        
         if(++count > maxRetries)
-        {
-          LOGGER.debug("Exception while setting text '{}' in '{}': {} (retry count: {})", 
-                        xPath, text, eX.getMessage(), count);
-          
+        { 
           throw eX;
         }
       }
-    }    
+    }
   }
 
 
@@ -399,8 +372,17 @@ public class Selenium implements OutputPlugin
         
         element = webdriver.findElement(By.xpath(xPath));
         
-        LOGGER.trace("Found element: '{}'", (element != null ? element.toString() : "not found"));
+        LOGGER.trace("Found element? : '{}'", (element != null ? xPath : "not found"));
         
+        /*
+        if(element != null)
+        {
+          LOGGER.trace("Start waiting until element is clickable!");
+          WebDriverWait wait = new WebDriverWait(webdriver, 5);
+          wait.until(ExpectedConditions.elementToBeClickable(element));
+          LOGGER.trace("Element is clickable!");
+        }
+        */
         return element;
       }
       catch(NoSuchElementException eX)
