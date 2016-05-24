@@ -254,69 +254,76 @@ public class TestCase
   {
     Exception exception = null;
     
+    LOGGER.debug("RUN TC: " + this.toString());
+    
+    // Execute all set up actions
     try
     {
-      LOGGER.debug("RUN TC: " + this.toString());
-      
       for(TestAction setUpAction : setUpActions)
       {
-        LOGGER.trace("Execute set up action: {}", () -> setUpAction.toString());
+        LOGGER.trace("Execute setUp action: {}", () -> setUpAction.toString());
         setUpAction.execute();
-      }
-     
-      for(TestAction testAction : testActions)
-      {
-        LOGGER.trace("Execute test action: {}", () -> testAction.toString());
-        testAction.execute();
-      }
-      
-      // Errors during tearDown do not alter the test result
-      this.setStatus(TestStatus.PASSED);
-    }
-    catch(SetUpActionException eX)
-    {
-      LOGGER.error(eX);
-      this.setStatus(TestStatus.BLOCKED);
-      this.setSummary(eX.getMessage());
-      exception = eX;
-    }
-    catch(TestActionException eX)
-    {
-      LOGGER.error(eX);
-      this.setStatus(TestStatus.FAILED);
-      this.setSummary(eX.getMessage());
-      exception = eX;      
+      }      
     }
     catch(Exception eX)
     {
       LOGGER.error(eX);
       this.setStatus(TestStatus.FAILED);
-      exception = eX;
+      this.setSummary(eX.getMessage());
+      exception = new SetUpActionException(eX.getMessage());
     }
     
+    // Execute all test actions if set up succeeded
+    if(exception == null)
+    {
+      try
+      {
+        for(TestAction testAction : testActions)
+        {
+          LOGGER.trace("Execute test action: {}", () -> testAction.toString());
+          testAction.execute();
+        }    
+        
+        // Errors during tearDown do not alter the test result
+        this.setStatus(TestStatus.PASSED);
+      }
+      catch(Exception eX)
+      {
+        LOGGER.error(eX);
+        this.setStatus(TestStatus.FAILED);
+        this.setSummary(eX.getMessage());
+        exception = new TestActionException(eX.getMessage());
+      }
+    }
+    
+    // Always execute the tear down actions
     try
     {
       for(TestAction tearDownAction : tearDownActions)
       {
         LOGGER.trace("Execute tear down action: {}", () -> tearDownAction.toString());
         tearDownAction.execute();
-      }      
+      }    
     }
     catch(TearDownActionException eX)
     {
       LOGGER.error(eX);
       this.setSummary(eX.getMessage());
-      exception = eX;      
+      if(exception == null)
+        exception = eX;      
     }
     catch(Exception eX)
     {
       LOGGER.error(eX);
+      this.setSummary(eX.getMessage());
       this.setStatus(TestStatus.FAILED);
-      exception = eX;
+      if(exception == null)
+        exception = new TearDownActionException(eX.getMessage());
     }
     
     // Exception occured? Throw it back to the test suite
-    if(exception != null) throw exception;
+    if(exception != null) 
+      throw exception;
   }
   
   /**

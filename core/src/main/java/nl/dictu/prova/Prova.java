@@ -330,12 +330,14 @@ public class Prova implements Runnable, TestRunner
   {
     try
     {
-      LOGGER.debug("--------------------------------------------------------------------------------");
       LOGGER.info("Execute TS: '{}' ({})", () -> testSuite.getId(), () -> testSuite.numberOfTestCases(true));
       
       // First execute all test cases
       for(Map.Entry<String, TestCase> entry : testSuite.getTestCases().entrySet())
       {
+        // Split logging of each test case with a line
+        LOGGER.debug("--------------------------------------------------------------------------------");
+        
         try
         {
           //LOGGER.debug("Start with TC: '{}'", () -> entry.getValue().getId());
@@ -354,13 +356,6 @@ public class Prova implements Runnable, TestRunner
             
             // Execute the test script
             entry.getValue().execute();
-            
-            // Tear down output plug-in(s) after the test case
-            if(webOutputPlugin != null)
-              webOutputPlugin.tearDown(entry.getValue());
-            
-            if(shellOutputPlugin != null)
-              shellOutputPlugin.tearDown(entry.getValue());
           }
           else
           {
@@ -369,19 +364,28 @@ public class Prova implements Runnable, TestRunner
         }
         catch(SetUpActionException eX)
         {
-          LOGGER.warn("Setup action failure", eX);
+          LOGGER.error(">> Setup action failure <<", eX);
         }
         catch(TestActionException eX)
         {
-          LOGGER.debug("Test action failure", eX);
+          LOGGER.error(">> Test action failure <<", eX);
         }
         catch(TearDownActionException eX)
         {
-          LOGGER.warn("Teardown action failure", eX);
+          LOGGER.error(">> Teardown action failure <<", eX);
         }
         catch(Exception eX)
         {
-          LOGGER.error("Unhandled Exception: ", eX);
+          LOGGER.error(">> Unhandled Exception: ", eX);
+        }
+        finally
+        {
+          // Tear down output plug-in(s) after the test case
+          if(webOutputPlugin != null)
+            webOutputPlugin.tearDown(entry.getValue());
+          
+          if(shellOutputPlugin != null)
+            shellOutputPlugin.tearDown(entry.getValue());
         }
       }
       

@@ -336,6 +336,7 @@ public class TestCaseBuilder
           
           testAction.setTestRunner(testRunner);
           testAction.setAttribute("xpath", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName));
+          testAction.setId(rowNum.toInteger());
           
           for (String key : rowMap.keySet())
           {

@@ -27,6 +27,8 @@ public abstract class TestAction
   public abstract void execute() throws Exception;
   public abstract boolean isValid() throws Exception;
   
+  protected Integer actionId;
+  
   /**
    * Constructor
    */
@@ -52,5 +54,25 @@ public abstract class TestAction
   public Exception getLastValidationException()
   {
     return this.lastValidationException;
+  }
+  
+  /**
+   * Set the action identifier.
+   * This could be the line number in the test script
+   * 
+   * @param newActionId
+   */
+  public void setId(Integer newActionId)
+  {
+    this.actionId = newActionId;
+  }
+  
+  /**
+   * Get the actions unique Id
+   * @return
+   */
+  public Integer getId()
+  {
+    return this.actionId;
   }
 }

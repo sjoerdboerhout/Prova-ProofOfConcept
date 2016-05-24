@@ -87,7 +87,7 @@ public class SetText extends TestAction
   @Override
   public void execute() throws Exception
   {
-    LOGGER.trace("Execute test action: {}", () -> this.getClass().getSimpleName());
+    LOGGER.trace("> Execute test action: {}", () -> this.getClass().getSimpleName());
     
     if(!isValid())
       throw new Exception("Action is not validated!");

@@ -5,9 +5,9 @@ public class TestActionException extends TestException
 
   private static final long serialVersionUID = 4012944141929025288L;
 
-  public TestActionException()
+  public TestActionException(String message)
   {
-    super();
+    super(message);
     // TODO Auto-generated constructor stub
   }
 

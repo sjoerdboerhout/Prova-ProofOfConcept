@@ -6,6 +6,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
@@ -14,6 +16,8 @@ import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.safari.SafariDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
@@ -60,8 +64,18 @@ public class Selenium implements OutputPlugin
   @Override
   public void shutDown()
   {
-    // TODO Auto-generated method stub
-    
+    try
+    {
+      webdriver.close();
+    }
+    catch(NullPointerException eX)
+    {
+      // Ignore. Browser already closed
+    }
+    catch(Exception eX)
+    {
+      LOGGER.error("Exception during shutDown: '{}'", eX.getMessage());
+    }
   }
 
 
@@ -126,9 +140,9 @@ public class Selenium implements OutputPlugin
       url = testRunner.getPropertyValue(url);
       
       // TODO fix timeout
-      //webdriver.manage().timeouts().implicitlyWait(maxTimeOut, TimeUnit.MILLISECONDS);
+      webdriver.manage().timeouts().implicitlyWait(maxTimeOut, TimeUnit.MILLISECONDS);
       //webdriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-      webdriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+      //webdriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
       
       LOGGER.debug("Open URL: '{}'", url);
       webdriver.get(url);
@@ -148,9 +162,19 @@ public class Selenium implements OutputPlugin
   public void tearDown(TestCase testCase) throws Exception
   {
     LOGGER.debug("TearDown Test Case ID '{}'. Status: '{}'", () -> testCase.getId(), () -> testCase.getStatus().name());
-     
-    if(webdriver != null)
+    
+    try
+    {
       webdriver.close();
+    }
+    catch(NullPointerException eX)
+    {
+      // Ignore. Browser already closed
+    }
+    catch(Exception eX)
+    {
+      LOGGER.error("Exception during tearDown: '{}'", eX.getMessage());
+    }      
   }
 
 
@@ -184,15 +208,34 @@ public class Selenium implements OutputPlugin
         element.click();
         
         // TODO Add support for waitUntilPageLoaded
+        if(waitUntilPageLoaded)
+        {
+          //new WebDriverWait(webdriver, 30).until(ExpectedConditions.invisibilityOfElementLocated(By.xpath(xPath)));
+          //new WebDriverWait(webdriver, 30).until(ExpectedConditions.not(ExpectedConditions.elementToBeClickable(element)));
+        }
         
         return;
       }
+      catch(NoSuchElementException eX)
+      {
+        LOGGER.debug("Element not found. Wait for it and try again. ({})", xPath);
+        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+      }
+      catch(TimeoutException eX)
+      {
+        LOGGER.debug("TimeOut Exception. Wait for it and try again. ({})", xPath);
+        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+      }
       catch(Exception eX)
       {
+        LOGGER.debug("Exception while clicking on element '{}' retry count: '{}', Type: '{}' : '{}'", 
+          xPath,  
+          count, 
+          eX.getClass().getSimpleName(),
+          eX.getMessage());
+        
         if(++count > maxRetries)
-        {
-          LOGGER.debug("Exception while clicking on '{}': {} (retry count: {})", xPath, eX.getMessage(), count);
-          
+        { 
           throw eX;
         }
       }
@@ -250,7 +293,7 @@ public class Selenium implements OutputPlugin
   {
     try
     {
-      LOGGER.trace("> Send key '{}' to browser", keys);
+      LOGGER.debug("> Send key '{}' to active element", keys);
       
       keys = keys.replace("<DOWN>", Keys.DOWN);
       keys = keys.replace("<END>", Keys.END);
@@ -262,7 +305,7 @@ public class Selenium implements OutputPlugin
       keys = keys.replace("<TAB>", Keys.TAB);
       keys = keys.replace("<UP>", Keys.UP);
       
-      LOGGER.debug("> Send keys '{}' to browser", keys);
+      LOGGER.trace("> Send keys '{}' to active element", keys);
       
       webdriver.switchTo().activeElement().sendKeys(keys);
     }
@@ -297,7 +340,6 @@ public class Selenium implements OutputPlugin
         
         // To prevent typing in existing text first select all and then replace
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"),text);
-        //element.sendKeys(Keys.TAB);
         
         // Action succeeded. Return.
         return;
@@ -341,4 +383,50 @@ public class Selenium implements OutputPlugin
     throw new Exception("doValidateText is not supported yet.");
     
   }
+  
+  
+  private WebElement findElement(String xPath)
+  {
+    WebElement element = null;
+    
+    int count = 0;
+    
+    while(true)
+    {
+      try
+      {
+        LOGGER.trace("Find element: '{}'", xPath);
+        
+        element = webdriver.findElement(By.xpath(xPath));
+        
+        LOGGER.trace("Found element: '{}'", (element != null ? element.toString() : "not found"));
+        
+        return element;
+      }
+      catch(NoSuchElementException eX)
+      {
+        LOGGER.debug("Element not found. Wait for it and try again. ({})", xPath);
+        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+      }
+      catch(TimeoutException eX)
+      {
+        LOGGER.debug("TimeOut Exception. Wait for it and try again. ({})", xPath);
+        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+      }
+      catch(Exception eX)
+      {
+        LOGGER.debug("Exception while clicking on element '{}' retry count: '{}', Type: '{}' : '{}'", 
+          xPath,  
+          count, 
+          eX.getClass().getSimpleName(),
+          eX.getMessage());
+        
+        if(++count > maxRetries)
+        { 
+          throw eX;
+        }
+      }
+    }
+  }
+   
 }

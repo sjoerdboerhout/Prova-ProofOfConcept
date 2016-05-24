@@ -83,7 +83,7 @@ public class DownloadFile extends TestAction
   @Override
   public void execute() throws Exception
   {
-    LOGGER.trace("Execute test action: {}", () -> this.toString());
+    LOGGER.trace("> Execute test action: {}", () -> this.toString());
     
     if(!isValid())
       throw new Exception("Action is not validated!");
