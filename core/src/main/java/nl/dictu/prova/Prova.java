@@ -569,6 +569,9 @@ public class Prova implements Runnable, TestRunner
                   () -> key, 
                   () -> properties.containsKey(key) ? properties.getProperty(key) : "Not found");
     
+    if(!properties.containsKey(key))
+      throw new Exception("No property with value '" + key + "' found!");
+      
     return properties.getProperty(key);
   }
   
