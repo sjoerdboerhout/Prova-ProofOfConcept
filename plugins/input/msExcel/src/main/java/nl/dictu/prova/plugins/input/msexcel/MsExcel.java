@@ -144,6 +144,7 @@ public class MsExcel implements InputPlugin
     catch(Exception eX)
     {
       LOGGER.error("Exception while loading test case '{}'", testCase.toString(), eX);
+      throw eX;
     }
   }
 

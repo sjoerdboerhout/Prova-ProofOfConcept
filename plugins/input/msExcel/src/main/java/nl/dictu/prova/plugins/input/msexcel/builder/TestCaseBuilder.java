@@ -328,14 +328,20 @@ public class TestCaseBuilder
         case "sectie":
           TestAction testAction = webActionFactory.getAction(rowMap.get("actie"));
           String locatorName = rowMap.get("locator").toLowerCase();
+          String xPath = "";
+          
+          if( testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName))
+          {
+            xPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName);
+          }
           
           LOGGER.trace("Action: '{}', Locator: '{}' (xpath: {})", 
                         rowMap.get("actie").toUpperCase(), 
                         locatorName,
-                        testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName));
+                        xPath);
           
           testAction.setTestRunner(testRunner);
-          testAction.setAttribute("xpath", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName));
+          testAction.setAttribute("xpath", xPath);
           testAction.setId(rowNum.toInteger());
           
           for (String key : rowMap.keySet())
