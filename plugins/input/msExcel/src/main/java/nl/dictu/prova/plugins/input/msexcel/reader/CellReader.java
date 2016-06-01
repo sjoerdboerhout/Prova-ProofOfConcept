@@ -84,7 +84,6 @@ public class CellReader
   {
     final String LOG_PREFIX = getLogPrefix(cell);
     
-    LOGGER.trace("\n\n\n");
     LOGGER.trace(LOG_PREFIX + "evaluating formula");
 
     try

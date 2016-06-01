@@ -118,7 +118,7 @@ public class ScriptPrinter implements OutputPlugin
   }
 
   @Override
-  public void doSleep(double waitTime) throws Exception
+  public void doSleep(long waitTime) throws Exception
   {
     LOGGER.trace("DoSleep for '{}' Ms", () -> waitTime);
     

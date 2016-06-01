@@ -117,7 +117,8 @@ public class MsExcel implements InputPlugin
       TestSuiteBuilder testSuiteBuilder = new TestSuiteBuilder();
       TestSuite testSuite = null;
       
-      testSuite = testSuiteBuilder.buildTestSuite(new File(testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT)));
+      testSuite = testSuiteBuilder.buildTestSuite(new File(testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT)),
+                                   this.testRunner);
       
       testRunner.setRootTestSuite(testSuite);
     }

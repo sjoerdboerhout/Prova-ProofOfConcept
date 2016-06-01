@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
 import nl.dictu.prova.framework.exceptions.TestActionException;
@@ -22,10 +23,11 @@ public class TestSuite
 {
   final static Logger LOGGER = LogManager.getLogger();
   
-  private String id = null;
-  private TestSuite parent = null;
-  private LinkedHashMap<String,TestSuite> testSuites = new LinkedHashMap<String,TestSuite>();
-  private LinkedHashMap<String,TestCase> testCases = new LinkedHashMap<String,TestCase>();
+  private String id             = null;
+  private TestSuite parent      = null;
+  private TestRunner testRunner = null;
+  private LinkedHashMap<String,TestSuite> testSuites  = new LinkedHashMap<String,TestSuite>();
+  private LinkedHashMap<String,TestCase> testCases    = new LinkedHashMap<String,TestCase>();
 
   /**
    * Constructor for a test suite without a parent.
@@ -56,6 +58,25 @@ public class TestSuite
     
     setId(id);
     setParent(parent);
+  }
+
+  /**
+   * Constructor for a test suite with a parent.
+   * The id is a unique identifier for the test suite.
+   * The parent is another test suite.
+   *  
+   * @param id
+   * @param parent
+   * @param testRunner
+   * @throws Exception
+   */
+  public TestSuite(String id, TestSuite parent, TestRunner testRunner) throws Exception
+  {
+    LOGGER.trace("Create new test suite with id '{}' and parent {}", () -> id, () -> parent.getId());
+    
+    setId(id);
+    setParent(parent);
+    setTestRunner(testRunner);
   }
   
   /**
@@ -132,7 +153,31 @@ public class TestSuite
     }
     
     return testSuite;
+  } 
+  
+  
+  /**
+   * Set the test runner reference
+   * 
+   * @param testrunner
+   * @throws Exception
+   */
+  public void setTestRunner(TestRunner testRunner)
+  {
+    LOGGER.trace("Set TestRunner reference. Valid: {}", (testRunner != null ? "Yes" : "No"));
+        
+    this.testRunner = testRunner;
   }
+  
+  /**
+   * Get the testRunner of this test case
+   * 
+   * @return
+   */
+  public TestRunner getTestRunner()
+  {
+    return this.testRunner;
+  } 
  
   
   

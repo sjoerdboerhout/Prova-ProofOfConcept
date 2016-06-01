@@ -20,6 +20,7 @@ prova.tests.root                   = projects
 prova.tests.data.dir               = testdata
 prova.tests.execute                = true
 prova.tests.start                  = 0
+prova.tests.delay                  = 0
 prova.timeout                      = 60000
 
 prova.plugins.dir                  = bin

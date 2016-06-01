@@ -1,5 +1,6 @@
 package nl.dictu.prova.plugins.input.msexcel.builder;
 
+import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.framework.TestSuite;
 import org.apache.logging.log4j.LogManager;
@@ -31,7 +32,7 @@ public class TestSuiteBuilderTests
   @Test
   public void testBuildTestSuite() throws Exception
   {
-    TestSuite testSuite = new TestSuiteBuilder().buildTestSuite(new File(testRoot));
+    TestSuite testSuite = new TestSuiteBuilder().buildTestSuite(new File(testRoot), null);
     logTestSuite(testSuite);
   }
 

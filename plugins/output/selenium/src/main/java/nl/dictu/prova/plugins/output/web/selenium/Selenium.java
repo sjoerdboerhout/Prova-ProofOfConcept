@@ -1,12 +1,11 @@
 package nl.dictu.prova.plugins.output.web.selenium;
 
-import java.util.concurrent.TimeUnit;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -38,7 +37,7 @@ public class Selenium implements OutputPlugin
   private TestRunner testRunner = null;
   private WebDriver  webdriver = null;
   private Integer    maxRetries = 1;
-  private long	     maxTimeOut = 1;
+  private long	     maxTimeOut = 1000; // milliseconds
   
   
   @Override
@@ -47,6 +46,7 @@ public class Selenium implements OutputPlugin
     return "Selenium Webdriver";
   }
 
+  
   @Override
   public void init(TestRunner testRunner) throws Exception
   {
@@ -56,8 +56,14 @@ public class Selenium implements OutputPlugin
        throw new Exception("No testRunner supplied!");
     
     this.testRunner = testRunner; 
+    
     maxTimeOut = Integer.valueOf(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
+    if(maxTimeOut < 1000) maxTimeOut = 1000;
+    
     maxRetries = Integer.valueOf(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_MAX_RETRIES));
+    if(maxRetries < 0) maxRetries = 0;
+    
+    LOGGER.debug("Webdriver initialized with timeout: {} ms, max retries: {}", maxTimeOut, maxRetries);
   }
 
 
@@ -139,10 +145,11 @@ public class Selenium implements OutputPlugin
       // Get the setting with the url
       url = testRunner.getPropertyValue(url);
       
-      // TODO fix timeout
-      webdriver.manage().timeouts().implicitlyWait(maxTimeOut, TimeUnit.MILLISECONDS);
-      //webdriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-      //webdriver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+      // Set implicitly wait time when searching an element
+      // Not preferred because an exception is thrown after this timeout which will
+      // slow down test execution.
+      // webdriver.manage().timeouts().implicitlyWait(maxTimeOut, TimeUnit.MILLISECONDS);
+      
       
       LOGGER.debug("Open URL: '{}'", url);
       webdriver.get(url);
@@ -165,6 +172,7 @@ public class Selenium implements OutputPlugin
     
     try
     {
+      // TODO Enable again after finishing testing
       webdriver.close();
     }
     catch(NullPointerException eX)
@@ -189,7 +197,7 @@ public class Selenium implements OutputPlugin
   @Override
   public void doClick(String xPath, Boolean rightClick, Boolean waitUntilPageLoaded) throws Exception
   {
-    LOGGER.debug("> Click with {} on '{}', Wait for page = {}", (rightClick ? "right" : "left"), xPath, waitUntilPageLoaded);
+    LOGGER.debug(">> Click with {} on '{}', Wait for page = {}", (rightClick ? "right" : "left"), xPath, waitUntilPageLoaded);
     
     int count = 0;
     
@@ -197,7 +205,7 @@ public class Selenium implements OutputPlugin
     {
       try
       {
-        WebElement element = webdriver.findElement(By.xpath(xPath));
+        WebElement element = findElement(xPath);
         
         if(element == null)
           throw new Exception("Element '" + xPath + "' not found.");
@@ -205,7 +213,15 @@ public class Selenium implements OutputPlugin
         // TODO support right click
         if(rightClick) throw new Exception("Right click is not supported yet.");
         
-        element.click();
+        LOGGER.trace("Clicking on element '{}' (doClick)", xPath);
+        assert element.isDisplayed();
+        assert element.isEnabled();
+        
+        //if(waitUntilPageLoaded)
+        //  element.submit();
+        //else
+          element.click();
+        //element.sendKeys(Keys.RETURN);
         
         // TODO Add support for waitUntilPageLoaded
         if(waitUntilPageLoaded)
@@ -215,16 +231,6 @@ public class Selenium implements OutputPlugin
         }
         
         return;
-      }
-      catch(NoSuchElementException eX)
-      {
-        LOGGER.debug("Element not found. Wait for it and try again. ({})", xPath);
-        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
-      }
-      catch(TimeoutException eX)
-      {
-        LOGGER.debug("TimeOut Exception. Wait for it and try again. ({})", xPath);
-        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
       }
       catch(Exception eX)
       {
@@ -255,7 +261,7 @@ public class Selenium implements OutputPlugin
   @Override
   public void doSelect(String xPath, Boolean select) throws Exception
   {
-    LOGGER.debug("> {}Select '{}'", (select ? "" : "De-"), xPath);
+    LOGGER.debug(">> {}Select '{}'", (select ? "" : "De-"), xPath);
     
     int count = 0;
     
@@ -263,7 +269,7 @@ public class Selenium implements OutputPlugin
     {
       try
       {
-        WebElement element = webdriver.findElement(By.xpath(xPath));
+        WebElement element = findElement(xPath);
         
         if(element == null)
           throw new Exception("Element '" + xPath + "' not found.");
@@ -293,7 +299,7 @@ public class Selenium implements OutputPlugin
   {
     try
     {
-      LOGGER.debug("> Send key '{}' to active element", keys);
+      LOGGER.debug(">> Send key '{}' to active element", keys);
       
       keys = keys.replace("<DOWN>", Keys.DOWN);
       keys = keys.replace("<END>", Keys.END);
@@ -320,7 +326,7 @@ public class Selenium implements OutputPlugin
   @Override
   public void doSetText(String xPath, String text) throws Exception
   {
-    LOGGER.debug("> Set '{}' with text '{}'", xPath, text);
+    LOGGER.debug(">> Set '{}' with text '{}'", xPath, text);
     
     int count = 0;
     
@@ -328,7 +334,7 @@ public class Selenium implements OutputPlugin
     {
       try
       {
-        WebElement element = webdriver.findElement(By.xpath(xPath));
+        WebElement element = findElement(xPath);
         
         if(element == null || !element.isEnabled())
         {
@@ -336,9 +342,11 @@ public class Selenium implements OutputPlugin
         }
         
         // Select the element.
-        element.click();
+        //LOGGER.trace("Clicking on element '{}' (doSetText)", xPath);
+        //element.click();
         
         // To prevent typing in existing text first select all and then replace
+        LOGGER.trace("Sending keys to element '{}' (doSetText)", xPath);
         element.sendKeys(Keys.chord(Keys.CONTROL, "a"),text);
         
         // Action succeeded. Return.
@@ -359,11 +367,21 @@ public class Selenium implements OutputPlugin
 
 
   @Override
-  public void doSleep(double waitTime) throws Exception
+  public void doSleep(long waitTime) throws Exception
   {
-    // TODO Auto-generated method stub
-    throw new Exception("doSleep is not supported yet.");
+    LOGGER.debug(">> Sleep '{}' ms", waitTime);
     
+    try
+    {
+      Thread.sleep(waitTime);
+    }
+    catch(Exception eX)
+    {
+      LOGGER.debug("Exception while waiting '{}' ms: {}", 
+                    waitTime, eX.getMessage());
+          
+          throw eX;
+    }    
   }
 
 
@@ -396,34 +414,55 @@ public class Selenium implements OutputPlugin
       try
       {
         LOGGER.trace("Find element: '{}'", xPath);
-        
+                
+        // Wait until element visible
+        Integer timeOut = (int) (maxTimeOut / 1000);
+        LOGGER.trace("Wait time for element: '{}'", timeOut);
+        WebDriverWait wait = new WebDriverWait(webdriver,timeOut);
+        //wait.until(ExpectedConditions.elementToBeClickable(element));
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+        LOGGER.trace("Found element is clickable. Let's try!");
+
         element = webdriver.findElement(By.xpath(xPath));
         
-        LOGGER.trace("Found element: '{}'", (element != null ? element.toString() : "not found"));
+        LOGGER.trace("Found element: '{}'", (element != null ? "YES" : "NO"));
         
         return element;
       }
+      catch(StaleElementReferenceException eX)
+      {
+        if(++count > maxRetries){ throw eX;}
+        LOGGER.trace("Element '{}' is no longer attached to the DOM. Try again. ({})", xPath, count);
+      }
       catch(NoSuchElementException eX)
       {
-        LOGGER.debug("Element not found. Wait for it and try again. ({})", xPath);
-        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+        if(++count > maxRetries){ throw eX;}
+        LOGGER.trace("Element '{}' not found. Try again. ({})", xPath, count);
       }
       catch(TimeoutException eX)
       {
-        LOGGER.debug("TimeOut Exception. Wait for it and try again. ({})", xPath);
-        new WebDriverWait(webdriver, 30).until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+        if(++count > maxRetries){ throw eX;}
+        LOGGER.trace("TimeOut Exception on '{}'. Try again. ({})", xPath, count);
       }
       catch(Exception eX)
-      {
-        LOGGER.debug("Exception while clicking on element '{}' retry count: '{}', Type: '{}' : '{}'", 
-          xPath,  
-          count, 
-          eX.getClass().getSimpleName(),
-          eX.getMessage());
-        
+      {       
         if(++count > maxRetries)
-        { 
+        {
+          LOGGER.error("Exception while searching element '{}' retry count: '{}', Type: '{}' : '{}'", 
+            xPath,  
+            count, 
+            eX.getClass().getSimpleName(),
+            eX.getMessage());
+          
           throw eX;
+        }
+        else
+        {
+          LOGGER.trace("Exception while searching element '{}' retry count: '{}', Type: '{}' : '{}'", 
+            xPath,  
+            count, 
+            eX.getClass().getName(),
+            eX.getMessage());
         }
       }
     }

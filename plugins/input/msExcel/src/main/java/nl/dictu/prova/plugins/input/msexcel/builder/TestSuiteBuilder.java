@@ -1,5 +1,6 @@
 package nl.dictu.prova.plugins.input.msexcel.builder;
 
+import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.framework.TestSuite;
 import nl.dictu.prova.plugins.input.msexcel.reader.WorkbookReader;
@@ -31,16 +32,17 @@ public class TestSuiteBuilder
   private static final FileFilter excelFlowFileFilter = file -> !file.isDirectory() && !file.getName().startsWith("~") && Arrays.asList("xlsm").contains(FilenameUtils.getExtension(file.getName()));
   //private static final FileFilter excelDataFileFilter = file -> !file.isDirectory() && !file.getName().startsWith("~") && Arrays.asList("xlsx").contains(FilenameUtils.getExtension(file.getName()));
 
-  public TestSuite buildTestSuite(File rootDirectory) throws Exception
+  public TestSuite buildTestSuite(File rootDirectory, TestRunner testRunner) throws Exception
   {
     LOGGER.trace("Directory: {}", rootDirectory::getPath);
     TestSuite testSuite = new TestSuite(rootDirectory.getPath());
+    testSuite.setTestRunner(testRunner);
     testSuite = addTestCases(testSuite);
 
     File[] directories = rootDirectory.listFiles(directoryFilter);
     for (File directory : directories)
     {
-      testSuite.addTestSuite(buildTestSuite(directory));
+      testSuite.addTestSuite(buildTestSuite(directory, testRunner));
     }
 
     return testSuite;
@@ -56,6 +58,7 @@ public class TestSuiteBuilder
       Workbook workbook = new XSSFWorkbook(excelFile);
       WorkbookReader workbookReader = new WorkbookReader(workbook);
       LinkedList<String> testDataSets = null;
+      TestCase testCase = null;
 
       for (Sheet sheet : workbook)
       {
@@ -98,7 +101,9 @@ public class TestSuiteBuilder
                         
                         LOGGER.debug("Create TestCase: '{}' (with data file)", identifier);
                         
-                        testSuite.addTestCase(new TestCase(identifier));
+                        testCase = new TestCase(identifier);
+                        testCase.setTestRunner(testSuite.getTestRunner());
+                        testSuite.addTestCase(testCase);
                       }
                     }
                     else
@@ -107,7 +112,9 @@ public class TestSuiteBuilder
                       identifier = excelFile.getPath() + File.separator + workbookReader.readProperty(row, cell);
                       
                       LOGGER.debug("Create TestCase: '{}' (no data file)", identifier);
-                      testSuite.addTestCase(new TestCase(identifier)); 
+                      testCase = new TestCase(identifier);
+                      testCase.setTestRunner(testSuite.getTestRunner());
+                      testSuite.addTestCase(testCase);
                     }
                   }
                   break; // exit for

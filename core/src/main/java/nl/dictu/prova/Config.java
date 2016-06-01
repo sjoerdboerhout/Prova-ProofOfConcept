@@ -60,4 +60,5 @@ public class Config
   public final static String PROVA_TESTS_ROOT                      = "prova.tests.root";                      // String,    Points to the root of the test scripts
   public final static String PROVA_TESTS_DATA_DIR                  = "prova.tests.data.dir";                  // String,    Dir name containing test data
   public final static String PROVA_TESTS_START                     = "prova.tests.start";                     // Integer,   (Re)Start the first test on this line
+  public final static String PROVA_TESTS_DELAY                     = "prova.tests.delay";                     // Long,      Delay between test actions (for debugging)
 }

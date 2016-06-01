@@ -34,7 +34,7 @@ public interface OutputPlugin
   
   public void doSetText(String xPath, String text) throws Exception;
   
-  public void doSleep(double waitTime) throws Exception;
+  public void doSleep(long waitTime) throws Exception;
   
   public void doValidateElement(String xPath, Boolean exists, double timeOut) throws Exception;
   

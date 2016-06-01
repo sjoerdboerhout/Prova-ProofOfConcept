@@ -5,6 +5,8 @@ import java.util.LinkedList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import nl.dictu.prova.Config;
+import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
 import nl.dictu.prova.framework.exceptions.TestActionException;
@@ -21,9 +23,10 @@ public class TestCase
   final static Logger LOGGER = LogManager.getLogger();
   
   // Unique test case ID for identification
-  private String     id       = "";
-  private TestStatus status   = TestStatus.NOTRUN;
-  private String     summary  = "";
+  private String     id         = "";
+  private TestStatus status     = TestStatus.NOTRUN;
+  private String     summary    = "";
+  private TestRunner testRunner = null;
   
   private String projectName  = "";
   
@@ -76,7 +79,32 @@ public class TestCase
   {
     return this.id;
   }  
-    
+  
+  
+  /**
+   * Set the test runner reference
+   * 
+   * @param testrunner
+   * @throws Exception
+   */
+  public void setTestRunner(TestRunner testRunner)
+  {
+    LOGGER.trace("Set TestRunner reference");
+    LOGGER.trace("TC: Testrunner set: {}", (testRunner != null ? "Yes" : "No"));
+            
+    this.testRunner = testRunner;
+  }
+  
+  /**
+   * Get the testRunner of this test case
+   * 
+   * @return
+   */
+  public TestRunner getTestRunner()
+  {
+    return this.testRunner;
+  }  
+      
 
   /**
    * Update the test status from external source.
@@ -253,9 +281,20 @@ public class TestCase
   public void execute() throws  Exception
   {
     Exception exception = null;
+    Long waitTime = (long) 0;
     
     LOGGER.debug("RUN TC: " + this.toString());
     
+    try
+    {
+      LOGGER.trace("Configured delay time: '{}'ms", testRunner.getPropertyValue(Config.PROVA_TESTS_DELAY));
+      waitTime = Long.parseLong(testRunner.getPropertyValue(Config.PROVA_TESTS_DELAY));
+    }
+    catch(Exception eX)
+    {
+      LOGGER.warn("Invalid test delay time. Falling back to default: 50 ms ({})", eX.getMessage());
+      waitTime = (long) 50;
+    }
     // Execute all set up actions
     try
     {
@@ -281,7 +320,20 @@ public class TestCase
         for(TestAction testAction : testActions)
         {
           LOGGER.trace("Execute test action: {}", () -> testAction.toString());
-          testAction.execute();
+          testAction.execute();    
+  
+          try
+          {
+            LOGGER.trace("Wait {} ms before executing next action.", waitTime);
+            Thread.sleep(waitTime);
+          }
+          catch(Exception eX)
+          {
+            LOGGER.debug("Exception while waiting '{}' ms: {}", 
+                          2000, eX.getMessage());
+                
+                throw eX;
+          }
         }    
         
         // Errors during tearDown do not alter the test result
