@@ -57,7 +57,7 @@ public class SheetPrefixValidator
    */
   private String getSheetNamePrefix(Sheet sheet)
   {
-    Pattern pattern = Pattern.compile("^([A-Za-z0-9]+)_[A-Za-z0-9_]+$");
+    Pattern pattern = Pattern.compile("^([A-Za-z0-9]+)_[A-Za-z0-9_-]+$");
     Matcher matcher = pattern.matcher(sheet.getSheetName());
     String prefix;
 
