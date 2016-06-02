@@ -25,8 +25,18 @@
     <artifact.package>nl.dictu.prova.plugins.reporting.simplereport</artifact.package>
     <artifact.mainclass>SimpleReport</artifact.mainclass>
     <dir.lib.rel>../../lib</dir.lib.rel>
-  </properties>
 	
+    <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>nl.dictu.prova</groupId>
+      <artifactId>core</artifactId>
+      <version>${prova.core.version}</version>
+    </dependency>
+  </dependencies>
+  
   <build>
     <plugins>
       <plugin>
