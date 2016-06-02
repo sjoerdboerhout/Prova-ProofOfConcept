@@ -3,6 +3,7 @@ package nl.dictu.prova.plugins.reporting;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestCase;
+import nl.dictu.prova.framework.TestSuite;
 
 /**
  * Describes the functions that must be available for the other parts of the 
@@ -13,15 +14,19 @@ import nl.dictu.prova.framework.TestCase;
  */
 public interface ReportingPlugin
 {
-  public void init(TestRunner testRunner);
+  public void init(TestRunner testRunner) throws Exception;
   
   public void setOutputDir(String outputDir) throws Exception;
   
   public void setUp() throws Exception;
   
+  public void logStartTestSuite(TestSuite testSuite) throws Exception; 
+  public void logEndTestSuite(TestSuite testSuite) throws Exception; 
+  
   public void logStartTest(TestCase testCase) throws Exception;  
-  public void logAction(TestAction action) throws Exception;  
   public void logEndTest(TestCase testCase) throws Exception;
+
+  public void logAction(TestAction action) throws Exception;  
   
   public void logMessage(String message) throws Exception;
   public void logMessage(String[] messages) throws Exception;

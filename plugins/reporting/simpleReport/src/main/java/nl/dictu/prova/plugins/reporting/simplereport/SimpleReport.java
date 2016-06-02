@@ -1,8 +1,12 @@
 package nl.dictu.prova.plugins.reporting.simplereport;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestCase;
+import nl.dictu.prova.framework.TestSuite;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 /*
@@ -11,16 +15,19 @@ import nl.dictu.prova.plugins.reporting.ReportingPlugin;
  */
 public class SimpleReport implements ReportingPlugin
 {
-  public static void main(String[] args)
-  {
-    System.out.println("Hello World!");
-  }
+  final static Logger LOGGER = LogManager.getLogger();
+  
+  private TestRunner testRunner;
 
   @Override
-  public void init(TestRunner testRunner)
+  public void init(TestRunner testRunner) throws Exception
   {
-    // TODO Auto-generated method stub
+    LOGGER.debug("Init: reporting plugin Simple Report!");
     
+    if(testRunner == null)
+       throw new Exception("No testRunner supplied!");
+    
+    this.testRunner = testRunner;
   }
 
   @Override
@@ -74,6 +81,20 @@ public class SimpleReport implements ReportingPlugin
 
   @Override
   public void shutDown()
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void logStartTestSuite(TestSuite testSuite) throws Exception
+  {
+    // TODO Auto-generated method stub
+    
+  }
+
+  @Override
+  public void logEndTestSuite(TestSuite testSuite) throws Exception
   {
     // TODO Auto-generated method stub
     

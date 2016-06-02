@@ -216,7 +216,7 @@ public class Prova implements Runnable, TestRunner
         }
       }
       
-      LOGGER.debug("Load and initialize input plug-in '{}'", () -> properties.getProperty("prova.plugins.in"));
+      LOGGER.debug("Load and initialize input plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_INPUT));
       pluginName = properties.getProperty(Config.PROVA_PLUGINS_INPUT_PACKAGE) +
                    properties.getProperty(Config.PROVA_PLUGINS_INPUT).toLowerCase() + "." +
                    properties.getProperty(Config.PROVA_PLUGINS_INPUT);
@@ -229,11 +229,11 @@ public class Prova implements Runnable, TestRunner
         throw new Exception("Could not load input plugin '" + pluginName + "'");
       
       
-      // TODO: Load and initialize output plug-in
-      LOGGER.debug("Load and initialize output plug-in '{}'", () -> properties.getProperty("prova.plugins.out.web"));
-      pluginName = properties.getProperty("prova.plugins.out.web.package") +
-                   properties.getProperty("prova.plugins.out.web").toLowerCase() + "." +
-                   properties.getProperty("prova.plugins.out.web");
+      // TODO: Load and initialize output shell plug-in
+      LOGGER.debug("Load and initialize output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB));
+      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB_PACKAGE) +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB).toLowerCase() + "." +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB);
 
       webOutputPlugin = pluginLoader.getInstanceOf(pluginName, OutputPlugin.class);
       
@@ -243,8 +243,18 @@ public class Prova implements Runnable, TestRunner
         throw new Exception("Could not load web output plugin '" + pluginName + "'");
 
 
-      // TODO: Load and initialize report plug-in(s)
-      LOGGER.debug("Load and initialize reporting plug-in");
+      // Load and initialize report plug-in(s)
+      LOGGER.debug("Load and initialize reporting plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_REPORTING));
+      pluginName = properties.getProperty(Config.PROVA_PLUGINS_REPORTING_PACKAGE) +
+                   properties.getProperty(Config.PROVA_PLUGINS_REPORTING).toLowerCase() + "." +
+                   properties.getProperty(Config.PROVA_PLUGINS_REPORTING);
+
+      reportPlugins.add(pluginLoader.getInstanceOf(pluginName, ReportingPlugin.class));
+      
+      for(ReportingPlugin reportPlugin : getReportingPlugins())
+      {
+        reportPlugin.init(this);
+      }
     }
     catch(ClassNotFoundException eX)
     {
