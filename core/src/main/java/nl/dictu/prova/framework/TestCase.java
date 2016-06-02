@@ -379,6 +379,24 @@ public class TestCase
   }
   
   /**
+   * Clear all test cases when the test case is executed.
+   * This to minimize memory usage.
+   */
+  public void clearAllActions()
+  {
+    try
+    {
+      setUpActions.clear();
+      testActions.clear();
+      tearDownActions.clear();
+    }
+    catch(Exception eX)
+    {
+      LOGGER.warn("Exception whie clearing test actions for TC '{}'", this.getId(), eX);
+    }
+  }
+  
+  /**
    * Summarize this object for logging purpose
    * 
    * @return
