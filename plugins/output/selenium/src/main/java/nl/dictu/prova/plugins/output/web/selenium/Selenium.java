@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
@@ -437,9 +438,72 @@ public class Selenium implements OutputPlugin
   @Override
   public void doValidateText(String xPath, String value, Boolean exists, double timeOut) throws Exception
   {
-    // TODO Auto-generated method stub
-    throw new Exception("doValidateText is not supported yet.");
+    LOGGER.debug("> Validate '{}' with text '{}'", xPath, value);
+    int iTimeOut = 0;
+    try
+    {
+    	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
+    	iTimeOut = Integer.valueOf((int) (timeOut/1000));
+    	if(iTimeOut < 1) iTimeOut = 1;
+    	LOGGER.trace("Convertion to seconds complete, timeout is {} seconds", iTimeOut);
+    }
+    catch(Exception eX)
+    {
+    	LOGGER.debug("Converting to seconds failed: " + eX);
+    	throw eX;
+    }
+    WebDriverWait wait = new WebDriverWait(webdriver, iTimeOut);
+    int count = 0;
     
+    while(true)
+    {
+      try
+      {
+    	
+    	WebElement element = webdriver.findElement(By.xpath(xPath));
+    	
+        if(element == null || !element.isEnabled())
+        {
+          throw new Exception("Element '" + xPath + "' not found.");
+        }
+        // Get text from element
+        String text = element.getText();
+        // If exists is false, check if text is not present in element
+        if (!exists)
+        {
+        	try
+        	{
+	        	LOGGER.trace("Controleren of de tekst {} niet voorkomt op de pagina", value);
+	        	Assert.assertTrue("The value " + value + " is found in the text: " + text,
+	        			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
+        	}
+        	catch(TimeoutException eX)
+        	{
+        		throw new Exception("The value " + value + " is found in the text: " + text);
+        	}
+        }
+        // Check if element contains the given text
+        else
+        {
+        	LOGGER.trace("Controleren of de tekst {} voorkomt op de pagina", value);
+        	Assert.assertTrue("The value " + value + " is not found in the text: " + text,
+        			           wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
+        }
+        
+        // action succeeded. Return.
+        return;
+      }
+      catch(Exception eX)
+      {
+        if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception while validating text '{}' in '{}': {} (retry count: {})", 
+                        value, xPath, eX.getMessage(), count);
+          
+          throw eX;
+        }
+      }
+    }   
   }
   
   
