@@ -36,7 +36,7 @@ public class Prova implements Runnable, TestRunner
   private InputPlugin                 inputPlugin;
   private OutputPlugin                shellOutputPlugin;
   private OutputPlugin                webOutputPlugin;
-  private ArrayList<ReportingPlugin>  reportPlugins;
+  private ArrayList<ReportingPlugin>  reportPlugins = new ArrayList<ReportingPlugin>();
   
   private TestSuite                   rootTestSuite;
   private Properties                  properties = new Properties();
@@ -344,9 +344,14 @@ public class Prova implements Runnable, TestRunner
           
           // Load all details of the test script
           inputPlugin.loadTestCase(entry.getValue());
-          
+                    
           if(Boolean.parseBoolean(this.getPropertyValue(Config.PROVA_TESTS_EXECUTE)))
           {
+            for(ReportingPlugin reportPlugin : getReportingPlugins())
+            {
+              reportPlugin.logStartTest(entry.getValue());
+            }
+            
             // (re-)set up output plug-in(s) for a new test case
             if(webOutputPlugin != null)
               webOutputPlugin.setUp(entry.getValue());
@@ -356,6 +361,11 @@ public class Prova implements Runnable, TestRunner
             
             // Execute the test script
             entry.getValue().execute();
+            
+            for(ReportingPlugin reportPlugin : getReportingPlugins())
+            {
+              reportPlugin.logEndTest(entry.getValue());
+            }
           }
           else
           {
@@ -521,7 +531,6 @@ public class Prova implements Runnable, TestRunner
   @Override
   public ArrayList<ReportingPlugin> getReportingPlugins()
   {
-    // TODO Auto-generated method
     return this.reportPlugins;
   }
 

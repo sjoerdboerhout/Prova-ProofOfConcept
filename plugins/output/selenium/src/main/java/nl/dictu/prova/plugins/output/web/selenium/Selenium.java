@@ -1,11 +1,17 @@
 package nl.dictu.prova.plugins.output.web.selenium;
 
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
 import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -111,12 +117,31 @@ public class Selenium implements OutputPlugin
       }
       else if(browserType.equalsIgnoreCase("Chrome"))
       {
-        LOGGER.trace("Try to load webdriver 'Chrome'");
+        String chromePath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_CHROME);
+        
+        LOGGER.trace("Try to load webdriver 'Chrome' ({})", chromePath);
+        System.setProperty("webdriver.chrome.driver", chromePath);  
+
         webdriver = new ChromeDriver();
       }
       else if(browserType.equalsIgnoreCase("InternetExplorer") || browserType.equalsIgnoreCase("IE"))
       {
-        LOGGER.trace("Try to load webdriver 'InternetExplorer'");
+        String iePath = testRunner.getPropertyValue(Config.PROVA_DIR) +
+                        File.separator +
+                        testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_IE);
+        
+        LOGGER.trace("Try to locate webdriver 'IE': ({})", iePath);
+        if(!new File(iePath).isFile())
+        {
+          iePath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_IE);
+          LOGGER.trace("Try to locate webdriver 'IE': ({})", iePath);
+          
+          if(!new File(iePath).isFile())
+            throw new Exception("No valid path to IE driver. (" + iePath + ")");
+        }
+        
+        LOGGER.trace("Try to load webdriver 'InternetExplorer' ({})", iePath);
+        System.setProperty("webdriver.ie.driver", iePath);        
         webdriver = new InternetExplorerDriver();
       }
       else if(browserType.equalsIgnoreCase("Safari"))
@@ -189,8 +214,20 @@ public class Selenium implements OutputPlugin
   @Override
   public void doCaptureScreen(String fileName) throws Exception
   {
-    // TODO Auto-generated method stub
-    throw new Exception("doCaptureScreen is not supported yet.");
+    File scrFile = ((TakesScreenshot)webdriver).getScreenshotAs(OutputType.FILE);
+    
+    try 
+    {
+      if(!new File(fileName).isFile())
+        fileName = testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT);
+      
+      FileUtils.copyFile(scrFile, new File(fileName + "x.png"));
+      LOGGER.debug("Placed screen shot in " + fileName + "x.png");
+    } 
+    catch (IOException e) 
+    {
+      e.printStackTrace();
+    }
   }
 
 
@@ -242,6 +279,7 @@ public class Selenium implements OutputPlugin
         
         if(++count > maxRetries)
         { 
+          this.doCaptureScreen("doClick");
           throw eX;
         }
       }
@@ -314,6 +352,8 @@ public class Selenium implements OutputPlugin
       LOGGER.trace("> Send keys '{}' to active element", keys);
       
       webdriver.switchTo().activeElement().sendKeys(keys);
+      
+      doCaptureScreen("");
     }
     catch(Exception eX)
     {
