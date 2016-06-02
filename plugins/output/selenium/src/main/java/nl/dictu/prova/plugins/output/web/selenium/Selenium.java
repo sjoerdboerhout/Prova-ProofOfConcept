@@ -345,6 +345,7 @@ public class Selenium implements OutputPlugin
       keys = keys.replace("<HOME>", Keys.HOME);
       keys = keys.replace("<INSERT>", Keys.INSERT);
       keys = keys.replace("<LEFT>", Keys.LEFT);
+      keys = keys.replace("<RETURN>", Keys.RETURN);
       keys = keys.replace("<RIGHT>", Keys.RIGHT);
       keys = keys.replace("<TAB>", Keys.TAB);
       keys = keys.replace("<UP>", Keys.UP);
