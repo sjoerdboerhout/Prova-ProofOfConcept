@@ -99,6 +99,15 @@ public class ScriptPrinter implements OutputPlugin
     // TODO Auto-generated method stub
     System.out.println( (select ? "Select" : "Deselect") + " '" + xPath + "'");
   }
+  
+  @Override
+  public void doSelectDropdown(String xPath, String select) throws Exception {
+  LOGGER.trace("DoSelectDropdown '{}' ({})", () -> xPath, () -> select);
+      
+      // TODO Auto-generated method stub
+      System.out.println( "Selecting '" + select + "' in element: " + xPath + "'");
+  	
+  }
 
   @Override
   public void doSendKeys(String keys) throws Exception
@@ -154,6 +163,4 @@ public class ScriptPrinter implements OutputPlugin
   {
     return "ScriptPrinter";
   }
-  
-  
 }

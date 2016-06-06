@@ -19,6 +19,7 @@ public class WebActionFactory
   public final static String ACTION_CLICK           = "CLICK";
   public final static String ACTION_DOWNLOADFILE    = "DOWNLOADFILE";
   public final static String ACTION_SELECT          = "SELECT";
+  public final static String ACTION_SELECTDROPDOWN  = "SELECTDROPDOWN";
   public final static String ACTION_SENDKEYS        = "SENDKEYS";
   public final static String ACTION_SETTEXT         = "SETTEXT";
   public final static String ACTION_SLEEP           = "SLEEP";
@@ -44,6 +45,7 @@ public class WebActionFactory
       case ACTION_CLICK:           return new Click();
       case ACTION_DOWNLOADFILE:    return new DownloadFile();
       case ACTION_SELECT:          return new Select();
+      case ACTION_SELECTDROPDOWN:  return new SelectDropdown();
       case ACTION_SENDKEYS:        return new SendKeys();
       case ACTION_SETTEXT:         return new SetText();
       case ACTION_SLEEP:           return new Sleep();

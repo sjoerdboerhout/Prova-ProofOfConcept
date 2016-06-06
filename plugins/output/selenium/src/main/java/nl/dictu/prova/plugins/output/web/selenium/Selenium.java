@@ -23,6 +23,7 @@ import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import nl.dictu.prova.Config;
@@ -332,7 +333,38 @@ public class Selenium implements OutputPlugin
     }
   }
 
-
+  @Override
+  public void doSelectDropdown(String xPath, String select) throws Exception
+  {
+    LOGGER.debug("> Select '{}' on {}",select , xPath);
+    
+    int count = 0;
+    
+    while(true)
+    {
+      try
+      {
+        Select dropdown = new Select(findElement(xPath));
+        
+        LOGGER.trace("Element '" + xPath + "' found.");
+      
+        // Set dropdown by visible text
+        dropdown.selectByVisibleText(select);
+        
+        // Action succeeded. Return.
+        return;
+      }
+      catch(Exception eX)
+      {
+        if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception while selecting '{}': {} (retry count: {})", xPath, eX.getMessage(), count);
+          
+          throw eX;
+        }
+      }
+    }
+  }
   @Override
   public void doSendKeys(String keys) throws Exception
   {

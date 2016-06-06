@@ -30,6 +30,8 @@ public interface OutputPlugin
   
   public void doSelect(String xPath, Boolean select) throws Exception;
   
+  public void doSelectDropdown(String xPath, String select) throws Exception;
+  
   public void doSendKeys(String keys) throws Exception;
   
   public void doSetText(String xPath, String text) throws Exception;
