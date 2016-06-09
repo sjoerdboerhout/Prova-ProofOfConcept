@@ -359,7 +359,8 @@ public class Prova implements Runnable, TestRunner
           {
             for(ReportingPlugin reportPlugin : getReportingPlugins())
             {
-              reportPlugin.logStartTest(entry.getValue());
+            	LOGGER.debug("Aantal in lijst: "+getReportingPlugins().size());
+            	reportPlugin.logStartTest(entry.getValue());
             }
             
             // (re-)set up output plug-in(s) for a new test case
@@ -374,7 +375,8 @@ public class Prova implements Runnable, TestRunner
             
             for(ReportingPlugin reportPlugin : getReportingPlugins())
             {
-              reportPlugin.logEndTest(entry.getValue());
+            	LOGGER.debug("Rapportage einde testgeval");
+            	reportPlugin.logEndTest(entry.getValue());
             }
           }
           else

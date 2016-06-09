@@ -55,6 +55,7 @@ public class Config
   public final static String PROVA_PLUGINS_REPORTING_PACKAGE            = "prova.plugins.reporting.package";            // Boolean,   Execute or only validate 
   public final static String PROVA_PLUGINS_REPORTING                    = "prova.plugins.reporting";                    // Boolean,   Execute or only validate 
   
+  public final static String PROVA_PLUGINS_REPORTING_DIR                = "prova.plugins.reporting.dir";
   public final static String PROVA_PLUGINS_REPORTING_FILE               = "prova.plugins.reporting.file";               // String,    Full path to file for logging test results 
   
   public final static String PROVA_TESTS_EXECUTE                        = "prova.tests.execute";                        // Boolean,   Execute or only validate 
