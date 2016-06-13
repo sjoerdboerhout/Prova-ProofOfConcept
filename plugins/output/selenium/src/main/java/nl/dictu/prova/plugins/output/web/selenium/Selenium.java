@@ -539,6 +539,51 @@ public class Selenium implements OutputPlugin
     }   
   }
   
+  @Override
+  public void doSwitchFrame(String xPath) throws Exception
+  {
+    LOGGER.debug(">> Switch to frame '{}' ", xPath);
+    
+    int count = 0;
+    
+    while(true)
+    {
+      try
+      {
+        if (xPath=="DEFAULT")
+        {
+        	//switching to the default frame
+        	LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+	        webdriver.switchTo().defaultContent();
+        }
+        else
+        {
+	        WebElement element = findElement(xPath);
+	        
+	        if(element == null || !element.isEnabled())
+	        {
+	          throw new Exception("Element '" + xPath + "' not found.");
+	        }
+	        
+	        // switching to frame selected by xpath
+	        LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+	        webdriver.switchTo().frame(element);
+        } 
+        // Action succeeded. Return.
+        return;
+      }
+      catch(Exception eX)
+      {
+        if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception while switching to frame '{}' : {} (retry count: {})", 
+                        xPath, eX.getMessage(), count);
+          
+          throw eX;
+        }
+      }
+    }    
+  }
   
   private WebElement findElement(String xPath)
   {

@@ -163,4 +163,10 @@ public class ScriptPrinter implements OutputPlugin
   {
     return "ScriptPrinter";
   }
+
+@Override
+public void doSwitchFrame(String xPath) throws Exception {
+	// TODO Auto-generated method stub
+	
+}
 }

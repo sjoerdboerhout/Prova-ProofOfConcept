@@ -41,4 +41,6 @@ public interface OutputPlugin
   public void doValidateElement(String xPath, Boolean exists, double timeOut) throws Exception;
   
   public void doValidateText(String xPath, String value, Boolean exists, double timeOut) throws Exception;
+  
+  public void doSwitchFrame (String xPath) throws Exception;
 }
