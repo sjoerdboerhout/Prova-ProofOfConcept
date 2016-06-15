@@ -1,6 +1,7 @@
 package nl.dictu.prova.framework.web;
 
 import nl.dictu.prova.framework.TestAction;
+import nl.dictu.prova.framework.parameters.Bool;
 import nl.dictu.prova.framework.parameters.Text;
 import nl.dictu.prova.framework.parameters.Xpath;
 
@@ -15,9 +16,13 @@ public class SwitchFrame extends TestAction
 {
   // Action attribute names
   public final static String ATTR_XPATH = "XPATH";
+  public final static String ATTR_ALERT = "ALERT";
+  public final static String ATTR_ACCEPT = "ACCEPT";
    
   // Declaration and default value
   private Xpath xPath;
+  private Bool alert;
+  private Bool accept;
 
   /**
    * Constructor
@@ -30,6 +35,8 @@ public class SwitchFrame extends TestAction
     // Create parameters with (optional) defaults and limits
     xPath = new Xpath();
     xPath.setValue("DEFAULT");
+    alert = new Bool(false);
+    accept = new Bool(false);
 
   }
   
@@ -54,6 +61,13 @@ public class SwitchFrame extends TestAction
     	  if(value!=null) xPath.setValue(value); 
       break;
       
+      case ATTR_ALERT:  
+    	  if(value!=null) alert.setValue(value); 
+      break;
+      case ATTR_ACCEPT:  
+    	  if(value!=null) accept.setValue(value); 
+      break;
+      
     }
     
     xPath.setAttribute(key, value);  
@@ -68,6 +82,8 @@ public class SwitchFrame extends TestAction
   {
     if(testRunner == null)  return false;
     if(!xPath.isValid())    return false;
+    if(!alert.isValid())   return false;
+    if(!accept.isValid())   return false;
     
     return true;
   }
@@ -84,7 +100,7 @@ public class SwitchFrame extends TestAction
     if(!isValid())
       throw new Exception("Action is not validated!");
     
-    testRunner.getWebActionPlugin().doSwitchFrame(xPath.getValue());
+    testRunner.getWebActionPlugin().doSwitchFrame(xPath.getValue(), alert.getValue(),accept.getValue());
   }
 
 

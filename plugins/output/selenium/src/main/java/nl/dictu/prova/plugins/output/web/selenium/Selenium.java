@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
@@ -540,7 +541,7 @@ public class Selenium implements OutputPlugin
   }
   
   @Override
-  public void doSwitchFrame(String xPath) throws Exception
+  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception
   {
     LOGGER.debug(">> Switch to frame '{}' ", xPath);
     
@@ -550,25 +551,48 @@ public class Selenium implements OutputPlugin
     {
       try
       {
-        if (xPath=="DEFAULT")
+        if (alert == true)
         {
-        	//switching to the default frame
-        	LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
-	        webdriver.switchTo().defaultContent();
+        	LOGGER.trace("Switching to alert (doSwitchFrame)");
+        	Alert popupalert = webdriver.switchTo().alert();
+        	if (accept == true)
+        	{
+        		LOGGER.trace("Accepting alert (doSwitchFrame)");
+        		popupalert.accept();
+        	}
+        	else if (accept == false)
+        	{
+        		LOGGER.trace("Dismissing alert (doSwitchFrame)");
+        		popupalert.dismiss();
+        	}
+        	else
+        	{
+        		throw new Exception();
+        	}
+
         }
         else
         {
-	        WebElement element = findElement(xPath);
-	        
-	        if(element == null || !element.isEnabled())
+	    	if (xPath=="DEFAULT")
 	        {
-	          throw new Exception("Element '" + xPath + "' not found.");
+	        	//switching to the default frame
+	        	LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        webdriver.switchTo().defaultContent();
 	        }
-	        
-	        // switching to frame selected by xpath
-	        LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
-	        webdriver.switchTo().frame(element);
-        } 
+	        else
+	        {
+		        WebElement element = findElement(xPath);
+		        
+		        if(element == null || !element.isEnabled())
+		        {
+		          throw new Exception("Element '" + xPath + "' not found.");
+		        }
+		        
+		        // switching to frame selected by xpath
+		        LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        webdriver.switchTo().frame(element);
+	        } 
+        }
         // Action succeeded. Return.
         return;
       }
