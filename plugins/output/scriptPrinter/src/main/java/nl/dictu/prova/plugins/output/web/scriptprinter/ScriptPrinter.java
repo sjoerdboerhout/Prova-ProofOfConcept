@@ -163,4 +163,18 @@ public class ScriptPrinter implements OutputPlugin
   {
     return "ScriptPrinter";
   }
+
+@Override
+public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception {
+	LOGGER.trace("doValidateText '{}' ({}, {}, {})", () -> alert, () -> accept, () -> xPath);
+    
+    // TODO Implement function
+    System.out.println( "Swithing to frame '" + xPath + 
+    					"' frame is alert?: " +
+                        (alert ? "Yes" : "No")+
+                        "' accept or dismiss?: " +
+                        (accept ? "Accept" : "Dismiss"));
+	// TODO Auto-generated method stub
+	
+}
 }

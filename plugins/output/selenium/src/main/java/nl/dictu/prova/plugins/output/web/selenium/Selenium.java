@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
+import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
@@ -539,6 +540,78 @@ public class Selenium implements OutputPlugin
     }   
   }
   
+  @Override
+  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception
+  {
+    LOGGER.debug(">> Switch to frame");
+    
+    int count = 0;
+    
+    while(true)
+    {
+      try
+      {
+        if (alert == true)
+        {
+        	//if 'alert' is true, we're expecting a non web message
+        	LOGGER.trace("Switching to alert (doSwitchFrame)");
+        	Alert popupalert = webdriver.switchTo().alert();
+        	if (accept == true)
+        	{
+        		//accepting the message by clicking 'yes' or whatever
+        		LOGGER.trace("Accepting alert (doSwitchFrame)");
+        		popupalert.accept();
+        	}
+        	else if (accept == false)
+        	{
+        		//dismissing the message by clicking 'no' or whatever
+        		LOGGER.trace("Dismissing alert (doSwitchFrame)");
+        		popupalert.dismiss();
+        	}
+        	else
+        	{
+        		//if check on boolean works properly, the else is never reached
+        		throw new Exception("Value of Boolean 'alert' not valid");
+        	}
+
+        }
+        else
+        {
+	    	if (xPath=="DEFAULT")
+	        {
+	        	//switching to the default frame
+	        	LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        webdriver.switchTo().defaultContent();
+	        }
+	        else
+	        {
+		        WebElement element = findElement(xPath);
+		        
+		        if(element == null || !element.isEnabled())
+		        {
+		          throw new Exception("Element '" + xPath + "' not found.");
+		        }
+		        
+		        // switching to frame by element, selected by xpath
+		        LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        webdriver.switchTo().frame(element);
+	        } 
+        }
+        // Action succeeded. Return.
+        return;
+      }
+      catch(Exception eX)
+      {
+        if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception while switching to frame '{}' : {} (retry count: {})", 
+                        xPath, eX.getMessage(), count);
+          
+          throw eX;
+        }
+      }
+    }    
+  }
   
   private WebElement findElement(String xPath)
   {
