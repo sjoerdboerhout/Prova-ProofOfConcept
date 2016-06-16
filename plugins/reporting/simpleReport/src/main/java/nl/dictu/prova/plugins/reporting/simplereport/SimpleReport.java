@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.time.LocalDateTime;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,7 +63,7 @@ public class SimpleReport implements ReportingPlugin
 	  fileName = "test.html";
 	  try
 	  {
-		  File file =new File(outputDirectory+"/test.txt");
+		  File file =new File(outputDirectory+"/testrun_"+System.currentTimeMillis()+".html");
 		  LOGGER.debug(outputDirectory+"/test.txt");
     	  if(!file.exists()){
     	 	file.createNewFile();
@@ -70,8 +71,12 @@ public class SimpleReport implements ReportingPlugin
     	  FileWriter fw = new FileWriter(file,true);
     	  BufferedWriter bw = new BufferedWriter(fw);
     	  pw = new PrintWriter(bw);
-		  pw.println("Schrijf een regel");
-		  
+		  pw.println("<!DOCTYPE html>");
+		  pw.println("<html>");
+		  pw.println("<head>");
+		  pw.println("<style> table, td { 	border: 1px solid black;	border-collapse: collapse;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}th {	text-align: left;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}tr:nth-child(odd) {	background: #CBCDCD;}p {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}h1 {	font-family: Verdana, Helvetica, sans-serif;	font-size: 30px;}</style>");
+		  pw.println("</head>");
+		  pw.println("<body>");	  
 	  }
 	  catch(IOException eX)
 	  {
@@ -88,7 +93,9 @@ public class SimpleReport implements ReportingPlugin
 		  LOGGER.debug("Start SimpleReport Setup");
 		  this.setUp();
 		  LOGGER.debug("Wegschrijven begin test");
-		  pw.println("Starttijd: iets");
+		  pw.println("<h1>"+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</h1>");
+
+		  pw.println("<br>Starttijd: " + LocalDateTime.now()+"</br>");
 		  //this.shutDown();
 	  }
 	  catch(IOException eX)
@@ -109,7 +116,19 @@ public class SimpleReport implements ReportingPlugin
   {
 	  
 	  LOGGER.debug("Status testgeval: "+testCase.getStatus());
-	  pw.println("Status testgeval: " + testCase.getStatus() );
+	  pw.println("<br>Eindtijd: " + LocalDateTime.now()+"</br>");
+	  if (testCase.getStatus().toString().equalsIgnoreCase("passed"))
+	  {
+		  pw.println("<br>Status testgeval: <font color=\"green\"><b>" + testCase.getStatus()+"</b></font></br>" );
+	  }
+	  else
+	  {
+		  pw.println("<br>Status testgeval: <font color=\"red\"><b>" + testCase.getStatus()+"</b></font></br>" );
+	  }
+	  pw.println("<br>Samenvatting: " + testCase.getSummary()+"</br>");
+	  
+	  pw.println("</body>");
+	  pw.println("</html>");
 	  this.shutDown();
     
   }

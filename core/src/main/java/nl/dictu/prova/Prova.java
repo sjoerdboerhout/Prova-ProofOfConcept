@@ -391,6 +391,11 @@ public class Prova implements Runnable, TestRunner
         catch(TestActionException eX)
         {
           LOGGER.error(">> Test action failure <<", eX);
+          for(ReportingPlugin reportPlugin : getReportingPlugins())
+          {
+          	LOGGER.debug("Rapportage einde testgeval (error)");
+          	reportPlugin.logEndTest(entry.getValue());
+          }
         }
         catch(TearDownActionException eX)
         {
