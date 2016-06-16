@@ -64,6 +64,7 @@ public class SwitchFrame extends TestAction
       case ATTR_ALERT:  
     	  if(value!=null) alert.setValue(value); 
       break;
+      
       case ATTR_ACCEPT:  
     	  if(value!=null) accept.setValue(value); 
       break;
