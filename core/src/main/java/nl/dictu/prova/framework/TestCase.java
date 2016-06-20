@@ -10,6 +10,7 @@ import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
 import nl.dictu.prova.framework.exceptions.TestActionException;
+import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 /**
  * Contains all the data of a test case including a list of all actions that
@@ -302,6 +303,7 @@ public class TestCase
       {
         LOGGER.trace("Execute setUp action: {}", () -> setUpAction.toString());
         setUpAction.execute();
+        
       }      
     }
     catch(Exception eX)
@@ -321,7 +323,11 @@ public class TestCase
         {
           LOGGER.trace("Execute test action: {}", () -> testAction.toString());
           testAction.execute();    
-  
+          for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
+          {
+          	LOGGER.debug("Report: log action");
+          	reportPlugin.logAction(testAction);
+          }
           try
           {
             LOGGER.trace("Wait {} ms before executing next action.", waitTime);

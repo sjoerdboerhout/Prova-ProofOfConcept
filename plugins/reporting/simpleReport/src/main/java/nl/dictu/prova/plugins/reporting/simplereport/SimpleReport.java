@@ -64,7 +64,6 @@ public class SimpleReport implements ReportingPlugin
 	  try
 	  {
 		  File file =new File(outputDirectory+"/testrun_"+System.currentTimeMillis()+".html");
-		  LOGGER.debug(outputDirectory+"/test.txt");
     	  if(!file.exists()){
     	 	file.createNewFile();
     	  }
@@ -96,6 +95,8 @@ public class SimpleReport implements ReportingPlugin
 		  pw.println("<h1>"+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</h1>");
 
 		  pw.println("<br>Starttijd: " + LocalDateTime.now()+"</br>");
+		  pw.println("<table>			<tr>				<th>Regelnummer</th><th>Actie</th>				<th>Resultaat</th></tr>");
+		  
 		  //this.shutDown();
 	  }
 	  catch(IOException eX)
@@ -107,7 +108,7 @@ public class SimpleReport implements ReportingPlugin
   @Override
   public void logAction(TestAction action) throws Exception
   {
-    // TODO Auto-generated method stub
+	  pw.println("<tr><td style=\"width:200px\">" + action.getId() +"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">OK</td></tr>");
     
   }
 
@@ -126,7 +127,7 @@ public class SimpleReport implements ReportingPlugin
 		  pw.println("<br>Status testgeval: <font color=\"red\"><b>" + testCase.getStatus()+"</b></font></br>" );
 	  }
 	  pw.println("<br>Samenvatting: " + testCase.getSummary()+"</br>");
-	  
+	  pw.println("</table>");
 	  pw.println("</body>");
 	  pw.println("</html>");
 	  this.shutDown();
