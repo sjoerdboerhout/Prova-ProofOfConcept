@@ -469,12 +469,13 @@ public class Selenium implements OutputPlugin
         }
         // Get text from element
         String text = element.getText();
+        text = text + element.getAttribute("value");
         // If exists is false, check if text is not present in element
         if (!exists)
         {
         	try
         	{
-	        	LOGGER.trace("Controleren of de tekst {} niet voorkomt op de pagina", value);
+	        	LOGGER.trace("Controleren of de tekst {} niet voorkomt in het element {}", value, xPath);
 	        	Assert.assertTrue("The value " + value + " is found in the text: " + text,
 	        			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
         	}
@@ -486,7 +487,7 @@ public class Selenium implements OutputPlugin
         // Check if element contains the given text
         else
         {
-        	LOGGER.trace("Controleren of de tekst {} voorkomt op de pagina", value);
+        	LOGGER.trace("Controleren of de tekst {} voorkomt in het element {}", value, xPath);
         	Assert.assertTrue("The value " + value + " is not found in the text: " + text,
         			           wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
         }
