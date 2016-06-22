@@ -407,6 +407,9 @@ public class Prova implements Runnable, TestRunner
           
           if(shellOutputPlugin != null)
             shellOutputPlugin.tearDown(entry.getValue());
+          
+          // Test script finished. Clear all actions to clear memory
+          entry.getValue().clearAllActions();
         }
       }
       

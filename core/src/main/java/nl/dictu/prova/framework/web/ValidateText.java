@@ -40,7 +40,7 @@ public class ValidateText extends TestAction
     exists = new Bool(true);
     timeOut = new TimeOut(60000); // Ms
     xPath = new Xpath();
-    
+    xPath.setValue("/html/body");
   }
 
   
@@ -70,11 +70,11 @@ public class ValidateText extends TestAction
       break;
       
       case ATTR_TIMEOUT:
-        timeOut.setValue(value); 
+    	  if((value!=null) && (value.length()>0)) timeOut.setValue(value); 
       break;
       
       case ATTR_XPATH:
-        xPath.setValue(value); 
+        if(value!=null) xPath.setValue(value);   
       break;
     }
     

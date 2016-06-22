@@ -333,6 +333,7 @@ public class TestCaseBuilder
           if( testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName))
           {
             xPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName);
+            testAction.setAttribute("xpath", xPath);
           }
           
           LOGGER.trace("Action: '{}', Locator: '{}' (xpath: {})", 
@@ -341,7 +342,6 @@ public class TestCaseBuilder
                         xPath);
           
           testAction.setTestRunner(testRunner);
-          testAction.setAttribute("xpath", xPath);
           testAction.setId(rowNum.toInteger());
           
           for (String key : rowMap.keySet())
