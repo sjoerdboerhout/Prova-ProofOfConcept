@@ -1,8 +1,5 @@
 package nl.dictu.prova.framework.parameters;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Contains all the common functions of the test action parameter XPath.
  * XPath extends the basic functions of Text

@@ -389,8 +389,6 @@ public class Selenium implements WebOutputPlugin
       LOGGER.trace("> Send keys '{}' to active element", keys);
       
       webdriver.switchTo().activeElement().sendKeys(keys);
-      
-      doCaptureScreen("");
     }
     catch(Exception eX)
     {

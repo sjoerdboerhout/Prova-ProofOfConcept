@@ -6,10 +6,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import nl.dictu.prova.TestRunner;
-import nl.dictu.prova.framework.exceptions.SetUpActionException;
-import nl.dictu.prova.framework.exceptions.TearDownActionException;
-import nl.dictu.prova.framework.exceptions.TestActionException;
-import nl.dictu.prova.plugins.input.InputPlugin;
 
 /**
  * Contains a tree of (sub) test suites and test cases.

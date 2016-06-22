@@ -2,7 +2,6 @@ package nl.dictu.prova.framework.web;
 
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.parameters.FileName;
-import nl.dictu.prova.framework.parameters.Text;
 
 /**
  * Handles the Prova function 'capture screen' to save a screendump of the

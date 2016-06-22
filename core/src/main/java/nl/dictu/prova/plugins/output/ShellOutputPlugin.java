@@ -1,7 +1,7 @@
 package nl.dictu.prova.plugins.output;
 
-public interface ShellOutputPlugin extends OutputPlugin {
-
+public interface ShellOutputPlugin extends OutputPlugin 
+{
 	void doCaptureScreen(String fileName) throws Exception;
 
 	void doClick(String xPath, Boolean rightClick, Boolean waitUntilPageLoaded) throws Exception;
@@ -19,5 +19,4 @@ public interface ShellOutputPlugin extends OutputPlugin {
 	void doValidateElement(String xPath, Boolean exists, double timeOut) throws Exception;
 
 	void doValidateText(String xPath, String value, Boolean exists, double timeOut) throws Exception;
-
 }

@@ -2,7 +2,6 @@ package nl.dictu.prova.framework.web;
 
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.parameters.Bool;
-import nl.dictu.prova.framework.parameters.Text;
 import nl.dictu.prova.framework.parameters.Xpath;
 
 /**
