@@ -1,5 +1,6 @@
 package nl.dictu.prova.framework.web;
 
+import nl.dictu.prova.Config;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.parameters.Bool;
 import nl.dictu.prova.framework.parameters.Text;
@@ -34,11 +35,10 @@ public class ValidateText extends TestAction
   public ValidateText() throws Exception
   {
     super();
-    
     // Create parameters with (optional) defaults and limits
     text = new Text();
     exists = new Bool(true);
-    timeOut = new TimeOut(60000); // Ms
+    timeOut = new TimeOut(0); // Ms
     xPath = new Xpath();
     xPath.setValue("/html/body");
   }

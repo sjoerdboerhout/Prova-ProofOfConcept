@@ -15,8 +15,10 @@ public interface OutputPlugin
   public String getName();
   
   public void init(TestRunner testRunner) throws Exception;
+  
   public void shutDown();
   
   public void setUp(TestCase testCase) throws Exception;
+  
   public void tearDown(TestCase testCase) throws Exception;
 }
