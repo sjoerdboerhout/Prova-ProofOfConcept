@@ -25,6 +25,7 @@ public class WebActionFactory
   public final static String ACTION_VALIDATEELEMENT = "VALIDATEELEMENT";
   public final static String ACTION_VALIDATETEXT    = "VALIDATETEXT";
   public final static String ACTION_UPLOADFILE      = "UPLOADFILE";
+  public final static String ACTION_SWITCHSCREEN	= "SWITCHSCREEN";
 
   
   /**
@@ -50,6 +51,7 @@ public class WebActionFactory
       case ACTION_VALIDATEELEMENT: return new ValidateElement();
       case ACTION_VALIDATETEXT:    return new ValidateText();
       case ACTION_UPLOADFILE:      return new UploadFile();
+      case ACTION_SWITCHSCREEN:	   return new SwitchScreen();
     }
     
     throw new Exception("Unknown action '" + name + "' requested");

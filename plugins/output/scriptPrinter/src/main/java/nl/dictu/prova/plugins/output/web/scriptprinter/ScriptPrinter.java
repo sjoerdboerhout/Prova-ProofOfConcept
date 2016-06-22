@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Logger;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.plugins.output.OutputPlugin;
+import nl.dictu.prova.plugins.output.ShellOutputPlugin;
 
 /**
  * Output plugin to print all actions to a file
@@ -13,7 +14,7 @@ import nl.dictu.prova.plugins.output.OutputPlugin;
  * @author Sjoerd Boerhout
  *
  */
-public class ScriptPrinter implements OutputPlugin
+public class ScriptPrinter implements ShellOutputPlugin
 {
   final static Logger LOGGER = LogManager.getLogger();
   
@@ -50,7 +51,6 @@ public class ScriptPrinter implements OutputPlugin
     LOGGER.debug("TearDown: Test Case ID '{}'", () -> testCase.getId());
     // TODO Close file
     System.out.println("==================================================\n\n");
-    
   }
 
   

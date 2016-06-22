@@ -2,6 +2,7 @@ package nl.dictu.prova.plugins.output.web.selenium;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -9,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.NoSuchWindowException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TakesScreenshot;
@@ -27,7 +29,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
-import nl.dictu.prova.plugins.output.OutputPlugin;
+import nl.dictu.prova.plugins.output.WebOutputPlugin;
 
 /**
  * Driver for controlling Selenium Webdriver
@@ -36,7 +38,7 @@ import nl.dictu.prova.plugins.output.OutputPlugin;
  * @since  2016-05-11
  *
  */
-public class Selenium implements OutputPlugin
+public class Selenium implements WebOutputPlugin
 {
   final static Logger LOGGER = LogManager.getLogger();
   
@@ -423,6 +425,44 @@ public class Selenium implements OutputPlugin
           throw eX;
     }    
   }
+  
+  
+  @Override
+  public void doSwitchScreen() throws Exception {
+	  try
+	  {
+		  Set<String> windowHandles = webdriver.getWindowHandles();
+		  String currentHandle = webdriver.getWindowHandle();
+		  
+		  if(windowHandles.isEmpty()){
+			  LOGGER.debug("No window handles available.");
+			  throw new Exception("No window handles available.");
+		  }
+		  
+		  if(windowHandles.size() == 1){
+			  LOGGER.debug("No second screen available to switch to.");
+			  throw new Exception("No second screen available to switch to.");
+		  }
+		  
+		  for(String handle : windowHandles){
+			  if(!currentHandle.equals(handle)){
+				  LOGGER.trace("Switching to screen: " + handle);
+				  webdriver.switchTo().window(handle);
+				  break;
+			  }
+		  }
+	  }
+	  catch(NoSuchWindowException eX)
+	  {
+		  LOGGER.debug("Exception while switching screens: No such window!");
+		  throw eX;
+	  }
+	  catch(Exception eX)
+	  {
+		  LOGGER.debug("Exception while switching screens");
+		  throw eX;
+	  }
+  }
 
 
   @Override
@@ -430,7 +470,6 @@ public class Selenium implements OutputPlugin
   {
     // TODO Auto-generated method stub
     throw new Exception("doValidateElement is not supported yet.");
-    
   }
 
 

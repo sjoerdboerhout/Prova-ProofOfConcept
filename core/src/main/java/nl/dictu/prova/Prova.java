@@ -16,7 +16,8 @@ import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
 import nl.dictu.prova.framework.exceptions.TestActionException;
 import nl.dictu.prova.plugins.input.InputPlugin;
-import nl.dictu.prova.plugins.output.OutputPlugin;
+import nl.dictu.prova.plugins.output.ShellOutputPlugin;
+import nl.dictu.prova.plugins.output.WebOutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 import nl.dictu.prova.util.PluginLoader;
 
@@ -34,8 +35,8 @@ public class Prova implements Runnable, TestRunner
   private PluginLoader                pluginLoader;
   
   private InputPlugin                 inputPlugin;
-  private OutputPlugin                shellOutputPlugin;
-  private OutputPlugin                webOutputPlugin;
+  private ShellOutputPlugin           shellOutputPlugin;
+  private WebOutputPlugin             webOutputPlugin;
   private ArrayList<ReportingPlugin>  reportPlugins = new ArrayList<ReportingPlugin>();
   
   private TestSuite                   rootTestSuite;
@@ -235,7 +236,7 @@ public class Prova implements Runnable, TestRunner
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB).toLowerCase() + "." +
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB);
 
-      webOutputPlugin = pluginLoader.getInstanceOf(pluginName, OutputPlugin.class);
+      webOutputPlugin = pluginLoader.getInstanceOf(pluginName, WebOutputPlugin.class);
       
       if(webOutputPlugin != null)
         webOutputPlugin.init(this);
@@ -513,7 +514,7 @@ public class Prova implements Runnable, TestRunner
    * @return
    */
   @Override
-  public OutputPlugin getWebActionPlugin()
+  public WebOutputPlugin getWebActionPlugin()
   {
     LOGGER.trace("Request for web action plugin. ({})", () -> this.webOutputPlugin.getName() );
     
@@ -526,7 +527,7 @@ public class Prova implements Runnable, TestRunner
    * @return
    */
   @Override
-  public OutputPlugin getShellActionPlugin()
+  public ShellOutputPlugin getShellActionPlugin()
   {
     LOGGER.trace("Request for shell action plugin. ({})", () -> this.shellOutputPlugin.getName() );
     
