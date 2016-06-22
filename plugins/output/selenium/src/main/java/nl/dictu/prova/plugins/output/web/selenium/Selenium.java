@@ -443,10 +443,22 @@ public class Selenium implements OutputPlugin
     int iTimeOut = 0;
     try
     {
+    	if (timeOut == 0)
+    	{
+    		try
+    		{
+    			LOGGER.trace("Timeout not set; setting timeout to default");
+    			timeOut = Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
+    		}
+    		catch(Exception eX)
+    		{
+    			LOGGER.debug("Setting default timeout failed: " + eX);
+    		}
     	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
     	iTimeOut = Integer.valueOf((int) (timeOut/1000));
     	if(iTimeOut < 1) iTimeOut = 1;
     	LOGGER.trace("Convertion to seconds complete, timeout is {} seconds", iTimeOut);
+    	}
     }
     catch(Exception eX)
     {
@@ -468,28 +480,58 @@ public class Selenium implements OutputPlugin
           throw new Exception("Element '" + xPath + "' not found.");
         }
         // Get text from element
-        String text = element.getText();
-        text = text + element.getAttribute("value");
+        String text = element.getText()+ "\r\n";
+        text = text + "Attribute @value: " + element.getAttribute("value");
+        LOGGER.trace(text);
         // If exists is false, check if text is not present in element
         if (!exists)
         {
+        	//validate if value is not present in text
         	try
         	{
 	        	LOGGER.trace("Controleren of de tekst {} niet voorkomt in het element {}", value, xPath);
-	        	Assert.assertTrue("The value " + value + " is found in the text: " + text,
+	        	Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
 	        			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
         	}
         	catch(TimeoutException eX)
         	{
-        		throw new Exception("The value " + value + " is found in the text: " + text);
+        		//validate if value is not present in attribute @value
+        		try
+        		{
+        			LOGGER.trace("Controleren of het attribuut @value, van het element {}, de tekst {} niet bevat", xPath,value );
+        			Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
+    			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementValue(element, value))));
+        		}
+        		catch(TimeoutException e)
+        		{
+        		throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
+        		}
         	}
         }
         // Check if element contains the given text
         else
         {
-        	LOGGER.trace("Controleren of de tekst {} voorkomt in het element {}", value, xPath);
-        	Assert.assertTrue("The value " + value + " is not found in the text: " + text,
-        			           wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
+        	//validate if value is present in text
+        	try
+        	{
+        		LOGGER.trace("Controleren of de tekst {} voorkomt in het element {}", value, xPath);
+        		Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
+ 			           wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
+        	}
+        	catch(TimeoutException eX)
+        	{
+        		//validate if value is present in attribute @value
+        		try
+        		{
+        			LOGGER.trace("Controleren of het attribuut @value, van het element {}, de tekst {} bevat", xPath,value );
+        			Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
+      			           wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
+        		}
+        		catch(TimeoutException e)
+        		{
+        			throw new TimeoutException("The value \"" + value + "\" is not found in the text: " + text);
+        		}
+        	}
         }
         
         // action succeeded. Return.

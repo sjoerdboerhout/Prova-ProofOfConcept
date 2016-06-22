@@ -35,11 +35,10 @@ public class ValidateText extends TestAction
   public ValidateText() throws Exception
   {
     super();
-    
     // Create parameters with (optional) defaults and limits
     text = new Text();
     exists = new Bool(true);
-    timeOut = new TimeOut(Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT))); // Ms
+    timeOut = new TimeOut(0); // Ms
     xPath = new Xpath();
     xPath.setValue("/html/body");
   }
