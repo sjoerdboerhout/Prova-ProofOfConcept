@@ -17,7 +17,7 @@ public class SelectDropdown extends TestAction
   public final static String ATTR_SELECT = "SELECT";
   
   private Xpath  xPath;
-  private Text select;
+  private Text 	 select;
 
   
   /**

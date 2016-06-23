@@ -2,6 +2,8 @@ package nl.dictu.prova.plugins.output.web.selenium;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -299,6 +301,24 @@ public class Selenium implements WebOutputPlugin
     throw new Exception("doDownloadFile is not supported yet.");
     
   }
+  
+  
+  @Override
+  public void doNavigate(String url) 
+  {	  
+	  URL qualifiedUrl = null;
+	  LOGGER.debug("Checking url for malformations");
+	  
+	  try {
+		qualifiedUrl = new URL(url);
+	} catch (MalformedURLException e) {
+		// TODO Auto-generated catch block
+		LOGGER.debug("Provided URL is malformed.");
+	} 
+	  LOGGER.debug("Url not malformed, navigating to " + qualifiedUrl.getPath());
+	  
+	  webdriver.navigate().to(qualifiedUrl);
+  }
 
 
   @Override
@@ -456,6 +476,80 @@ public class Selenium implements WebOutputPlugin
                     waitTime, eX.getMessage());
           
           throw eX;
+    }    
+  }
+  
+  
+  @Override
+  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception
+  {
+    LOGGER.debug(">> Switch to frame");
+    
+    int count = 0;
+    
+    while(true)
+    {
+      try
+      {
+        if (alert == true)
+        {
+        	//if 'alert' is true, we're expecting a non web message
+        	LOGGER.trace("Switching to alert (doSwitchFrame)");
+        	Alert popupalert = webdriver.switchTo().alert();
+        	if (accept == true)
+        	{
+        		//accepting the message by clicking 'yes' or whatever
+        		LOGGER.trace("Accepting alert (doSwitchFrame)");
+        		popupalert.accept();
+        	}
+        	else if (accept == false)
+        	{
+        		//dismissing the message by clicking 'no' or whatever
+        		LOGGER.trace("Dismissing alert (doSwitchFrame)");
+        		popupalert.dismiss();
+        	}
+        	else
+        	{
+        		//if check on boolean works properly, the else is never reached
+        		throw new Exception("Value of Boolean 'alert' not valid");
+        	}
+
+        }
+        else
+        {
+	    	if (xPath=="DEFAULT")
+	        {
+	        	//switching to the default frame
+	        	LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        webdriver.switchTo().defaultContent();
+	        }
+	        else
+	        {
+		        WebElement element = findElement(xPath);
+		        
+		        if(element == null || !element.isEnabled())
+		        {
+		          throw new Exception("Element '" + xPath + "' not found.");
+		        }
+		        
+		        // switching to frame by element, selected by xpath
+		        LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        webdriver.switchTo().frame(element);
+	        } 
+        }
+        // Action succeeded. Return.
+        return;
+      }
+      catch(Exception eX)
+      {
+        if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception while switching to frame '{}' : {} (retry count: {})", 
+                        xPath, eX.getMessage(), count);
+          
+          throw eX;
+        }
+      }
     }    
   }
   
@@ -620,78 +714,6 @@ public class Selenium implements WebOutputPlugin
     }   
   }
   
-  @Override
-  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception
-  {
-    LOGGER.debug(">> Switch to frame");
-    
-    int count = 0;
-    
-    while(true)
-    {
-      try
-      {
-        if (alert == true)
-        {
-        	//if 'alert' is true, we're expecting a non web message
-        	LOGGER.trace("Switching to alert (doSwitchFrame)");
-        	Alert popupalert = webdriver.switchTo().alert();
-        	if (accept == true)
-        	{
-        		//accepting the message by clicking 'yes' or whatever
-        		LOGGER.trace("Accepting alert (doSwitchFrame)");
-        		popupalert.accept();
-        	}
-        	else if (accept == false)
-        	{
-        		//dismissing the message by clicking 'no' or whatever
-        		LOGGER.trace("Dismissing alert (doSwitchFrame)");
-        		popupalert.dismiss();
-        	}
-        	else
-        	{
-        		//if check on boolean works properly, the else is never reached
-        		throw new Exception("Value of Boolean 'alert' not valid");
-        	}
-
-        }
-        else
-        {
-	    	if (xPath=="DEFAULT")
-	        {
-	        	//switching to the default frame
-	        	LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
-		        webdriver.switchTo().defaultContent();
-	        }
-	        else
-	        {
-		        WebElement element = findElement(xPath);
-		        
-		        if(element == null || !element.isEnabled())
-		        {
-		          throw new Exception("Element '" + xPath + "' not found.");
-		        }
-		        
-		        // switching to frame by element, selected by xpath
-		        LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
-		        webdriver.switchTo().frame(element);
-	        } 
-        }
-        // Action succeeded. Return.
-        return;
-      }
-      catch(Exception eX)
-      {
-        if(++count > maxRetries)
-        {
-          LOGGER.debug("Exception while switching to frame '{}' : {} (retry count: {})", 
-                        xPath, eX.getMessage(), count);
-          
-          throw eX;
-        }
-      }
-    }    
-  }
   
   private WebElement findElement(String xPath)
   {
@@ -756,6 +778,5 @@ public class Selenium implements WebOutputPlugin
         }
       }
     }
-  }
-   
+  }   
 }

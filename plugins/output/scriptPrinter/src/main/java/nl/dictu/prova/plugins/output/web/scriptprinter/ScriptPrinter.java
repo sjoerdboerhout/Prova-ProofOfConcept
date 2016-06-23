@@ -158,4 +158,10 @@ public class ScriptPrinter implements ShellOutputPlugin, WebOutputPlugin, Webser
 		// TODO Auto-generated method stub
 
 	}
+
+	@Override
+	public void doNavigate(String url) {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -18,18 +18,18 @@ public class WebActionFactory
   public final static String ACTION_CAPTURESCREEN   = "CAPTURESCREEN";
   public final static String ACTION_CLICK           = "CLICK";
   public final static String ACTION_DOWNLOADFILE    = "DOWNLOADFILE";
+  public final static String ACTION_NAVIGATE		= "NAVIGATE";
   public final static String ACTION_SELECT          = "SELECT";
   public final static String ACTION_SELECTDROPDOWN  = "SELECTDROPDOWN";
   public final static String ACTION_SENDKEYS        = "SENDKEYS";
   public final static String ACTION_SETTEXT         = "SETTEXT";
   public final static String ACTION_SLEEP           = "SLEEP";
   public final static String ACTION_SWITCHFRAME     = "SWITCHFRAME";
+  public final static String ACTION_SWITCHSCREEN	= "SWITCHSCREEN";
   public final static String ACTION_VALIDATEELEMENT = "VALIDATEELEMENT";
   public final static String ACTION_VALIDATETEXT    = "VALIDATETEXT";
   public final static String ACTION_UPLOADFILE      = "UPLOADFILE";
-  public final static String ACTION_SWITCHSCREEN	= "SWITCHSCREEN";
-
-  
+    
   /**
    * Get the corresponding action for <name>
    * 
@@ -46,16 +46,17 @@ public class WebActionFactory
       case ACTION_CAPTURESCREEN:   return new CaptureScreen();
       case ACTION_CLICK:           return new Click();
       case ACTION_DOWNLOADFILE:    return new DownloadFile();
+      case ACTION_NAVIGATE:		   return new Navigate();
       case ACTION_SELECT:          return new Select();
       case ACTION_SELECTDROPDOWN:  return new SelectDropdown();
       case ACTION_SENDKEYS:        return new SendKeys();
       case ACTION_SETTEXT:         return new SetText();
       case ACTION_SLEEP:           return new Sleep();
       case ACTION_SWITCHFRAME:     return new SwitchFrame();
+      case ACTION_SWITCHSCREEN:	   return new SwitchScreen();
       case ACTION_VALIDATEELEMENT: return new ValidateElement();
       case ACTION_VALIDATETEXT:    return new ValidateText();
       case ACTION_UPLOADFILE:      return new UploadFile();
-      case ACTION_SWITCHSCREEN:	   return new SwitchScreen();
     }
     
     throw new Exception("Unknown action '" + name + "' requested");
