@@ -110,7 +110,7 @@ public class ScriptPrinter implements OutputPlugin
   }
 
   @Override
-  public void doSendKeys(String keys) throws Exception
+  public void doSendKeys(String xPath, String keys) throws Exception
   {
     LOGGER.trace("DoSendKeys '{}'", () -> keys);
     

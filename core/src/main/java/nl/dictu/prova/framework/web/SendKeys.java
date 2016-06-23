@@ -2,6 +2,7 @@ package nl.dictu.prova.framework.web;
 
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.parameters.Text;
+import nl.dictu.prova.framework.parameters.Xpath;
 
 /**
  * Handles the Prova function 'send keys' to simulate one ore more key presses
@@ -14,8 +15,10 @@ public class SendKeys extends TestAction
 {
   // Action attribute names
   public final static String ATTR_KEYS = "KEYS";
+  public final static String ATTR_XPATH = "XPATH";
   
   private Text keys;
+  private Xpath xPath;
 
   
   /**
@@ -27,6 +30,8 @@ public class SendKeys extends TestAction
     super(); 
     keys = new Text();
     keys.setMinLength(1);
+    xPath = new Xpath();
+    xPath.setValue("/html/body");
   }
   
 
@@ -50,7 +55,11 @@ public class SendKeys extends TestAction
       case ATTR_KEYS:  
         keys.setValue(value); 
       break;
+      case ATTR_XPATH:  
+    	  if(value!=null) xPath.setValue(value); 
+        break;
     } 
+    xPath.setAttribute(key, value);
   }
   
 
@@ -62,6 +71,7 @@ public class SendKeys extends TestAction
   {
     if(testRunner == null)  return false;
     if(!keys.isValid())     return false;
+    if(!xPath.isValid())     return false;
     
     return true;
   }
@@ -78,7 +88,7 @@ public class SendKeys extends TestAction
     if(!isValid())
       throw new Exception("Action is not validated!");
     
-    testRunner.getWebActionPlugin().doSendKeys(keys.getValue());
+    testRunner.getWebActionPlugin().doSendKeys(xPath.getValue(), keys.getValue());
   }
 
 
