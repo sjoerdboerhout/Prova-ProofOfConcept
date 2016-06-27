@@ -582,11 +582,13 @@ public class Selenium implements WebOutputPlugin
 	  catch(NoSuchWindowException eX)
 	  {
 		  LOGGER.debug("Exception while switching screens: No such window!");
+		  eX.printStackTrace();
 		  throw eX;
 	  }
 	  catch(Exception eX)
 	  {
 		  LOGGER.debug("Exception while switching screens");
+		  eX.printStackTrace();
 		  throw eX;
 	  }
   }
