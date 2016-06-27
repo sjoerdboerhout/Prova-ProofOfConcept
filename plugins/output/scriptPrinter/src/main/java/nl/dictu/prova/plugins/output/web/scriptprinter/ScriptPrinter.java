@@ -164,4 +164,28 @@ public class ScriptPrinter implements ShellOutputPlugin, WebOutputPlugin, Webser
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void doProcessResponse(String responseMessage) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void doSetLogin(String user, String password) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void doSendMessage(String requestMessage) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void doSetUrl(String url) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 }

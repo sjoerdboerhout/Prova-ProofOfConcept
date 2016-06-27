@@ -49,7 +49,9 @@ public class Config
   public final static String PROVA_PLUGINS_INPUT_PACKAGE                = "prova.plugins.in.package";                   // String,    Active input plug-in 
   public final static String PROVA_PLUGINS_INPUT                        = "prova.plugins.in";                           // String,    Active input plug-in 
   public final static String PROVA_PLUGINS_OUTPUT_WEB_PACKAGE           = "prova.plugins.out.web.package";              // String,    Active output plug-in for web 
-  public final static String PROVA_PLUGINS_OUTPUT_WEB                   = "prova.plugins.out.web";                      // String,    Active output plug-in for web 
+  public final static String PROVA_PLUGINS_OUTPUT_WEB                   = "prova.plugins.out.web";                      // String,    Active output plug-in for web
+  public final static String PROVA_PLUGINS_OUTPUT_WEBSERVICE_PACKAGE    = "prova.plugins.out.webservice.package";       // String,    Active output plug-in for webservices
+  public final static String PROVA_PLUGINS_OUTPUT_WEBSERVICE            = "prova.plugins.out.webservice";               // String,    Active output plug-in for webservices
   public final static String PROVA_PLUGINS_OUTPUT_SHELL_PACKAGE         = "prova.plugins.out.shell.package";            // String,    Active output plug-in for shell 
   public final static String PROVA_PLUGINS_OUTPUT_SHELL                 = "prova.plugins.out.shell";                    // String,    Active output plug-in for shell 
   public final static String PROVA_PLUGINS_REPORTING_PACKAGE            = "prova.plugins.reporting.package";            // Boolean,   Execute or only validate 

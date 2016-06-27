@@ -6,6 +6,7 @@ import nl.dictu.prova.framework.TestSuite;
 import nl.dictu.prova.plugins.input.InputPlugin;
 import nl.dictu.prova.plugins.output.ShellOutputPlugin;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
+import nl.dictu.prova.plugins.output.WebserviceOutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 /**
@@ -26,6 +27,7 @@ public interface TestRunner
 
   public InputPlugin                getInputPlugin();
   public WebOutputPlugin            getWebActionPlugin();
+  public WebserviceOutputPlugin		getWebserviceActionPlugin();
   public ShellOutputPlugin          getShellActionPlugin();
   public ArrayList<ReportingPlugin> getReportingPlugins();
 }
