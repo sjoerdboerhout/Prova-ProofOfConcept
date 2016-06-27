@@ -338,7 +338,6 @@ public class Selenium implements OutputPlugin
   public void doSelectDropdown(String xPath, String select) throws Exception
   {
     LOGGER.debug("> Select '{}' on {}",select , xPath);
-    
     int count = 0;
     
     while(true)
@@ -349,8 +348,28 @@ public class Selenium implements OutputPlugin
         
         LOGGER.trace("Element '" + xPath + "' found.");
       
-        // Set dropdown by visible text
-        dropdown.selectByVisibleText(select);
+        try
+        {
+	        LOGGER.trace("Trying to select '{}' ByVisibleText (doSelectDropdown)", select);
+        	// Set dropdown by visible text
+	        dropdown.selectByVisibleText(select);
+        }
+        catch(NoSuchElementException ex)
+        {
+        	LOGGER.trace("'{}' not found ByVisibleText (doSelectDropdown)", select);
+        	LOGGER.trace("Trying to select '{}' ByValue (doSelectDropdown)", select);
+        	// Set dropdown by value
+	        try
+	        {
+	        	dropdown.selectByValue(select);
+	        }
+	        catch(NoSuchElementException nseex)
+	        {
+	        	LOGGER.trace("'{}' not found ByValue (doSelectDropdown)", select);
+	        	throw new Exception("'" + select + "' can not be selected as 'text' or as 'value' in element: '" + xPath + "'");
+	        }
+        }
+        
         
         // Action succeeded. Return.
         return;
