@@ -29,6 +29,7 @@ public class SimpleReport implements ReportingPlugin
   private TestRunner testRunner;
   private String outputDirectory;
   private String fileName;
+  private Long startTime;
 
   @Override
   public void init(TestRunner testRunner) throws Exception
@@ -56,16 +57,31 @@ public class SimpleReport implements ReportingPlugin
   }
 
   @Override
-  public void setUp() throws Exception
+  public void setUp(String fileName) throws Exception
   {
 	  LOGGER.debug("Set up output directory");
-	  setOutputDir(testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR));
-	  fileName = "test.html";
 	  try
 	  {
-		  File file =new File(outputDirectory+"/testrun_"+System.currentTimeMillis()+".html");
-    	  if(!file.exists()){
-    	 	file.createNewFile();
+		  setOutputDir(testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR));
+	  }
+	  catch(Exception eX)
+	  {
+		  throw eX;
+	  }
+	  try
+	  {
+		  LOGGER.trace("Check if report folder exists");
+		  File dir = new File(outputDirectory);
+		  if (!dir.isDirectory())
+		  {
+			  LOGGER.trace("Creating report folder: '" + outputDirectory + "'");
+			  dir.mkdirs();
+		  }
+		  File file =new File(outputDirectory+"/"+ fileName + "_" +System.currentTimeMillis()+".html");
+    	  if(!file.exists())
+    	  {
+    		  LOGGER.trace("Creating file: '" + file + "'");
+    		  file.createNewFile();
     	  }
     	  FileWriter fw = new FileWriter(file,true);
     	  BufferedWriter bw = new BufferedWriter(fw);
@@ -73,7 +89,13 @@ public class SimpleReport implements ReportingPlugin
 		  pw.println("<!DOCTYPE html>");
 		  pw.println("<html>");
 		  pw.println("<head>");
-		  pw.println("<style> table, td { 	border: 1px solid black;	border-collapse: collapse;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}th {	text-align: left;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}tr:nth-child(odd) {	background: #CBCDCD;}p {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}h1 {	font-family: Verdana, Helvetica, sans-serif;	font-size: 30px;}</style>");
+		  pw.println("<style> table, td { 	border: 1px solid black;	border-collapse: collapse;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
+		  							+ "th {	text-align: left;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
+		  							+ "tr:nth-child(odd) {	background: #CBCDCD;}"
+		  							+ "p {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
+		  							+ "br {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
+		  							+ "h1 {	font-family: Verdana, Helvetica, sans-serif;	font-size: 30px;}</style>");
+		  pw.println("<title>Prova testreport</title>");
 		  pw.println("</head>");
 		  pw.println("<body>");	  
 	  }
@@ -90,12 +112,12 @@ public class SimpleReport implements ReportingPlugin
 	  try
 	  {
 		  LOGGER.debug("Start SimpleReport Setup");
-		  this.setUp();
+		  this.setUp(testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1));
 		  LOGGER.debug("Wegschrijven begin test");
 		  pw.println("<h1>"+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</h1>");
-
-		  pw.println("<br>Starttijd: " + LocalDateTime.now()+"</br>");
-		  pw.println("<table>			<tr>				<th>Regelnummer</th><th>Actie</th>				<th>Resultaat</th></tr>");
+		  startTime = System.currentTimeMillis();
+		  pw.println("<br><b>Starttime: </b>" + LocalDateTime.now() +"</br>");
+		  pw.println("<table>			<tr>				<th>Result</th><th>Action</th><th>Excelrow</th></tr>");
 		  
 		  //this.shutDown();
 	  }
@@ -106,9 +128,15 @@ public class SimpleReport implements ReportingPlugin
   }
 
   @Override
-  public void logAction(TestAction action) throws Exception
+  public void logAction(TestAction action, String status) throws Exception
   {
-	  pw.println("<tr><td style=\"width:200px\">" + action.getId() +"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">OK</td></tr>");
+	  String color = "red";
+	  if (status.equalsIgnoreCase("ok"))
+	  {
+		  color = "lightgreen";
+	  }
+
+	  pw.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + action.getId() +"</td></tr>");
     
   }
 
@@ -116,17 +144,19 @@ public class SimpleReport implements ReportingPlugin
   public void logEndTest(TestCase testCase) throws Exception
   {
 	  
-	  LOGGER.debug("Status testgeval: "+testCase.getStatus());
-	  pw.println("<br>Eindtijd: " + LocalDateTime.now()+"</br>");
+	  LOGGER.debug("Status testcase: "+testCase.getStatus());
+	  Long elapsedTime = System.currentTimeMillis() - startTime;
+	  pw.println("<br><b>Endtime: </b>" + LocalDateTime.now()+"</br>");
+	  pw.println("<br><b>Runtime in seconds: </b>" + elapsedTime/1000 + "</br>");
 	  if (testCase.getStatus().toString().equalsIgnoreCase("passed"))
 	  {
-		  pw.println("<br>Status testgeval: <font color=\"green\"><b>" + testCase.getStatus()+"</b></font></br>" );
+		  pw.println("<br><b>Status testcase: <font color=\"green\">" + testCase.getStatus()+"</b></font></br>" );
 	  }
 	  else
 	  {
-		  pw.println("<br>Status testgeval: <font color=\"red\"><b>" + testCase.getStatus()+"</b></font></br>" );
+		  pw.println("<br><b>Status testcase: <font color=\"red\">" + testCase.getStatus()+"</b></font></br>" );
 	  }
-	  pw.println("<br>Samenvatting: " + testCase.getSummary()+"</br>");
+	  pw.println("<br><b>Error: </b>" + testCase.getSummary()+"</br>");
 	  pw.println("</table>");
 	  pw.println("</body>");
 	  pw.println("</html>");

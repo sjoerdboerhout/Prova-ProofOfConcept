@@ -322,11 +322,23 @@ public class TestCase
         for(TestAction testAction : testActions)
         {
           LOGGER.trace("Execute test action: {}", () -> testAction.toString());
-          testAction.execute();    
-          for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
+          try
           {
-          	LOGGER.debug("Report: log action");
-          	reportPlugin.logAction(testAction);
+        	  testAction.execute();
+        	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
+              {
+              	LOGGER.debug("Report: log action");
+              	reportPlugin.logAction(testAction, "OK");
+              }
+          }
+          catch(Exception eX)
+          {
+        	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
+              {
+              	LOGGER.debug("Report: log action");
+              	reportPlugin.logAction(testAction, "NOK");
+              }
+        	  throw eX;
           }
           try
           {
@@ -351,6 +363,7 @@ public class TestCase
         this.setStatus(TestStatus.FAILED);
         this.setSummary(eX.getMessage());
         exception = new TestActionException(eX.getMessage());
+        
       }
     }
     
