@@ -338,7 +338,6 @@ public class Selenium implements OutputPlugin
   public void doSelectDropdown(String xPath, String select) throws Exception
   {
     LOGGER.debug("> Select '{}' on {}",select , xPath);
-    
     int count = 0;
     
     while(true)
@@ -349,8 +348,28 @@ public class Selenium implements OutputPlugin
         
         LOGGER.trace("Element '" + xPath + "' found.");
       
-        // Set dropdown by visible text
-        dropdown.selectByVisibleText(select);
+        try
+        {
+	        LOGGER.trace("Trying to select '{}' ByVisibleText (doSelectDropdown)", select);
+        	// Set dropdown by visible text
+	        dropdown.selectByVisibleText(select);
+        }
+        catch(NoSuchElementException ex)
+        {
+        	LOGGER.trace("'{}' not found ByVisibleText (doSelectDropdown)", select);
+        	LOGGER.trace("Trying to select '{}' ByValue (doSelectDropdown)", select);
+        	// Set dropdown by value
+	        try
+	        {
+	        	dropdown.selectByValue(select);
+	        }
+	        catch(NoSuchElementException nseex)
+	        {
+	        	LOGGER.trace("'{}' not found ByValue (doSelectDropdown)", select);
+	        	throw new Exception("'" + select + "' can not be selected as 'text' or as 'value' in element: '" + xPath + "'");
+	        }
+        }
+        
         
         // Action succeeded. Return.
         return;
@@ -367,12 +386,12 @@ public class Selenium implements OutputPlugin
     }
   }
   @Override
-  public void doSendKeys(String keys) throws Exception
+  public void doSendKeys(String xPath, String keys) throws Exception
   {
     try
     {
-      LOGGER.debug(">> Send key '{}' to active element", keys);
-      
+      LOGGER.debug(">> Send key '{}' to element (doSendKeys)", keys);
+      //replace the given keys with keyboard presses
       keys = keys.replace("<DOWN>", Keys.DOWN);
       keys = keys.replace("<END>", Keys.END);
       keys = keys.replace("<ESC>", Keys.ESCAPE);
@@ -384,11 +403,25 @@ public class Selenium implements OutputPlugin
       keys = keys.replace("<TAB>", Keys.TAB);
       keys = keys.replace("<UP>", Keys.UP);
       
-      LOGGER.trace("> Send keys '{}' to active element", keys);
+      //if xPath is not filled, sendKeys to the active element
+      if (xPath.equalsIgnoreCase("/html/body"))
+      {
+	      LOGGER.trace("> Send keys '{}' to active element (doSendKeys)", keys);
+	      webdriver.switchTo().activeElement().sendKeys(keys);
+      }
+      //xPath is filled. Find element and send keys
+      else
+      {
+    	  WebElement element = findElement(xPath);
+          
+          if(element == null || !element.isEnabled())
+          {
+            throw new Exception("Element '" + xPath + "' not found.");
+          }
+          LOGGER.trace("Sending keys to element '{}' (doSendKeys)", xPath);
+          element.sendKeys(keys);
+      }
       
-      webdriver.switchTo().activeElement().sendKeys(keys);
-      
-      doCaptureScreen("");
     }
     catch(Exception eX)
     {

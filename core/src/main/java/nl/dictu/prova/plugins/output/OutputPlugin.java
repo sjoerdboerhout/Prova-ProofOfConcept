@@ -1,7 +1,6 @@
 package nl.dictu.prova.plugins.output;
 
 import nl.dictu.prova.TestRunner;
-import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestCase;
 
 /**
@@ -32,7 +31,7 @@ public interface OutputPlugin
   
   public void doSelectDropdown(String xPath, String select) throws Exception;
   
-  public void doSendKeys(String keys) throws Exception;
+  public void doSendKeys(String xPath, String keys) throws Exception;
   
   public void doSetText(String xPath, String text) throws Exception;
   
