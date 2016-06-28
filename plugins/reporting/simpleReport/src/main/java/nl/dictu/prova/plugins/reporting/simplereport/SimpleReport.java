@@ -95,7 +95,7 @@ public class SimpleReport implements ReportingPlugin
 		  							+ "p {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
 		  							+ "br {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
 		  							+ "h1 {	font-family: Verdana, Helvetica, sans-serif;	font-size: 30px;}</style>");
-		  pw.println("<title>Prova testreport</title>");
+		  pw.println("<title>Prova Testreport</title>");
 		  pw.println("</head>");
 		  pw.println("<body>");	  
 	  }
@@ -136,7 +136,7 @@ public class SimpleReport implements ReportingPlugin
 		  color = "lightgreen";
 	  }
 
-	  pw.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + action.getId() +"</td></tr>");
+	  pw.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()+1) +"</td></tr>");
     
   }
 
