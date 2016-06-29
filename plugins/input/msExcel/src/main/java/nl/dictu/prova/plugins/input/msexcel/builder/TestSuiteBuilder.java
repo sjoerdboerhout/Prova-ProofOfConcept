@@ -151,8 +151,9 @@ public class TestSuiteBuilder
     {
       String startDir = flowFilePath + File.separator + testDataDir;
       
+      LOGGER.debug("Look for data file: '{}_{}.xlsx' in dir '{}'", flowName, testCaseName, startDir);
+      
       LOGGER.trace("Get data sets in dir: '{}' for file '{}' for flow '{}'", startDir, flowName, testCaseName);
-
       // Locate all data files in the test data directory
       if(!new File(startDir).isDirectory())
         return dataSetsList;
