@@ -40,17 +40,20 @@ public class TestSuiteBuilder
     testSuite = addTestCases(testSuite);
 
     File[] directories = rootDirectory.listFiles(directoryFilter);
+    Arrays.sort(directories);
+    
     for (File directory : directories)
     {
       testSuite.addTestSuite(buildTestSuite(directory, testRunner));
     }
-
+    
     return testSuite;
   }
 
   private TestSuite addTestCases(TestSuite testSuite) throws Exception
   {
     File[] excelFiles = new File(testSuite.getId()).listFiles(excelFlowFileFilter);
+    Arrays.sort(excelFiles);
 
     for (File excelFile : excelFiles)
     {
