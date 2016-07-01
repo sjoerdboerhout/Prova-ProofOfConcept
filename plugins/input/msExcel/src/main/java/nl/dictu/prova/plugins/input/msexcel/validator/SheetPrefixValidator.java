@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
  * Currently allowed prefixes:
  * - WEB: web test
  * - SH:  shell test
+ * - WEBSERVICE: testing on SOAP or JSON APIs.
  *
  * @author Hielke de Haan
  * @since 0.0.1
@@ -23,7 +24,7 @@ import java.util.regex.Pattern;
 public class SheetPrefixValidator
 {
   private final static Logger LOGGER = LogManager.getLogger();
-  private final static List<String> ALLOWED_PREFIXES = Arrays.asList("WEB", "SH");
+  private final static List<String> ALLOWED_PREFIXES = Arrays.asList("WEB", "SH", "WEBSERVICE");
   private Sheet sheet;
 
   /**
