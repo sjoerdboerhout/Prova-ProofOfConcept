@@ -548,14 +548,14 @@ public class Selenium implements OutputPlugin
         // Get text from element
         String text = element.getText()+ "\r\n";
         text = text + "Attribute @value: " + element.getAttribute("value");
-        LOGGER.trace(text);
+        //LOGGER.trace(text);
         // If exists is false, check if text is not present in element
         if (!exists)
         {
         	//validate if value is not present in text
         	try
         	{
-	        	LOGGER.trace("Controleren of de tekst {} niet voorkomt in het element {}", value, xPath);
+	        	LOGGER.trace("Check if text {} isn't present in element {}", value, xPath);
 	        	Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
 	        			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
         	}
@@ -564,7 +564,7 @@ public class Selenium implements OutputPlugin
         		//validate if value is not present in attribute @value
         		try
         		{
-        			LOGGER.trace("Controleren of het attribuut @value, van het element {}, de tekst {} niet bevat", xPath,value );
+        			LOGGER.trace("Check if the attribute @value, in element {}, doesn't contain the text {}", xPath,value );
         			Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
     			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementValue(element, value))));
         		}
@@ -580,7 +580,7 @@ public class Selenium implements OutputPlugin
         	//validate if value is present in text
         	try
         	{
-        		LOGGER.trace("Controleren of de tekst {} voorkomt in het element {}", value, xPath);
+        		LOGGER.trace("Check if text {} is present in element {}", value, xPath);
         		Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
  			           wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
         	}
@@ -589,7 +589,7 @@ public class Selenium implements OutputPlugin
         		//validate if value is present in attribute @value
         		try
         		{
-        			LOGGER.trace("Controleren of het attribuut @value, van het element {}, de tekst {} bevat", xPath,value );
+        			LOGGER.trace("Check if the attribute @value, in element {}, contains the text {}", xPath,value );
         			Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
       			           wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
         		}
@@ -627,18 +627,18 @@ public class Selenium implements OutputPlugin
     {
       try
       {
-        if (alert == true)
+        if (alert)
         {
         	//if 'alert' is true, we're expecting a non web message
         	LOGGER.trace("Switching to alert (doSwitchFrame)");
         	Alert popupalert = webdriver.switchTo().alert();
-        	if (accept == true)
+        	if (accept)
         	{
         		//accepting the message by clicking 'yes' or whatever
         		LOGGER.trace("Accepting alert (doSwitchFrame)");
         		popupalert.accept();
         	}
-        	else if (accept == false)
+        	else if (!accept)
         	{
         		//dismissing the message by clicking 'no' or whatever
         		LOGGER.trace("Dismissing alert (doSwitchFrame)");
