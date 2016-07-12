@@ -284,8 +284,7 @@ public class TestCase
     Exception exception = null;
     Long waitTime = (long) 0;
     
-    LOGGER.debug("RUN TC: " + this.toString());
-    
+    LOGGER.info("Execute TC: '{}'", this.toString());
     try
     {
       LOGGER.trace("Configured delay time: '{}'ms", testRunner.getPropertyValue(Config.PROVA_TESTS_DELAY));

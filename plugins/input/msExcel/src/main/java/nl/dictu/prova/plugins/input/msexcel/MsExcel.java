@@ -1,6 +1,7 @@
 package nl.dictu.prova.plugins.input.msexcel;
 
 import java.io.File;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -121,12 +122,26 @@ public class MsExcel implements InputPlugin
                                    this.testRunner);
       
       testRunner.setRootTestSuite(testSuite);
+      
+      LOGGER.info("Located testsuites and test cases: ");
+      
+      for(Map.Entry<String, TestSuite> ts : testSuite.getTestSuites().entrySet())
+      {
+        LOGGER.info("> TS: {}", ts.getValue().getId());
+          
+        for(Map.Entry<String, TestCase> tc : ts.getValue().getTestCases().entrySet())
+        {
+            LOGGER.info(">> TC: {}", tc.getValue().getId());
+        }
+      }
+      
     }
     catch(Exception eX)
     {
       throw eX;
     }
   }
+
 
   
   @Override
