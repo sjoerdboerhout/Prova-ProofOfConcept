@@ -341,7 +341,12 @@ public class Prova implements Runnable, TestRunner
     try
     {
       LOGGER.info("Execute TS: '{}' ({})", () -> testSuite.getId(), () -> testSuite.numberOfTestCases(true));
-      
+      for(ReportingPlugin reportPlugin : getReportingPlugins())
+      {
+      	LOGGER.debug("Aantal in lijst: "+getReportingPlugins().size());
+      	LOGGER.debug("Report: start testsuite");
+      	reportPlugin.logStartTestSuite(testSuite);
+      }
       // First execute all test cases
       for(Map.Entry<String, TestCase> entry : testSuite.getTestCases().entrySet())
       {
@@ -419,7 +424,12 @@ public class Prova implements Runnable, TestRunner
           entry.getValue().clearAllActions();
         }
       }
-      
+      for(ReportingPlugin reportPlugin : getReportingPlugins())
+      {
+      	LOGGER.debug("Aantal in lijst: "+getReportingPlugins().size());
+      	LOGGER.debug("Report: start testsuite");
+      	reportPlugin.logEndTestSuite(testSuite);
+      }
       // Second, execute all sub test suites
       for(Map.Entry<String, TestSuite> entry : testSuite.getTestSuites().entrySet())
       {
