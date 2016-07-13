@@ -118,12 +118,12 @@ public class ScriptPrinter implements OutputPlugin
   }
 
   @Override
-  public void doSetText(String xPath, String text) throws Exception
+  public void doSetText(String xPath, String text, Boolean replace) throws Exception
   {
     LOGGER.trace("DoSetText '{}'", () -> text);
     
     // TODO Auto-generated method stub
-    System.out.println( "Set text of '" + xPath + "' to '" + text + "'");
+    System.out.println( (replace ? "Replace" : "Set") +  " text of '" + xPath + "' to '" + text + "'");
   }
 
   @Override
