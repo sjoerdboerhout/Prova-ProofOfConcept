@@ -341,6 +341,7 @@ public class Prova implements Runnable, TestRunner
     try
     {
       LOGGER.info("Execute TS: '{}' ({})", () -> testSuite.getId(), () -> testSuite.numberOfTestCases(true));
+      
       for(ReportingPlugin reportPlugin : getReportingPlugins())
       {
       	LOGGER.debug("Aantal in lijst: "+getReportingPlugins().size());
@@ -461,7 +462,11 @@ public class Prova implements Runnable, TestRunner
     try
     {
       LOGGER.info("Teardown Prova");
-      
+      for(ReportingPlugin reportPlugin : getReportingPlugins())
+      {
+      	LOGGER.debug("Report: shutdown");
+      	reportPlugin.shutDown();
+      }
       // TODO: Run one tear down script(s)
     }
     catch(Exception eX)
