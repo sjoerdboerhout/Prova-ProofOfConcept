@@ -1,4 +1,4 @@
-package nl.dictu.prova.framework.webservice;
+package nl.dictu.prova.framework.soap;
 
 import nl.dictu.prova.framework.TestAction;
 

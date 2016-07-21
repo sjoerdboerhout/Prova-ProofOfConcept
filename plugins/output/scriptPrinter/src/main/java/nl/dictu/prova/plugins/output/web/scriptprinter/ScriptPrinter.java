@@ -1,5 +1,7 @@
 package nl.dictu.prova.plugins.output.web.scriptprinter;
 
+import java.net.URL;
+import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -7,7 +9,7 @@ import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.plugins.output.ShellOutputPlugin;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
-import nl.dictu.prova.plugins.output.WebserviceOutputPlugin;
+import nl.dictu.prova.plugins.output.SoapOutputPlugin;
 
 /**
  * Output plugin to print all actions to a file
@@ -15,7 +17,7 @@ import nl.dictu.prova.plugins.output.WebserviceOutputPlugin;
  * @author Sjoerd Boerhout
  *
  */
-public class ScriptPrinter implements ShellOutputPlugin, WebOutputPlugin, WebserviceOutputPlugin {
+public class ScriptPrinter implements ShellOutputPlugin, WebOutputPlugin, SoapOutputPlugin {
 	final static Logger LOGGER = LogManager.getLogger();
 
 	private TestRunner testRunner = null;
@@ -165,27 +167,23 @@ public class ScriptPrinter implements ShellOutputPlugin, WebOutputPlugin, Webser
 		
 	}
 
-	@Override
-	public void doProcessResponse(String responseMessage) throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public String doSendMessage(Map<Object, Object> map) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
-	@Override
-	public void doSetLogin(String user, String password) throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public Map<Object, Object> doProcessResponse(String string) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
-	@Override
-	public void doSendMessage(String requestMessage) throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public String doSetLogin(String string, String string1) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 
-	@Override
-	public void doSetUrl(String url) throws Exception {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public URL doSetUrl(String string) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

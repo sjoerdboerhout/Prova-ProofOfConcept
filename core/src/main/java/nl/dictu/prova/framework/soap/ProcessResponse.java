@@ -1,8 +1,8 @@
-package nl.dictu.prova.framework.webservice;
+package nl.dictu.prova.framework.soap;
 
 import nl.dictu.prova.framework.TestAction;
 
-public class SetUrl extends TestAction {
+public class ProcessResponse extends TestAction {
 
 	@Override
 	public void setAttribute(String key, String value) throws Exception {

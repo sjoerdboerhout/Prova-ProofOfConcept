@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 public class SheetPrefixValidator
 {
   private final static Logger LOGGER = LogManager.getLogger();
-  private final static List<String> ALLOWED_PREFIXES = Arrays.asList("WEB", "SH", "WEBSERVICE");
+  private final static List<String> ALLOWED_PREFIXES = Arrays.asList("WEB", "SH", "SOAP");
   private Sheet sheet;
 
   /**

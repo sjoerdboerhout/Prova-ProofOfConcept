@@ -23,7 +23,24 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import nl.dictu.prova.framework.soap.SoapActionFactory;
+import org.apache.poi.hssf.util.PaneInformation;
+import org.apache.poi.ss.usermodel.AutoFilter;
+import org.apache.poi.ss.usermodel.CellRange;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.Comment;
+import org.apache.poi.ss.usermodel.DataValidation;
+import org.apache.poi.ss.usermodel.DataValidationHelper;
+import org.apache.poi.ss.usermodel.Drawing;
+import org.apache.poi.ss.usermodel.Footer;
+import org.apache.poi.ss.usermodel.Header;
+import org.apache.poi.ss.usermodel.Hyperlink;
+import org.apache.poi.ss.usermodel.PrintSetup;
+import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
+import org.apache.poi.ss.util.CellAddress;
+import org.apache.poi.ss.util.CellRangeAddress;
 
 /**
  * @author Hielke de Haan
@@ -35,10 +52,12 @@ public class TestCaseBuilder
   private String flowWorkbookPath, 
                  dataWorkbookPath,
                  dataSetName,
-                 testRootPath;
+                 testRootPath,
+                 soapMessage;
   private Workbook workbook;
   private WorkbookReader flowWorkbookReader;
   private WebActionFactory webActionFactory;
+  private SoapActionFactory soapActionFactory;
   private TestRunner testRunner;
   private Properties testDataKeywords;
 
@@ -56,6 +75,7 @@ public class TestCaseBuilder
     this.testRootPath = testRootPath;
     this.testRunner = testRunner;
     this.webActionFactory = new WebActionFactory();
+    this.soapActionFactory = new SoapActionFactory();
     this.testDataKeywords = new Properties();
   }
 
@@ -165,6 +185,9 @@ public class TestCaseBuilder
               case "requirement":
                 // TODO add field to TestCase
                 break;
+              case "soap":
+                parseSoapTemplate(sheet, rowNum, tagName);
+                break;
               case "status":
                 testCase.setStatus(TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
                 break;
@@ -185,6 +208,75 @@ public class TestCaseBuilder
       rowNum.increment();
     }
   }
+  
+  private void parseSoapTemplate(Sheet sheet, MutableInt rowNum, String tagName) throws Exception
+  {      
+    Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
+    Map<String, String> rowMap;
+    
+    while((rowMap = readRow(sheet, rowNum, headers))!= null)
+    {
+        for(String key : rowMap.keySet()){
+            if(key.length() > 0){
+                LOGGER.error("Key op rowNum " + rowNum + " : " + key);
+            }
+        }
+        for(String entry : rowMap.values()){
+            if(entry.length() > 0){
+                LOGGER.error("Entry op rowNum " + rowNum + " : " + entry);
+                //soapElementTypeReader(entry);
+                soapMessage += entry;
+            }
+        }
+    }
+    LOGGER.error(soapMessage);
+    Properties soapProps = new Properties();
+    soapProps.put("message", soapMessage);
+    soapProps.put("host", this.testRunner.getPropertyValue("prova.env.tir2.url"));
+    soapProps.put("user", this.testRunner.getPropertyValue("prova.env.tir2.vh.user"));
+    soapProps.put("pass", this.testRunner.getPropertyValue("prova.env.tir2.vh.pass"));
+    String response = this.testRunner.getSoapActionPlugin().doSendMessage(soapProps);
+    Map<Object, Object> processedResponse = this.testRunner.getSoapActionPlugin().doProcessResponse(response);
+    System.out.println("Response: " + response);
+    for(Object str : processedResponse.values()){
+        System.out.println("Value : " + (String) str);
+    }
+  }
+  
+//  private String soapElementTypeReader(String element){      
+//      Pattern patternVariableTag    = Pattern.compile("<[A-Za-z0-9]*>{[A-Za-z0-9]*}</[A-Za-z0-9]*>");
+//      Pattern patternVariableFixed  = Pattern.compile("<[A-Za-z0-9]*>[A-Za-z0-9]*</[A-Za-z0-9]*>");
+//      Pattern patternOpeningParent  = Pattern.compile("<.*>");
+//      Pattern patternClosingParent  = Pattern.compile("</[A-Za-z0-9]*>");
+//      Pattern patternStandalone     = Pattern.compile("<.*/>");
+//      
+//      Matcher matcherVariableTag    = patternVariableTag.matcher(element);
+//      Matcher matcherVariableFixed  = patternVariableFixed.matcher(element);
+//      Matcher matcherOpeningParent  = patternOpeningParent.matcher(element);
+//      Matcher matcherClosingParent  = patternClosingParent.matcher(element);
+//      Matcher matcherStandalone     = patternStandalone.matcher(element);
+//      
+//      if (matcherVariableTag.find()){
+//            LOGGER.trace("Found Soap element 'variableTag'");
+//            return "variableTag";
+//      } else if (matcherVariableFixed.find()){
+//            LOGGER.trace("Found Soap element 'variableFixed'");
+//            return "variableFixed";
+//      } else if (matcherOpeningParent.find()){
+//            LOGGER.trace("Found Soap element 'opening parent'");
+//            return "openingParent";
+//      } else if (matcherClosingParent.find()){
+//            LOGGER.trace("Found Soap element 'closing parent'");
+//            return "closingParent";
+//      } else if (matcherStandalone.find()){
+//            LOGGER.trace("Found Soap element 'standalone'");
+//            return "standalone";
+//      } else {
+//            LOGGER.debug("Not able to recognize soap element type!");
+//            return "";
+//      }
+//      
+//  }
 
   /**
    * Parse test actions and add the actions found to the correct action list.
@@ -292,6 +384,9 @@ public class TestCaseBuilder
             
             switch (tagName)
             {
+              case "soap":
+                parseSoapTemplate(sheet, rowNum, tagName);
+                break;  
               case "sectie":
               case "tc":
                 parseTestActionSection(testActions, sheet, rowNum, tagName);
@@ -326,13 +421,13 @@ public class TestCaseBuilder
       switch (tagName)
       {
         case "sectie":
-          TestAction testAction = webActionFactory.getAction(rowMap.get("actie"));
+          TestAction testAction = SoapActionFactory.getAction(rowMap.get("actie"));
           String locatorName = rowMap.get("locator").toLowerCase();
           String xPath = "";
           
-          if( testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName))
+          if( testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_SOAP_LOCATOR_PFX + "." + locatorName))
           {
-            xPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName);
+            xPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_SOAP_LOCATOR_PFX + "." + locatorName);
             testAction.setAttribute("xpath", xPath);
           }
           
@@ -360,7 +455,7 @@ public class TestCaseBuilder
                 
                 if(testDataKeywords.containsKey(keyword))
                 {
-                  LOGGER.trace("Substitue key '{}'. Keyword '{}' with value '{}'", key, keyword, testDataKeywords.getProperty(keyword));
+                  LOGGER.trace("Substitute key '{}'. Keyword '{}' with value '{}'", key, keyword, testDataKeywords.getProperty(keyword));
                   keyword = testDataKeywords.getProperty(keyword);
                 }
                 else
@@ -428,7 +523,7 @@ public class TestCaseBuilder
   {
     rowNum.increment();
     Row labelRow = sheet.getRow(rowNum.intValue());
-
+    
     // break if row is empty
     if (labelRow == null)
       return null;
@@ -491,16 +586,6 @@ public class TestCaseBuilder
     // If tcid doesn't contain a data path then return with an empty string
     if(!tcid.contains(separator) || !tcid.contains(".xlsx"))
       return "";
-
-    // TODO Remove debug code
-    /*
-    LOGGER.trace("> path: '{}'", path);
-    LOGGER.trace("> sep: '{}'", File.separator);
-    LOGGER.trace("> test data dir: '{}'", this.testRunner.getPropertyValue(Config.PROVA_TESTS_DATA_DIR));
-    LOGGER.trace("> sep: '{}'", File.separator);
-    LOGGER.trace("> ...: '{}'", tcid.substring(tcid.lastIndexOf(separator) + separator.length(), 
-                                                tcid.lastIndexOf(".xlsx") + ".xlsx".length()));
-    */    
     
     path += File.separator +
             this.testRunner.getPropertyValue(Config.PROVA_TESTS_DATA_DIR) +

@@ -18,9 +18,9 @@ import nl.dictu.prova.framework.exceptions.TestActionException;
 import nl.dictu.prova.plugins.input.InputPlugin;
 import nl.dictu.prova.plugins.output.ShellOutputPlugin;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
-import nl.dictu.prova.plugins.output.WebserviceOutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 import nl.dictu.prova.util.PluginLoader;
+import nl.dictu.prova.plugins.output.SoapOutputPlugin;
 
 /**
  * Core class Prova facilitates the whole process of executing the tests
@@ -38,7 +38,7 @@ public class Prova implements Runnable, TestRunner
   private InputPlugin                 inputPlugin;
   private ShellOutputPlugin           shellOutputPlugin;
   private WebOutputPlugin             webOutputPlugin;
-  private WebserviceOutputPlugin	  webserviceOutputPlugin;
+  private SoapOutputPlugin            soapOutputPlugin;
   private ArrayList<ReportingPlugin>  reportPlugins = new ArrayList<ReportingPlugin>();
   
   private TestSuite                   rootTestSuite;
@@ -234,29 +234,28 @@ public class Prova implements Runnable, TestRunner
       
       // TODO: Load and initialize output shell plug-in
       LOGGER.debug("Load and initialize web output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB));
-      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB_PACKAGE) +
-                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB).toLowerCase() + "." +
-                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB);
+//      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB_PACKAGE) +
+//                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB).toLowerCase() + "." +
+//                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB);
+//
+//      webOutputPlugin = pluginLoader.getInstanceOf(pluginName, WebOutputPlugin.class);
+//      
+//      if(webOutputPlugin != null)
+//        webOutputPlugin.init(this);
+//      else
+//        throw new Exception("Could not load web output plugin '" + pluginName + "'");
+      
+      LOGGER.debug("Load and initialize webservice output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP));
+      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP_PACKAGE) +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP).toLowerCase() + "." +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP);
 
-      webOutputPlugin = pluginLoader.getInstanceOf(pluginName, WebOutputPlugin.class);
+      soapOutputPlugin = pluginLoader.getInstanceOf(pluginName, SoapOutputPlugin.class);
       
-      if(webOutputPlugin != null)
-        webOutputPlugin.init(this);
-      else
-        throw new Exception("Could not load web output plugin '" + pluginName + "'");
-      
-      LOGGER.debug("Load and initialize webservice output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB));
-      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEBSERVICE_PACKAGE) +
-                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEBSERVICE).toLowerCase() + "." +
-                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEBSERVICE);
-
-      webserviceOutputPlugin = pluginLoader.getInstanceOf(pluginName, WebserviceOutputPlugin.class);
-      
-      if(webserviceOutputPlugin != null)
-        webserviceOutputPlugin.init(this);
+      if(soapOutputPlugin != null)
+        soapOutputPlugin.init(this);
       else
         throw new Exception("Could not load webservice output plugin '" + pluginName + "'");
-
 
       // Load and initialize report plug-in(s)
       LOGGER.debug("Load and initialize reporting plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_REPORTING));
@@ -381,8 +380,8 @@ public class Prova implements Runnable, TestRunner
             if(webOutputPlugin != null)
               webOutputPlugin.setUp(entry.getValue());
             
-            if(webserviceOutputPlugin != null)
-              webserviceOutputPlugin.setUp(entry.getValue());
+            if(soapOutputPlugin != null)
+              soapOutputPlugin.setUp(entry.getValue());
             
             if(shellOutputPlugin != null)
               shellOutputPlugin.setUp(entry.getValue());
@@ -422,8 +421,8 @@ public class Prova implements Runnable, TestRunner
           if(webOutputPlugin != null)
             webOutputPlugin.tearDown(entry.getValue());
           
-          if(webserviceOutputPlugin != null)
-			webserviceOutputPlugin.tearDown(entry.getValue());
+          if(soapOutputPlugin != null)
+            soapOutputPlugin.tearDown(entry.getValue());
           
           if(shellOutputPlugin != null)
             shellOutputPlugin.tearDown(entry.getValue());
@@ -545,16 +544,16 @@ public class Prova implements Runnable, TestRunner
   }
   
   /**
-   * Get a reference to the active webservice action plug-in
+   * Get a reference to the active soap action plug-in
    * 
    * @return
    */
   @Override
-  public WebserviceOutputPlugin getWebserviceActionPlugin() 
+  public SoapOutputPlugin getSoapActionPlugin() 
   {
-	LOGGER.trace("Request for webservice action plugin. ({})", () -> this.webserviceOutputPlugin.getName() );
+	LOGGER.trace("Request for webservice action plugin. ({})", () -> this.soapOutputPlugin.getName() );
 	    
-    return this.webserviceOutputPlugin;
+    return this.soapOutputPlugin;
   }
 
   /**
