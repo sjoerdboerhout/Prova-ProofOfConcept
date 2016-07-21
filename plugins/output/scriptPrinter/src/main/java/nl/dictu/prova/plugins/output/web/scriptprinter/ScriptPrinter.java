@@ -177,4 +177,9 @@ public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Ex
 	// TODO Auto-generated method stub
 	
 }
+
+    @Override
+    public void doSwitchScreen() throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

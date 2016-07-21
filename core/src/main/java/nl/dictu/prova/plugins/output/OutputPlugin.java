@@ -16,11 +16,12 @@ public interface OutputPlugin
   public String getName();
   
   public void init(TestRunner testRunner) throws Exception;
+  
   public void shutDown();
   
   public void setUp(TestCase testCase) throws Exception;
-  public void tearDown(TestCase testCase) throws Exception;
   
+  public void tearDown(TestCase testCase) throws Exception;
   
   public void doCaptureScreen(String fileName) throws Exception;
   
@@ -43,4 +44,6 @@ public interface OutputPlugin
   public void doValidateText(String xPath, String value, Boolean exists, double timeOut) throws Exception;
   
   public void doSwitchFrame (String xPath, Boolean alert, Boolean accept) throws Exception;
+  
+  public void doSwitchScreen () throws Exception;
 }

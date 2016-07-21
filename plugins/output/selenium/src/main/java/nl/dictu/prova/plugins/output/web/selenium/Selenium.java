@@ -2,6 +2,7 @@ package nl.dictu.prova.plugins.output.web.selenium;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -31,6 +32,7 @@ import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.plugins.output.OutputPlugin;
+import org.openqa.selenium.NoSuchWindowException;
 
 /**
  * Driver for controlling Selenium Webdriver
@@ -653,6 +655,45 @@ public class Selenium implements OutputPlugin
         }
       }
     }    
+  }
+
+@Override
+  public void doSwitchScreen() throws Exception {
+    try
+    {
+        Set<String> windowHandles = webdriver.getWindowHandles();
+        String currentHandle = webdriver.getWindowHandle();
+ 
+        if(windowHandles.isEmpty()){
+            LOGGER.debug("No window handles available.");
+            throw new Exception("No window handles available.");
+        }
+ 
+        if(windowHandles.size() == 1){
+            LOGGER.debug("No second screen available to switch to.");
+            throw new Exception("No second screen available to switch to.");
+        }
+ 
+        for(String handle : windowHandles){
+            if(!currentHandle.equals(handle)){
+                LOGGER.trace("Switching to screen: " + handle);
+                webdriver.switchTo().window(handle);
+                break;
+            }
+        }
+    }
+    catch(NoSuchWindowException eX)
+    {
+        LOGGER.debug("Exception while switching screens: No such window!");
+        eX.printStackTrace();
+        throw eX;
+    }
+    catch(Exception eX)
+    {
+        LOGGER.debug("Exception while switching screens");
+        eX.printStackTrace();
+        throw eX;
+    }
   }
   
   private WebElement findElement(String xPath)
