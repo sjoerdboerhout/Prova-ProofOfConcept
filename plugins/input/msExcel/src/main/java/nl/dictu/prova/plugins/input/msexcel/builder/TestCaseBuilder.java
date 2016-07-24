@@ -101,7 +101,7 @@ public class TestCaseBuilder
       
       if(new File(dataWorkbookPath).isFile())
       {
-        testDataKeywords.putAll(new TestDataBuilder().buildTestData(dataWorkbookPath, dataSetName));
+        testDataKeywords.putAll(new TestDataBuilder(testRunner).buildTestData(dataWorkbookPath, dataSetName));
         
         if(LOGGER.isTraceEnabled())
           printTestDataKeywords(testDataKeywords);
@@ -209,7 +209,7 @@ public class TestCaseBuilder
     }
   }
   
-  private void parseSoapTemplate(Sheet sheet, MutableInt rowNum, String tagName) throws Exception
+  private void parseSoapTemplate(List<TestAction> testActions, Sheet sheet, MutableInt rowNum, String tagName) throws Exception
   {      
     Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
     Map<String, String> rowMap;
@@ -230,17 +230,17 @@ public class TestCaseBuilder
         }
     }
     LOGGER.error(soapMessage);
-    Properties soapProps = new Properties();
-    soapProps.put("message", soapMessage);
-    soapProps.put("host", this.testRunner.getPropertyValue("prova.env.tir2.url"));
-    soapProps.put("user", this.testRunner.getPropertyValue("prova.env.tir2.vh.user"));
-    soapProps.put("pass", this.testRunner.getPropertyValue("prova.env.tir2.vh.pass"));
-    String response = this.testRunner.getSoapActionPlugin().doSendMessage(soapProps);
-    Map<Object, Object> processedResponse = this.testRunner.getSoapActionPlugin().doProcessResponse(response);
-    System.out.println("Response: " + response);
-    for(Object str : processedResponse.values()){
-        System.out.println("Value : " + (String) str);
-    }
+//    Properties soapProps = new Properties();
+    testRunner.setPropertyValue("message", soapMessage);
+//    soapProps.put("host", this.testRunner.getPropertyValue("prova.env.tir2.url"));
+//    soapProps.put("user", this.testRunner.getPropertyValue("prova.env.tir2.vh.user"));
+//    soapProps.put("pass", this.testRunner.getPropertyValue("prova.env.tir2.vh.pass"));
+//    String response = this.testRunner.getSoapActionPlugin().doSendMessage(soapProps);
+//    Map<Object, Object> processedResponse = this.testRunner.getSoapActionPlugin().doProcessResponse(response);
+//    System.out.println("Response: " + response);
+//    for(Object str : processedResponse.values()){
+//        System.out.println("Value : " + (String) str);
+//    }
   }
   
 //  private String soapElementTypeReader(String element){      
@@ -384,8 +384,8 @@ public class TestCaseBuilder
             
             switch (tagName)
             {
-              case "soap":
-                parseSoapTemplate(sheet, rowNum, tagName);
+              case "message":
+                parseSoapTemplate(testActions, sheet, rowNum, tagName);
                 break;  
               case "sectie":
               case "tc":
