@@ -44,6 +44,7 @@ prova.plugins.out.shell                   = ShellCommand
 prova.plugins.reporting.package           = nl.dictu.prova.plugins.reporting.
 prova.plugins.reporting                   = SimpleReport
 prova.plugins.reporting.file              = yyyy-MM-dd_HHmmss
+prova.plugins.reporting.dir               = testresults
 
 ################################################################################
 #

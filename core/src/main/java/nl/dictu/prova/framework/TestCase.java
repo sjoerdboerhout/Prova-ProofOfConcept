@@ -10,6 +10,7 @@ import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
 import nl.dictu.prova.framework.exceptions.TestActionException;
+import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 /**
  * Contains all the data of a test case including a list of all actions that
@@ -283,8 +284,7 @@ public class TestCase
     Exception exception = null;
     Long waitTime = (long) 0;
     
-    LOGGER.debug("RUN TC: " + this.toString());
-    
+    LOGGER.info("Execute TC: '{}'", this.toString());
     try
     {
       LOGGER.trace("Configured delay time: '{}'ms", testRunner.getPropertyValue(Config.PROVA_TESTS_DELAY));
@@ -302,6 +302,7 @@ public class TestCase
       {
         LOGGER.trace("Execute setUp action: {}", () -> setUpAction.toString());
         setUpAction.execute();
+        
       }      
     }
     catch(Exception eX)
@@ -320,8 +321,24 @@ public class TestCase
         for(TestAction testAction : testActions)
         {
           LOGGER.trace("Execute test action: {}", () -> testAction.toString());
-          testAction.execute();    
-  
+          try
+          {
+        	  testAction.execute();
+        	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
+              {
+              	LOGGER.debug("Report: log action");
+              	reportPlugin.logAction(testAction, "OK");
+              }
+          }
+          catch(Exception eX)
+          {
+        	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
+              {
+              	LOGGER.debug("Report: log action");
+              	reportPlugin.logAction(testAction, "NOK");
+              }
+        	  throw eX;
+          }
           try
           {
             LOGGER.trace("Wait {} ms before executing next action.", waitTime);
@@ -345,6 +362,7 @@ public class TestCase
         this.setStatus(TestStatus.FAILED);
         this.setSummary(eX.getMessage());
         exception = new TestActionException(eX.getMessage());
+        
       }
     }
     

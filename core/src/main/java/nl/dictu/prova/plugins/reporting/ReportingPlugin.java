@@ -18,7 +18,7 @@ public interface ReportingPlugin
   
   public void setOutputDir(String outputDir) throws Exception;
   
-  public void setUp() throws Exception;
+  public void setUp(String fileName) throws Exception;
   
   public void logStartTestSuite(TestSuite testSuite) throws Exception; 
   public void logEndTestSuite(TestSuite testSuite) throws Exception; 
@@ -26,7 +26,7 @@ public interface ReportingPlugin
   public void logStartTest(TestCase testCase) throws Exception;  
   public void logEndTest(TestCase testCase) throws Exception;
 
-  public void logAction(TestAction action) throws Exception;  
+  public void logAction(TestAction action, String status) throws Exception;  
   
   public void logMessage(String message) throws Exception;
   public void logMessage(String[] messages) throws Exception;

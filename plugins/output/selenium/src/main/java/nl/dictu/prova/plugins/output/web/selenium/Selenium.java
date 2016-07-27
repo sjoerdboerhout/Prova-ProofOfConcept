@@ -197,28 +197,7 @@ public class Selenium implements WebOutputPlugin
   }
 
 
-  @Override
-  public void tearDown(TestCase testCase) throws Exception
-  {
-    LOGGER.debug("TearDown Test Case ID '{}'. Status: '{}'", () -> testCase.getId(), () -> testCase.getStatus().name());
-    
-    try
-    {
-      // TODO Enable again after finishing testing
-      webdriver.close();
-    }
-    catch(NullPointerException eX)
-    {
-      // Ignore. Browser already closed
-    }
-    catch(Exception eX)
-    {
-      LOGGER.error("Exception during tearDown: '{}'", eX.getMessage());
-    }      
-  }
-
-
-  @Override
+ @Override
   public void doCaptureScreen(String fileName) throws Exception
   {
     File scrFile = ((TakesScreenshot)webdriver).getScreenshotAs(OutputType.FILE);
@@ -360,7 +339,6 @@ public class Selenium implements WebOutputPlugin
   public void doSelectDropdown(String xPath, String select) throws Exception
   {
     LOGGER.debug("> Select '{}' on {}",select , xPath);
-    
     int count = 0;
     
     while(true)
@@ -371,8 +349,28 @@ public class Selenium implements WebOutputPlugin
         
         LOGGER.trace("Element '" + xPath + "' found.");
       
-        // Set dropdown by visible text
-        dropdown.selectByVisibleText(select);
+        try
+        {
+	        LOGGER.trace("Trying to select '{}' ByVisibleText (doSelectDropdown)", select);
+        	// Set dropdown by visible text
+	        dropdown.selectByVisibleText(select);
+        }
+        catch(NoSuchElementException ex)
+        {
+        	LOGGER.trace("'{}' not found ByVisibleText (doSelectDropdown)", select);
+        	LOGGER.trace("Trying to select '{}' ByValue (doSelectDropdown)", select);
+        	// Set dropdown by value
+	        try
+	        {
+	        	dropdown.selectByValue(select);
+	        }
+	        catch(NoSuchElementException nseex)
+	        {
+	        	LOGGER.trace("'{}' not found ByValue (doSelectDropdown)", select);
+	        	throw new Exception("'" + select + "' can not be selected as 'text' or as 'value' in element: '" + xPath + "'");
+	        }
+        }
+        
         
         // Action succeeded. Return.
         return;
@@ -389,12 +387,12 @@ public class Selenium implements WebOutputPlugin
     }
   }
   @Override
-  public void doSendKeys(String keys) throws Exception
+  public void doSendKeys(String xPath, String keys) throws Exception
   {
     try
     {
-      LOGGER.debug(">> Send key '{}' to active element", keys);
-      
+      LOGGER.debug(">> Send key '{}' to element (doSendKeys)", keys);
+      //replace the given keys with keyboard presses
       keys = keys.replace("<DOWN>", Keys.DOWN);
       keys = keys.replace("<END>", Keys.END);
       keys = keys.replace("<ESC>", Keys.ESCAPE);
@@ -406,9 +404,25 @@ public class Selenium implements WebOutputPlugin
       keys = keys.replace("<TAB>", Keys.TAB);
       keys = keys.replace("<UP>", Keys.UP);
       
-      LOGGER.trace("> Send keys '{}' to active element", keys);
+      //if xPath is not filled, sendKeys to the active element
+      if (xPath.equalsIgnoreCase("/html/body"))
+      {
+	      LOGGER.trace("> Send keys '{}' to active element (doSendKeys)", keys);
+	      webdriver.switchTo().activeElement().sendKeys(keys);
+      }
+      //xPath is filled. Find element and send keys
+      else
+      {
+    	  WebElement element = findElement(xPath);
+          
+          if(element == null || !element.isEnabled())
+          {
+            throw new Exception("Element '" + xPath + "' not found.");
+          }
+          LOGGER.trace("Sending keys to element '{}' (doSendKeys)", xPath);
+          element.sendKeys(keys);
+      }
       
-      webdriver.switchTo().activeElement().sendKeys(keys);
     }
     catch(Exception eX)
     {
@@ -419,7 +433,7 @@ public class Selenium implements WebOutputPlugin
 
 
   @Override
-  public void doSetText(String xPath, String text) throws Exception
+  public void doSetText(String xPath, String text, Boolean replace) throws Exception
   {
     LOGGER.debug(">> Set '{}' with text '{}'", xPath, text);
     
@@ -436,13 +450,12 @@ public class Selenium implements WebOutputPlugin
           throw new Exception("Element '" + xPath + "' not found.");
         }
         
-        // Select the element.
-        //LOGGER.trace("Clicking on element '{}' (doSetText)", xPath);
-        //element.click();
+        LOGGER.trace("Sending keys to element '{}'. Replace={} (doSetText)", xPath, replace);
         
-        // To prevent typing in existing text first select all and then replace
-        LOGGER.trace("Sending keys to element '{}' (doSetText)", xPath);
-        element.sendKeys(Keys.chord(Keys.CONTROL, "a"),text);
+        if(replace)
+          element.sendKeys(Keys.chord(Keys.CONTROL, "a"),text);
+        else
+          element.sendKeys(text);
         
         // Action succeeded. Return.
         return;
@@ -476,80 +489,6 @@ public class Selenium implements WebOutputPlugin
                     waitTime, eX.getMessage());
           
           throw eX;
-    }    
-  }
-  
-  
-  @Override
-  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception
-  {
-    LOGGER.debug(">> Switch to frame");
-    
-    int count = 0;
-    
-    while(true)
-    {
-      try
-      {
-        if (alert == true)
-        {
-        	//if 'alert' is true, we're expecting a non web message
-        	LOGGER.trace("Switching to alert (doSwitchFrame)");
-        	Alert popupalert = webdriver.switchTo().alert();
-        	if (accept == true)
-        	{
-        		//accepting the message by clicking 'yes' or whatever
-        		LOGGER.trace("Accepting alert (doSwitchFrame)");
-        		popupalert.accept();
-        	}
-        	else if (accept == false)
-        	{
-        		//dismissing the message by clicking 'no' or whatever
-        		LOGGER.trace("Dismissing alert (doSwitchFrame)");
-        		popupalert.dismiss();
-        	}
-        	else
-        	{
-        		//if check on boolean works properly, the else is never reached
-        		throw new Exception("Value of Boolean 'alert' not valid");
-        	}
-
-        }
-        else
-        {
-	    	if (xPath=="DEFAULT")
-	        {
-	        	//switching to the default frame
-	        	LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
-		        webdriver.switchTo().defaultContent();
-	        }
-	        else
-	        {
-		        WebElement element = findElement(xPath);
-		        
-		        if(element == null || !element.isEnabled())
-		        {
-		          throw new Exception("Element '" + xPath + "' not found.");
-		        }
-		        
-		        // switching to frame by element, selected by xpath
-		        LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
-		        webdriver.switchTo().frame(element);
-	        } 
-        }
-        // Action succeeded. Return.
-        return;
-      }
-      catch(Exception eX)
-      {
-        if(++count > maxRetries)
-        {
-          LOGGER.debug("Exception while switching to frame '{}' : {} (retry count: {})", 
-                        xPath, eX.getMessage(), count);
-          
-          throw eX;
-        }
-      }
     }    
   }
   
@@ -648,14 +587,14 @@ public class Selenium implements WebOutputPlugin
         // Get text from element
         String text = element.getText()+ "\r\n";
         text = text + "Attribute @value: " + element.getAttribute("value");
-        LOGGER.trace(text);
+        //LOGGER.trace(text);
         // If exists is false, check if text is not present in element
         if (!exists)
         {
         	//validate if value is not present in text
         	try
         	{
-	        	LOGGER.trace("Controleren of de tekst {} niet voorkomt in het element {}", value, xPath);
+	        	LOGGER.trace("Check if text {} isn't present in element {}", value, xPath);
 	        	Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
 	        			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
         	}
@@ -664,7 +603,7 @@ public class Selenium implements WebOutputPlugin
         		//validate if value is not present in attribute @value
         		try
         		{
-        			LOGGER.trace("Controleren of het attribuut @value, van het element {}, de tekst {} niet bevat", xPath,value );
+        			LOGGER.trace("Check if the attribute @value, in element {}, doesn't contain the text {}", xPath,value );
         			Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
     			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementValue(element, value))));
         		}
@@ -680,7 +619,7 @@ public class Selenium implements WebOutputPlugin
         	//validate if value is present in text
         	try
         	{
-        		LOGGER.trace("Controleren of de tekst {} voorkomt in het element {}", value, xPath);
+        		LOGGER.trace("Check if text {} is present in element {}", value, xPath);
         		Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
  			           wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
         	}
@@ -689,7 +628,7 @@ public class Selenium implements WebOutputPlugin
         		//validate if value is present in attribute @value
         		try
         		{
-        			LOGGER.trace("Controleren of het attribuut @value, van het element {}, de tekst {} bevat", xPath,value );
+        			LOGGER.trace("Check if the attribute @value, in element {}, contains the text {}", xPath,value );
         			Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
       			           wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
         		}
@@ -716,6 +655,78 @@ public class Selenium implements WebOutputPlugin
     }   
   }
   
+  @Override
+  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception
+  {
+    LOGGER.debug(">> Switch to frame");
+    
+    int count = 0;
+    
+    while(true)
+    {
+      try
+      {
+        if (alert)
+        {
+        	//if 'alert' is true, we're expecting a non web message
+        	LOGGER.trace("Switching to alert (doSwitchFrame)");
+        	Alert popupalert = webdriver.switchTo().alert();
+        	if (accept)
+        	{
+        		//accepting the message by clicking 'yes' or whatever
+        		LOGGER.trace("Accepting alert (doSwitchFrame)");
+        		popupalert.accept();
+        	}
+        	else if (!accept)
+        	{
+        		//dismissing the message by clicking 'no' or whatever
+        		LOGGER.trace("Dismissing alert (doSwitchFrame)");
+        		popupalert.dismiss();
+        	}
+        	else
+        	{
+        		//if check on boolean works properly, the else is never reached
+        		throw new Exception("Value of Boolean 'alert' not valid");
+        	}
+
+        }
+        else
+        {
+	    	if (xPath=="DEFAULT")
+	        {
+	        	//switching to the default frame
+	        	LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        webdriver.switchTo().defaultContent();
+	        }
+	        else
+	        {
+		        WebElement element = findElement(xPath);
+		        
+		        if(element == null || !element.isEnabled())
+		        {
+		          throw new Exception("Element '" + xPath + "' not found.");
+		        }
+		        
+		        // switching to frame by element, selected by xpath
+		        LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        webdriver.switchTo().frame(element);
+	        } 
+        }
+        // Action succeeded. Return.
+        return;
+      }
+      catch(Exception eX)
+      {
+        if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception while switching to frame '{}' : {} (retry count: {})", 
+                        xPath, eX.getMessage(), count);
+          
+          throw eX;
+        }
+      }
+    }    
+  }
   
   private WebElement findElement(String xPath)
   {
@@ -781,4 +792,14 @@ public class Selenium implements WebOutputPlugin
       }
     }
   }   
+
+    @Override
+    public void doSendKeys(String string) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void doSetText(String string, String string1) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

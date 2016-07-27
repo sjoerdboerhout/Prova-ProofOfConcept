@@ -343,6 +343,12 @@ public class Prova implements Runnable, TestRunner
     {
       LOGGER.info("Execute TS: '{}' ({})", () -> testSuite.getId(), () -> testSuite.numberOfTestCases(true));
       
+      for(ReportingPlugin reportPlugin : getReportingPlugins())
+      {
+      	LOGGER.debug("Aantal in lijst: "+getReportingPlugins().size());
+      	LOGGER.debug("Report: start testsuite");
+      	reportPlugin.logStartTestSuite(testSuite);
+      }
       // First execute all test cases
       for(Map.Entry<String, TestCase> entry : testSuite.getTestCases().entrySet())
       {
@@ -360,7 +366,9 @@ public class Prova implements Runnable, TestRunner
           {
             for(ReportingPlugin reportPlugin : getReportingPlugins())
             {
-              reportPlugin.logStartTest(entry.getValue());
+            	LOGGER.debug("Aantal in lijst: "+getReportingPlugins().size());
+            	LOGGER.debug("Report: start testcase");
+            	reportPlugin.logStartTest(entry.getValue());
             }
             
             // (re-)set up output plug-in(s) for a new test case
@@ -375,7 +383,8 @@ public class Prova implements Runnable, TestRunner
             
             for(ReportingPlugin reportPlugin : getReportingPlugins())
             {
-              reportPlugin.logEndTest(entry.getValue());
+            	LOGGER.debug("Report: end testcase");
+            	reportPlugin.logEndTest(entry.getValue());
             }
           }
           else
@@ -390,6 +399,11 @@ public class Prova implements Runnable, TestRunner
         catch(TestActionException eX)
         {
           LOGGER.error(">> Test action failure <<", eX);
+          for(ReportingPlugin reportPlugin : getReportingPlugins())
+          {
+          	LOGGER.debug("Report: end testcase (error)");
+          	reportPlugin.logEndTest(entry.getValue());
+          }
         }
         catch(TearDownActionException eX)
         {
@@ -403,16 +417,21 @@ public class Prova implements Runnable, TestRunner
         {
           // Tear down output plug-in(s) after the test case
           if(webOutputPlugin != null)
-            webOutputPlugin.tearDown(entry.getValue());
+            //webOutputPlugin.tearDown(entry.getValue());
           
           if(shellOutputPlugin != null)
-            shellOutputPlugin.tearDown(entry.getValue());
+            //shellOutputPlugin.tearDown(entry.getValue());
           
           // Test script finished. Clear all actions to clear memory
           entry.getValue().clearAllActions();
         }
       }
-      
+      for(ReportingPlugin reportPlugin : getReportingPlugins())
+      {
+      	LOGGER.debug("Aantal in lijst: "+getReportingPlugins().size());
+      	LOGGER.debug("Report: start testsuite");
+      	reportPlugin.logEndTestSuite(testSuite);
+      }
       // Second, execute all sub test suites
       for(Map.Entry<String, TestSuite> entry : testSuite.getTestSuites().entrySet())
       {
@@ -444,7 +463,11 @@ public class Prova implements Runnable, TestRunner
     try
     {
       LOGGER.info("Teardown Prova");
-      
+      for(ReportingPlugin reportPlugin : getReportingPlugins())
+      {
+      	LOGGER.debug("Report: shutdown");
+      	reportPlugin.shutDown();
+      }
       // TODO: Run one tear down script(s)
     }
     catch(Exception eX)
