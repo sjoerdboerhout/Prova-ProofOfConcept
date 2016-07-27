@@ -33,7 +33,7 @@ public interface OutputPlugin
   
   public void doSendKeys(String xPath, String keys) throws Exception;
   
-  public void doSetText(String xPath, String text) throws Exception;
+  public void doSetText(String xPath, String text, Boolean replace) throws Exception;
   
   public void doSleep(long waitTime) throws Exception;
   

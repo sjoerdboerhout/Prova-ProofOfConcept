@@ -1,6 +1,7 @@
 package nl.dictu.prova.framework.web;
 
 import nl.dictu.prova.framework.TestAction;
+import nl.dictu.prova.framework.parameters.Bool;
 import nl.dictu.prova.framework.parameters.Text;
 import nl.dictu.prova.framework.parameters.Xpath;
 
@@ -16,10 +17,12 @@ public class SetText extends TestAction
   // Action attribute names
   public final static String ATTR_XPATH = "XPATH";
   public final static String ATTR_VALUE = "VALUE";
+  public final static String ATTR_REPLACE = "REPLACE";
    
   // Declaration and default value
   private Xpath xPath;
   private Text text;
+  private Bool replace;
 
   /**
    * Constructor
@@ -34,6 +37,8 @@ public class SetText extends TestAction
     
     text = new Text();
     text.setMinLength(0);
+
+    replace = new Bool(true);
   }
   
 
@@ -61,6 +66,10 @@ public class SetText extends TestAction
       case ATTR_VALUE:
         text.setValue(value); 
       break;
+      
+      case ATTR_REPLACE:  
+        replace.setValue(value); 
+      break;
     }
     
     xPath.setAttribute(key, value);  
@@ -76,6 +85,7 @@ public class SetText extends TestAction
     if(testRunner == null)  return false;
     if(!xPath.isValid())    return false;
     if(!text.isValid())     return false;
+    if(!replace.isValid())  return false;
     
     return true;
   }
@@ -92,7 +102,7 @@ public class SetText extends TestAction
     if(!isValid())
       throw new Exception("Action is not validated!");
     
-    testRunner.getWebActionPlugin().doSetText(xPath.getValue(), text.getValue());
+    testRunner.getWebActionPlugin().doSetText(xPath.getValue(), text.getValue(), replace.getValue());
   }
 
 
@@ -104,6 +114,6 @@ public class SetText extends TestAction
   @Override
   public String toString()
   {
-    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Set text of '" + xPath.getValue() + "' to '" + text.getValue() + "'");
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': " + (replace.getValue() ? "Replace" : "Set") + " text of '" + xPath.getValue() + "' to '" + text.getValue() + "'");
   }
 }

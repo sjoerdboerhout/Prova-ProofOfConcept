@@ -201,7 +201,7 @@ public class Selenium implements OutputPlugin
     try
     {
       // TODO Enable again after finishing testing
-      webdriver.close();
+      //webdriver.close();
     }
     catch(NullPointerException eX)
     {
@@ -432,7 +432,7 @@ public class Selenium implements OutputPlugin
 
 
   @Override
-  public void doSetText(String xPath, String text) throws Exception
+  public void doSetText(String xPath, String text, Boolean replace) throws Exception
   {
     LOGGER.debug(">> Set '{}' with text '{}'", xPath, text);
     
@@ -449,13 +449,12 @@ public class Selenium implements OutputPlugin
           throw new Exception("Element '" + xPath + "' not found.");
         }
         
-        // Select the element.
-        //LOGGER.trace("Clicking on element '{}' (doSetText)", xPath);
-        //element.click();
+        LOGGER.trace("Sending keys to element '{}'. Replace={} (doSetText)", xPath, replace);
         
-        // To prevent typing in existing text first select all and then replace
-        LOGGER.trace("Sending keys to element '{}' (doSetText)", xPath);
-        element.sendKeys(Keys.chord(Keys.CONTROL, "a"),text);
+        if(replace)
+          element.sendKeys(Keys.chord(Keys.CONTROL, "a"),text);
+        else
+          element.sendKeys(text);
         
         // Action succeeded. Return.
         return;
