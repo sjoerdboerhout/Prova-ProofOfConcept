@@ -13,17 +13,17 @@
     </parent>
 
     <groupId>nl.dictu.prova.plugins.output</groupId>
-    <artifactId>soap</artifactId>
+    <artifactId>apacheSoap</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>Output plugin: Soap webservices</name>
+    <name>Output plugin: Apache Soap webservices</name>
     <description>Plugin to execute test actions through Soap webservices</description>
     <packaging>jar</packaging>
 
     <properties>
         <prova.install.dir>${project.parent.basedir}</prova.install.dir>
         <artifact.install.dir>${prova.install.dir}/${prova.plugins.output.path}</artifact.install.dir>
-        <artifact.package>nl.dictu.prova.plugins.output.soap</artifact.package>
-        <artifact.mainclass>Soap</artifact.mainclass>
+        <artifact.package>nl.dictu.prova.plugins.output.apacheSoap</artifact.package>
+        <artifact.mainclass>ApacheSoap</artifact.mainclass>
         <dir.lib.rel>../../lib</dir.lib.rel>
 
         <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>

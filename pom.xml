@@ -66,7 +66,7 @@
     <module>plugins/output/scriptPrinter</module>
     <module>plugins/output/selenium</module>
     <module>plugins/output/shellCommand</module>
-	<module>plugins/output/soap</module>
+    <module>plugins/output/apacheSoap</module>
 
     <!-- Reporting Plugins -->
     <module>plugins/reporting/simpleReport</module>

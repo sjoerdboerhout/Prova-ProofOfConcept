@@ -244,14 +244,14 @@ public class TestDataBuilder
           
           for(Entry<String,String> entry : map.entrySet())
           {
-            if(cellReader.isTag(entry.getValue())){
+            if(cellReader.isKey(entry.getValue())){
                 if(testRunner == null){
                     LOGGER.error("testRunner is null, property " + entry.getValue() + " not stored.");
                     break;
                 }
                 LOGGER.trace("Property value is a property, retrieving value from collection.");
-                LOGGER.trace("> {}: '{}'", entry.getKey(), testRunner.getPropertyValue(entry.getValue()));
-                properties.setProperty(entry.getKey(), testRunner.getPropertyValue(entry.getValue()));
+                LOGGER.trace("> {}: '{}'", entry.getKey(), testRunner.getPropertyValue(cellReader.getKeyName(entry.getValue())));
+                properties.setProperty(entry.getKey(), testRunner.getPropertyValue(cellReader.getKeyName(entry.getValue())));
             } else {
             LOGGER.trace("> {}: '{}'", entry.getKey(), entry.getValue());
             properties.setProperty(entry.getKey(), entry.getValue());

@@ -1,14 +1,15 @@
 package nl.dictu.prova.plugins.output;
 
-import java.net.URL;
-import java.util.Map;
+import java.util.Properties;
 
 public interface SoapOutputPlugin extends OutputPlugin {
-	public Map<Object, Object> doProcessResponse (String responseMessage) throws Exception;
+	public Properties doProcessResponse () throws Exception;
 	
-	public String doSetLogin (String user, String password) throws Exception;
+	public void doSetProperties (String user, String password, String url, String prefix) throws Exception;
 	
-	public String doSendMessage (Map<Object, Object> soapProperties) throws Exception;
+	public void doSetMessage (String message) throws Exception;
 	
-	public URL doSetUrl (String url) throws Exception;
+	public void doSetTests (Properties tests) throws Exception;
+        
+        public String doGetCurrentPrefix () throws Exception;
 }

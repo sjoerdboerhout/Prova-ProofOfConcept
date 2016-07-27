@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
  * Currently allowed prefixes:
  * - WEB: web test
  * - SH:  shell test
- * - WEBSERVICE: testing on SOAP or JSON APIs.
+ * - SOAP: testing on SOAP
  *
  * @author Hielke de Haan
  * @since 0.0.1

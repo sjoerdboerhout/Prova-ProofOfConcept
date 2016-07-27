@@ -245,12 +245,12 @@ public class Prova implements Runnable, TestRunner
 //      else
 //        throw new Exception("Could not load web output plugin '" + pluginName + "'");
       
-      LOGGER.debug("Load and initialize webservice output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP));
+      LOGGER.debug("Load and initialize SOAP webservice output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP));
       pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP_PACKAGE) +
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP).toLowerCase() + "." +
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP);
 
-      soapOutputPlugin = pluginLoader.getInstanceOf(pluginName, SoapOutputPlugin.class);
+      soapOutputPlugin = pluginLoader.getInstanceOf("nl.dictu.prova.plugins.output.webservice.apacheSoap.ApacheSoap", SoapOutputPlugin.class);
       
       if(soapOutputPlugin != null)
         soapOutputPlugin.init(this);

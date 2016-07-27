@@ -26,6 +26,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import nl.dictu.prova.framework.soap.SoapActionFactory;
+import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 import org.apache.poi.hssf.util.PaneInformation;
 import org.apache.poi.ss.usermodel.AutoFilter;
 import org.apache.poi.ss.usermodel.CellRange;
@@ -185,15 +186,17 @@ public class TestCaseBuilder
               case "requirement":
                 // TODO add field to TestCase
                 break;
-              case "soap":
-                parseSoapTemplate(sheet, rowNum, tagName);
-                break;
               case "status":
                 testCase.setStatus(TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
                 break;
               case "labels":
                 // Ignore
                 break;
+              case "message":
+              case "soapproperties":
+              case "send":
+                  parseSoapTemplate(sheet, rowNum, tagName).forEach(testCase::addTestAction);
+                  break;    
               case "setup":
               case "test":
               case "teardown":
@@ -209,74 +212,129 @@ public class TestCaseBuilder
     }
   }
   
-  private void parseSoapTemplate(List<TestAction> testActions, Sheet sheet, MutableInt rowNum, String tagName) throws Exception
+  private List<TestAction> parseSoapTemplate(Sheet sheet, MutableInt rowNum, String tagName) throws Exception
   {      
-    Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
-    Map<String, String> rowMap;
+    Map<Integer, String> headers = null;
+    Map<String, String> rowMap = null;
+    TestAction testAction = null;
+    List<TestAction> testActions = new ArrayList<>();
+    CellReader cellReader = new CellReader();
     
-    while((rowMap = readRow(sheet, rowNum, headers))!= null)
-    {
-        for(String key : rowMap.keySet()){
-            if(key.length() > 0){
-                LOGGER.error("Key op rowNum " + rowNum + " : " + key);
+    LOGGER.info("Parsing Soap template with sheet " + sheet.getSheetName());
+    
+    //Read and process the specified part of the SOAP template based on the tagname. Each tagname 
+    //is linked to a unique TestAction. Together they form the basis for sending and testing.
+    if (tagName.toLowerCase().equals("send")){
+        testAction = SoapActionFactory.getAction("PROCESSRESPONSE");
+    } else if(tagName.toLowerCase().equals("message")){
+        testAction = SoapActionFactory.getAction("SETMESSAGE");
+        headers = readSectionHeaderRow(sheet, rowNum);
+        soapMessage = "";
+        
+        while((rowMap = readRow(sheet, rowNum, headers))!= null)
+        {
+            for(String entry : rowMap.values()){
+                if(entry != null & entry.length() > 0){
+                    soapMessage += entry;
+                }
             }
+            testAction.setAttribute("MESSAGE", soapMessage);
         }
-        for(String entry : rowMap.values()){
-            if(entry.length() > 0){
-                LOGGER.error("Entry op rowNum " + rowNum + " : " + entry);
-                //soapElementTypeReader(entry);
-                soapMessage += entry;
+        soapMessage = "";
+    } else if (tagName.toLowerCase().equals("soapproperties")){
+        testAction = SoapActionFactory.getAction("SETPROPERTIES");
+        headers = readSectionHeaderRow(sheet, rowNum);
+        String prefix = null;
+        
+        while((rowMap = readRow(sheet, rowNum, headers))!= null)
+        {
+            //Check for prefix on current row. If found then check for existence in 
+            //global properties with most recent incrementation (e.g. "SOAP_message10_")
+            
+            if(rowMap.containsKey("prefix")){
+                LOGGER.trace("Prefix found. Processing.");
+                prefix = rowMap.get("prefix");
+                Boolean prefixFound = true;
+                Integer counter = 1;
+                
+                while(prefixFound){
+                    if(this.testRunner.hasPropertyValue("prova.properties.used." + prefix + counter)){
+                        counter++;
+                    } else {
+                        LOGGER.trace("Prefix of type '" + prefix + "' has highest incrementation number: " + counter);
+                        prefix = prefix + counter;
+                        LOGGER.trace("Setting prefix to " + prefix + " on key prova.properties.prefix");
+                        prefixFound = false;
+                    }
+                }
+                //Adding prefix as key to properties so properties can be scanned for existence.
+                this.testRunner.setPropertyValue("prova.properties.used." + prefix, prefix);
+                //Setting prefix as current prefix on key prova.properties.prefix.
+                testAction.setAttribute("prova.properties.prefix", prefix);
+            } else {
+                throw new Exception("No prefix has been supplied! Please add a 'Prefix' key and value below your [SoapProperties] tag.");
             }
+            
+            if(rowMap.containsKey("password")){
+                LOGGER.trace("Password found. Processing.");
+                String pass = null;
+                if(cellReader.isKey(rowMap.get("password"))){
+                    LOGGER.trace("Password value is a key, retrieving property value.");
+                    pass = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("password")));
+                    if(pass != null){
+                        testAction.setAttribute("prova.properties.pass", pass);
+                    } else {
+                        LOGGER.debug("Unable to process user tag");
+                    }
+                } else {
+                    testAction.setAttribute("prova.properties.pass", rowMap.get("pass"));
+                }
+            }
+            
+            if(rowMap.containsKey("user")){
+                LOGGER.trace("User found. Processing.");
+                String user = null;
+                if(cellReader.isKey(rowMap.get("user"))){
+                    LOGGER.trace("User value is a key, retrieving property value.");
+                    user = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("user")));
+                    if(user != null){
+                        testAction.setAttribute("prova.properties.user", user);
+                    } else {
+                        LOGGER.debug("Unable to process user tag");
+                    }
+                } else {
+                    testAction.setAttribute("prova.properties.user", rowMap.get("user"));
+                }
+            }
+            
+            if(rowMap.containsKey("url")){
+                LOGGER.trace("Url found. Processing.");
+                String url = null;
+                if(cellReader.isKey(rowMap.get("url"))){
+                    LOGGER.trace("Url value is a key, retrieving property value.");
+                    url = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("url")));
+                    if(url != null){
+                        testAction.setAttribute("prova.properties.url", url);
+                    } else {
+                        LOGGER.debug("Unable to process url tag");
+                    }
+                } else {
+                    testAction.setAttribute("prova.properties.url", rowMap.get("url"));
+                }
+            } else {
+                throw new Exception("No url has been supplied! Please add a 'Url' key and value below your [SoapProperties] tag.");
+            }
+            
         }
+    } 
+    if(testAction == null){
+        LOGGER.error("testAction has not been created, please check your tags");
+    } else{
+        testAction.setTestRunner(testRunner);
+        testActions.add(testAction);
     }
-    LOGGER.error(soapMessage);
-//    Properties soapProps = new Properties();
-    testRunner.setPropertyValue("message", soapMessage);
-//    soapProps.put("host", this.testRunner.getPropertyValue("prova.env.tir2.url"));
-//    soapProps.put("user", this.testRunner.getPropertyValue("prova.env.tir2.vh.user"));
-//    soapProps.put("pass", this.testRunner.getPropertyValue("prova.env.tir2.vh.pass"));
-//    String response = this.testRunner.getSoapActionPlugin().doSendMessage(soapProps);
-//    Map<Object, Object> processedResponse = this.testRunner.getSoapActionPlugin().doProcessResponse(response);
-//    System.out.println("Response: " + response);
-//    for(Object str : processedResponse.values()){
-//        System.out.println("Value : " + (String) str);
-//    }
+    return testActions;
   }
-  
-//  private String soapElementTypeReader(String element){      
-//      Pattern patternVariableTag    = Pattern.compile("<[A-Za-z0-9]*>{[A-Za-z0-9]*}</[A-Za-z0-9]*>");
-//      Pattern patternVariableFixed  = Pattern.compile("<[A-Za-z0-9]*>[A-Za-z0-9]*</[A-Za-z0-9]*>");
-//      Pattern patternOpeningParent  = Pattern.compile("<.*>");
-//      Pattern patternClosingParent  = Pattern.compile("</[A-Za-z0-9]*>");
-//      Pattern patternStandalone     = Pattern.compile("<.*/>");
-//      
-//      Matcher matcherVariableTag    = patternVariableTag.matcher(element);
-//      Matcher matcherVariableFixed  = patternVariableFixed.matcher(element);
-//      Matcher matcherOpeningParent  = patternOpeningParent.matcher(element);
-//      Matcher matcherClosingParent  = patternClosingParent.matcher(element);
-//      Matcher matcherStandalone     = patternStandalone.matcher(element);
-//      
-//      if (matcherVariableTag.find()){
-//            LOGGER.trace("Found Soap element 'variableTag'");
-//            return "variableTag";
-//      } else if (matcherVariableFixed.find()){
-//            LOGGER.trace("Found Soap element 'variableFixed'");
-//            return "variableFixed";
-//      } else if (matcherOpeningParent.find()){
-//            LOGGER.trace("Found Soap element 'opening parent'");
-//            return "openingParent";
-//      } else if (matcherClosingParent.find()){
-//            LOGGER.trace("Found Soap element 'closing parent'");
-//            return "closingParent";
-//      } else if (matcherStandalone.find()){
-//            LOGGER.trace("Found Soap element 'standalone'");
-//            return "standalone";
-//      } else {
-//            LOGGER.debug("Not able to recognize soap element type!");
-//            return "";
-//      }
-//      
-//  }
 
   /**
    * Parse test actions and add the actions found to the correct action list.
@@ -384,9 +442,6 @@ public class TestCaseBuilder
             
             switch (tagName)
             {
-              case "message":
-                parseSoapTemplate(testActions, sheet, rowNum, tagName);
-                break;  
               case "sectie":
               case "tc":
                 parseTestActionSection(testActions, sheet, rowNum, tagName);
@@ -421,7 +476,7 @@ public class TestCaseBuilder
       switch (tagName)
       {
         case "sectie":
-          TestAction testAction = SoapActionFactory.getAction(rowMap.get("actie"));
+          TestAction testAction = WebActionFactory.getAction(rowMap.get("actie"));
           String locatorName = rowMap.get("locator").toLowerCase();
           String xPath = "";
           
@@ -493,16 +548,19 @@ public class TestCaseBuilder
     rowNum.increment();
     Row headerRow = sheet.getRow(rowNum.intValue());
 
-    for (Cell headerCell : headerRow)
+    if(headerRow != null)
     {
-      header = flowWorkbookReader.evaluateCellContent(headerCell);
-      header = header.replace("*", "");
-      header = header.replace(":", "");
-      header = header.toLowerCase();
-      header = header.trim();
+        for (Cell headerCell : headerRow)
+        {
+          header = flowWorkbookReader.evaluateCellContent(headerCell);
+          header = header.replace("*", "");
+          header = header.replace(":", "");
+          header = header.toLowerCase();
+          header = header.trim();
 
-      if (!header.isEmpty())
-        headers.put(headerCell.getColumnIndex(), header);
+          if (!header.isEmpty())
+            headers.put(headerCell.getColumnIndex(), header);
+        }
     }
 
     LOGGER.trace("Read section headers {}", headers);

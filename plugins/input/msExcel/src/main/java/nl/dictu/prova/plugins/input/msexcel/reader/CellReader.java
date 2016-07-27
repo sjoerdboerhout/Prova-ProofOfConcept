@@ -21,6 +21,8 @@ public class CellReader
   private Workbook workbook;
   private FormulaEvaluator formulaEvaluator;
 
+  public CellReader(){}
+  
   public CellReader(Workbook workbook)
   {
     this.workbook = workbook;
@@ -37,7 +39,8 @@ public class CellReader
   public String evaluateCellContent(Cell cell) throws Exception
   {
     final String LOG_PREFIX = getLogPrefix(cell);
-    LOGGER.trace(LOG_PREFIX + "evaluating cell content '{}'", () -> cell);
+    if(cell.getStringCellValue().length() > 0)
+        LOGGER.trace(LOG_PREFIX + "evaluating cell content '{}'", () -> cell);
 
     String result;
 
@@ -258,6 +261,38 @@ public class CellReader
   {
     return FormulaError.forInt(cell.getErrorCellValue()).getString();
   }
+  
+  /**
+   * Checks if the given cell contains a key value.
+   * A value is a key if it is surrounded by curly brackets.
+   *
+   * @param cell Cell which might contain a key value
+   * @return Whether or not the cell contains a key value
+   */
+  public boolean isKey(Cell cell)
+  {
+    String content = "";
+    try
+    {
+      content = evaluateCellContent(cell);
+    } catch (Exception e)
+    {
+      // if an exception is thrown it surely wasn't a key
+    }
+    return isKey(content);
+  }
+
+  /**
+   * Checks if the given string contains a key value.
+   * A value is a key if it is surrounded by square brackets.
+   *
+   * @param cellContent String which might contain a key value
+   * @return Whether or not the string contains a key value
+   */
+  public boolean isKey(String cellContent)
+  {
+    return cellContent.trim().matches("^\\{[A-Za-z0-9.]+\\}$");
+  }
 
   /**
    * Checks if the given cell contains a tag value.
@@ -289,6 +324,35 @@ public class CellReader
   public boolean isTag(String cellContent)
   {
     return cellContent.trim().matches("^\\[[A-Za-z0-9]+\\]$");
+  }
+  
+  /**
+   * Extracts the tag name from a cell.
+   * For example if the cell contains "[TAG]", "TAG" is returned.
+   *
+   * @param cell Cell containing the tag value
+   * @return key name
+   */
+  public String getKeyName(Cell cell) throws Exception
+  {
+    return getKeyName(evaluateCellContent(cell));
+  }
+
+  /**
+   * Extracts the tag name from a string.
+   * For example if the string contains "[TAG]", "TAG" is returned.
+   *
+   * @param cellContent String containing the tag value
+   * @return Key name
+   */
+  public String getKeyName(String cellContent)
+  {
+    Pattern pattern = Pattern.compile("^\\{([A-Za-z0-9.]+)\\}$");
+    Matcher matcher = pattern.matcher(cellContent.toLowerCase().trim());
+    if (matcher.find())
+      return matcher.group(1);
+    else
+      return null;
   }
 
   /**

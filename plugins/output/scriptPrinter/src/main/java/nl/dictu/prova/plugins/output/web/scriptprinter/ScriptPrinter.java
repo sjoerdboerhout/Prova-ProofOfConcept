@@ -17,7 +17,7 @@ import nl.dictu.prova.plugins.output.SoapOutputPlugin;
  * @author Sjoerd Boerhout
  *
  */
-public class ScriptPrinter implements ShellOutputPlugin, WebOutputPlugin, SoapOutputPlugin {
+public class ScriptPrinter implements ShellOutputPlugin, WebOutputPlugin {
 	final static Logger LOGGER = LogManager.getLogger();
 
 	private TestRunner testRunner = null;
@@ -166,24 +166,4 @@ public class ScriptPrinter implements ShellOutputPlugin, WebOutputPlugin, SoapOu
 		// TODO Auto-generated method stub
 		
 	}
-
-    @Override
-    public String doSendMessage(Map<Object, Object> map) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public Map<Object, Object> doProcessResponse(String string) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public String doSetLogin(String string, String string1) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public URL doSetUrl(String string) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 }
