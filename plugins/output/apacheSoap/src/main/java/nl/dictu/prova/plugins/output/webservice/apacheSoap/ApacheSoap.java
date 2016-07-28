@@ -13,6 +13,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import nl.dictu.prova.framework.TestStatus;
 import static nl.dictu.prova.plugins.output.webservice.apacheSoap.ApacheSoap.LOGGER;
 import org.apache.http.HttpResponse;
@@ -27,10 +29,6 @@ import org.bouncycastle.util.encoders.Base64;
 public class ApacheSoap implements SoapOutputPlugin {
 
     final static Logger LOGGER = LogManager.getLogger();
-    
-    public final String PROVA_SOAP_AUTHORIZATION    = "prova.plugins.out.webservice.soap.authorization";
-    public final String PROVA_SOAP_MESSAGE          = "prova.plugins.out.webservice.soap.message";
-    public final String PROVA_SOAP_URL              = "prova.plugins.out.webservice.soap.url";
 
     private TestRunner testRunner = null;
     private Integer maxRetries = 1;
@@ -204,10 +202,31 @@ public class ApacheSoap implements SoapOutputPlugin {
     
     public Properties splitSoapMessage(String message){
         Properties temp = new Properties();
+        
+        //Pattern openingParentPattern = Pattern.compile("\\<[A-Za-z0-9:]+\\>");
+        //Pattern closingParentPattern = Pattern.compile("\\<\\/[A-Za-z0-9:]+\\>");
+        Pattern standalonePattern = Pattern.compile("\\<[A-Za-z0-9:]+\\/\\>");
+        Pattern variablePattern = Pattern.compile("\\<[A-Za-z0-9:]+\\>[A-Za-z0-9]\\<\\/[A-Za-z0-9:]+\\>");
+        
+        Matcher variableMatcher = variablePattern.matcher(message);
+        
+        while(variableMatcher.find()){
+            System.out.println(variableMatcher.group(0));
+            variableMatcher.replaceFirst("");
+        }
+        
+        Matcher standaloneMatcher = standalonePattern.matcher(message);
+        //Matcher openingParentMatcher = openingParentPattern.matcher(message);
+        //Matcher closingParentMatcher = closingParentPattern.matcher(message);
+        
+        
+        
+        
         temp.put("prop1", "val1");
         temp.put("prop2", "val2");
         temp.put("prop3", "val3");
         temp.put("prop4", "val4");
+        temp.put("authorization", currentAuthorization);
         
         return temp;
     }
