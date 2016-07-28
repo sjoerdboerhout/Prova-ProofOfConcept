@@ -1,6 +1,8 @@
 package nl.dictu.prova.framework.soap;
 
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import nl.dictu.prova.framework.TestAction;
 
 public class ProcessResponse extends TestAction {
@@ -22,9 +24,12 @@ public class ProcessResponse extends TestAction {
         currentPrefix = this.testRunner.getSoapActionPlugin().doGetCurrentPrefix();
 
         //Add all returning properties to global collection
-        for (Map.Entry entry : this.testRunner.getSoapActionPlugin().doProcessResponse().entrySet()) {
-            this.testRunner.setPropertyValue(currentPrefix + "_" + (String) entry.getKey(), (String) entry.getValue());
-            //LOGGER.trace("Added key " + (String) entry.getKey() + " and value " + (String) entry.getValue() + " to properties");
+        Set<Map.Entry<Object, Object>> map = this.testRunner.getSoapActionPlugin().doProcessResponse().entrySet();
+        if(!map.isEmpty()){
+            for (Entry entry : map){
+                this.testRunner.setPropertyValue(currentPrefix + "_" + (String) entry.getKey(), (String) entry.getValue());
+                //LOGGER.trace("Added key " + (String) entry.getKey() + " and value " + (String) entry.getValue() + " to properties");
+            }
         }
     }
 

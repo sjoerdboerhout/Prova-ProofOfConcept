@@ -198,27 +198,6 @@ public class Selenium implements WebOutputPlugin
 
 
   @Override
-  public void tearDown(TestCase testCase) throws Exception
-  {
-    LOGGER.debug("TearDown Test Case ID '{}'. Status: '{}'", () -> testCase.getId(), () -> testCase.getStatus().name());
-    
-    try
-    {
-      // TODO Enable again after finishing testing
-      webdriver.close();
-    }
-    catch(NullPointerException eX)
-    {
-      // Ignore. Browser already closed
-    }
-    catch(Exception eX)
-    {
-      LOGGER.error("Exception during tearDown: '{}'", eX.getMessage());
-    }      
-  }
-
-
-  @Override
   public void doCaptureScreen(String fileName) throws Exception
   {
     File scrFile = ((TakesScreenshot)webdriver).getScreenshotAs(OutputType.FILE);
@@ -781,4 +760,9 @@ public class Selenium implements WebOutputPlugin
       }
     }
   }   
+
+    @Override
+    public void tearDown(TestCase tc) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

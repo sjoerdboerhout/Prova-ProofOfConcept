@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.ArrayList;
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
@@ -38,6 +39,7 @@ public class ApacheSoap implements SoapOutputPlugin {
     private HttpResponse httpResponse = null;
     private StringEntity requestMessageEntity = null;
     private HttpPost post = null;
+    private Integer status = null;
     
     private String currentAuthorization = null;
     private String currentMessage = null;
@@ -122,25 +124,31 @@ public class ApacheSoap implements SoapOutputPlugin {
         
         //Send it
         httpResponse = httpClient.execute(post);
-        LOGGER.debug("Message with prefix " + currentPrefix + " has been sent.");
-        
-        //Convert response to string
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
-        StringBuffer result = new StringBuffer();
-        String line = "";
-        while ((line = bufferedReader.readLine()) != null) {
-            result.append(line);
+        status = httpResponse.getStatusLine().getStatusCode();
+        if(status != 200){
+            LOGGER.error("\n********************\n*\n*   Error: Message with prefix " + currentPrefix + " has been sent unsuccesfully.\n*\n********************");
+            testCase.setStatus(TestStatus.FAILED);
+            return new Properties();
+        } else {
+            LOGGER.info("\n********************\n*\n*   Message with prefix " + currentPrefix + " has been sent succesfully.\n*\n********************");
+
+            //Convert response to string
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()));
+            StringBuffer result = new StringBuffer();
+            String line = "";
+            while ((line = bufferedReader.readLine()) != null) {
+                result.append(line);
+            }
+
+            //Log the result
+            LOGGER.debug("Response body   : \n" + result);
+
+            //Split the response string and run tests on the result variables
+            Properties splitResultmessage = splitSoapMessage(result.toString());
+            //runTests(splitResultmessage, currentTests);
+
+            return splitResultmessage;
         }
-        
-        //Log the result
-        LOGGER.debug("Header response : " + httpResponse.getStatusLine().getStatusCode());
-        LOGGER.debug("Response body   : \n" + result);
-        
-        //Split the response string and run tests on the result variables
-        Properties splitResultmessage = splitSoapMessage(result.toString());
-        //runTests(splitResultmessage, currentTests);
-        
-        return splitResultmessage;
     }
 
     @Override
@@ -201,34 +209,41 @@ public class ApacheSoap implements SoapOutputPlugin {
     }
     
     public Properties splitSoapMessage(String message){
-        Properties temp = new Properties();
+        Properties result = new Properties();
         
-        //Pattern openingParentPattern = Pattern.compile("\\<[A-Za-z0-9:]+\\>");
-        //Pattern closingParentPattern = Pattern.compile("\\<\\/[A-Za-z0-9:]+\\>");
-        Pattern standalonePattern = Pattern.compile("\\<[A-Za-z0-9:]+\\/\\>");
-        Pattern variablePattern = Pattern.compile("\\<[A-Za-z0-9:]+\\>[A-Za-z0-9]\\<\\/[A-Za-z0-9:]+\\>");
-        
-        Matcher variableMatcher = variablePattern.matcher(message);
-        
-        while(variableMatcher.find()){
-            System.out.println(variableMatcher.group(0));
-            variableMatcher.replaceFirst("");
+        //Pattern standalonePattern = Pattern.compile("\\<[A-Za-z0-9:]+\\/\\>");
+        Pattern variablePattern = Pattern.compile("\\<[A-Za-z0-9:]+\\>[^<>]+\\<\\/[A-Za-z0-9:]+\\>");
+        Pattern variableName = Pattern.compile("\\:(.+?)\\>");
+        Pattern variable = Pattern.compile("\\>(.+?)\\<");
+        ArrayList<String> matches = new ArrayList<String>();
+
+        Matcher variablePatternMatcher = variablePattern.matcher(message);
+
+        while (variablePatternMatcher.find()){
+            String match = variablePatternMatcher.group(0);
+            matches.add(match);
         }
+        for(String string : matches){
+            Matcher variableNameMatcher = variableName.matcher(string);
+            Matcher variableMatcher = variable.matcher(string);
+            
+            String key = null;
+            String value = null;
+            
+            while (variableNameMatcher.find()){
+                key = variableNameMatcher.group(1);
+            }
+            while (variableMatcher.find()){
+                value = variableMatcher.group(1);
+            }
+            LOGGER.info("Key : " + key + ", value : " + value);
+            if(key != null)
+                result.put(key, value);
+        }
+        //TODO: standalone elementen toevoegen
+        result.put("authorization", currentAuthorization);
         
-        Matcher standaloneMatcher = standalonePattern.matcher(message);
-        //Matcher openingParentMatcher = openingParentPattern.matcher(message);
-        //Matcher closingParentMatcher = closingParentPattern.matcher(message);
-        
-        
-        
-        
-        temp.put("prop1", "val1");
-        temp.put("prop2", "val2");
-        temp.put("prop3", "val3");
-        temp.put("prop4", "val4");
-        temp.put("authorization", currentAuthorization);
-        
-        return temp;
+        return result;
     }
     
     public void runTests(Properties splitResponse, Properties testCases){
@@ -263,12 +278,12 @@ public class ApacheSoap implements SoapOutputPlugin {
                         if(testCase.getStatus() != TestStatus.FAILED)
                             testCase.setStatus(TestStatus.PASSED);
                     }
-                    //Indien niet voorkomt ook goed.
+                    //TODO: Indien niet voorkomt moet ook goed zijn.
                 } else {
                     LOGGER.info("Test for element " + entry.getKey() + " failed, could not find specified element in response.");
                     testCase.setStatus(TestStatus.FAILED);
                 }
             }
-        }        
+        }
     }
 }
