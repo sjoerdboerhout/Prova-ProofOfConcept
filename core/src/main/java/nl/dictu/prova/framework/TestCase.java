@@ -361,8 +361,8 @@ public class TestCase
         LOGGER.error(eX);
         this.setStatus(TestStatus.FAILED);
         this.setSummary(eX.getMessage());
+        eX.printStackTrace();
         exception = new TestActionException(eX.getMessage());
-        
       }
     }
     

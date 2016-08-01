@@ -16,6 +16,7 @@ import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
 import nl.dictu.prova.framework.exceptions.TestActionException;
 import nl.dictu.prova.plugins.input.InputPlugin;
+import nl.dictu.prova.plugins.output.DbOutputPlugin;
 import nl.dictu.prova.plugins.output.ShellOutputPlugin;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
@@ -37,6 +38,7 @@ public class Prova implements Runnable, TestRunner
   private InputPlugin                 inputPlugin;
   private ShellOutputPlugin           shellOutputPlugin;
   private WebOutputPlugin             webOutputPlugin;
+  private DbOutputPlugin              dbOutputPlugin;
   private ArrayList<ReportingPlugin>  reportPlugins = new ArrayList<ReportingPlugin>();
   
   private TestSuite                   rootTestSuite;
@@ -242,6 +244,19 @@ public class Prova implements Runnable, TestRunner
         webOutputPlugin.init(this);
       else
         throw new Exception("Could not load web output plugin '" + pluginName + "'");
+      
+      
+      LOGGER.debug("Load and initialize output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB));
+      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB_PACKAGE) +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB).toLowerCase() + "." +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB);
+
+      dbOutputPlugin = pluginLoader.getInstanceOf(pluginName, DbOutputPlugin.class);
+      
+      if(dbOutputPlugin != null)
+        dbOutputPlugin.init(this);
+      else
+        throw new Exception("Could not load db output plugin '" + pluginName + "'");
 
 
       // Load and initialize report plug-in(s)
@@ -372,8 +387,8 @@ public class Prova implements Runnable, TestRunner
             }
             
             // (re-)set up output plug-in(s) for a new test case
-            if(webOutputPlugin != null)
-              webOutputPlugin.setUp(entry.getValue());
+//            if(webOutputPlugin != null)
+//              webOutputPlugin.setUp(entry.getValue());
             
             if(shellOutputPlugin != null)
               shellOutputPlugin.setUp(entry.getValue());
@@ -532,6 +547,19 @@ public class Prova implements Runnable, TestRunner
   public InputPlugin getInputPlugin()
   {
     return this.inputPlugin;
+  }
+  
+  /**
+   * Get a reference to the active web action plug-in
+   * 
+   * @return
+   */
+  @Override
+  public DbOutputPlugin getDbActionPlugin()
+  {
+    LOGGER.trace("Request for db action plugin. ({})", () -> this.dbOutputPlugin.getName() );
+    
+    return this.dbOutputPlugin;
   }
 
   /**

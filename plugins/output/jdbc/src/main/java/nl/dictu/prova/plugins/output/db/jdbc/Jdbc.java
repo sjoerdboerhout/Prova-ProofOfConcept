@@ -2,7 +2,7 @@ package nl.dictu.prova.plugins.output.db.jdbc;
 
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
-import nl.dictu.prova.plugins.output.OutputPlugin;
+import nl.dictu.prova.plugins.output.DbOutputPlugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -23,7 +23,7 @@ import java.util.logging.Level;
  * @since  2016-05-11
  *
  */
-public abstract class Jdbc implements OutputPlugin
+public class Jdbc implements DbOutputPlugin
 {
   final static Logger LOGGER = LogManager.getLogger();
   
@@ -37,13 +37,14 @@ public abstract class Jdbc implements OutputPlugin
   private String                    currentUser         = null;
   private String                    currentPassword     = null;
   private String                    currentPrefix       = null;
-  private String                    query               = null;
-  private Boolean                   rollback            = true;
+  private String                    currentQuery        = null;
+  private Boolean                   currentRollback     = true;
+  
   
   @Override
   public String getName()
   {
-    return "Selenium Webdriver";
+    return "Jdbc database functionality";
   }
 
   
@@ -57,33 +58,40 @@ public abstract class Jdbc implements OutputPlugin
   }
   
   
-  public void doSetProperties(String adress, String user, String password, Boolean rollback)
+  @Override
+  public void doSetDbProperties(String adress, String user, String password, Boolean rollback)
   {
+      LOGGER.trace("Setting properties in output plugin Jdbc.");
       this.currentAdress    = adress;
       this.currentUser      = user;
       this.currentPassword  = password;
-      this.rollback         = rollback;
+      this.currentRollback   = rollback;
   }
   
 
+  @Override
   public void doSetQuery(String query)
   {
-      this.query = query;
+      LOGGER.trace("Setting query in output plugin Jdbc.");
+      this.currentQuery = query;
   }
   
 
-  public Properties doProcessResponse() throws Exception
+  @Override
+  public Properties doProcessDbResponse() throws Exception
   {
     Properties sqlProperties = new Properties();
+    LOGGER.trace("Executing and processing query in output plugin Jdbc.");
       
     if(!isValid())
         throw new Exception("Properties not properly set!");
       
     connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
+    
     try
     {
       statement = connection.createStatement();
-      ResultSet resultSet = statement.executeQuery(query);
+      ResultSet resultSet = statement.executeQuery(currentQuery);
       
       ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
       
@@ -116,8 +124,9 @@ public abstract class Jdbc implements OutputPlugin
   @Override
   public void shutDown()
   {
+      LOGGER.trace("Shutting down output plugin Jdbc");
       try {
-          if(rollback){
+          if(currentRollback){
             connection.rollback();
           } else {
             connection.commit();
@@ -133,7 +142,8 @@ public abstract class Jdbc implements OutputPlugin
   @Override
   public void setUp(TestCase testCase) throws Exception
   {
-   this.testCase = testCase; 
+      LOGGER.trace("Setting up output plugin Jdbc");
+      this.testCase = testCase; 
   }
 
 
@@ -155,10 +165,47 @@ public abstract class Jdbc implements OutputPlugin
     }    
   }
 
+  
   private boolean isValid() {
       if(currentAdress == null) return false;
       if(currentUser == null) return false;
       if(currentPassword == null) return false;
       return true;
   }
+
+    @Override
+    public void doSetTests(Properties prprts) throws Exception {
+        LOGGER.trace("Setting tests in output plugin Jdbc");
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void doSelectDropdown(String string, String string1) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void doSendKeys(String string, String string1) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void doSetText(String string, String string1, Boolean bln) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void doValidateElement(String string, Boolean bln, double d) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void doValidateText(String string, String string1, Boolean bln, double d) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void doSwitchFrame(String string, Boolean bln, Boolean bln1) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

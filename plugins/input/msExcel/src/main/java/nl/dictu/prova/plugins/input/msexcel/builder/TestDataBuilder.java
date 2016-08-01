@@ -1,6 +1,7 @@
 package nl.dictu.prova.plugins.input.msexcel.builder;
 
 import nl.dictu.prova.plugins.input.msexcel.reader.WorkbookReader;
+import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
@@ -18,6 +19,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
+import nl.dictu.prova.TestRunner;
 
 /**
  * @author Hielke de Haan
@@ -27,6 +29,15 @@ public class TestDataBuilder
 {
   private final static Logger LOGGER = LogManager.getLogger();
   private WorkbookReader workbookReader;
+  private CellReader cellReader;
+  private TestRunner testRunner;
+  
+  public TestDataBuilder(){}
+  
+  public TestDataBuilder(TestRunner testRunner)
+  {
+      this.testRunner = testRunner;
+  }
   
   /**
    * Builds a set of test data from sheets on the given path
@@ -233,8 +244,18 @@ public class TestDataBuilder
           
           for(Entry<String,String> entry : map.entrySet())
           {
+            if(cellReader.isKey(entry.getValue())){
+                if(testRunner == null){
+                    LOGGER.error("testRunner is null, property " + entry.getValue() + " not stored.");
+                    break;
+                }
+                LOGGER.trace("Property value is a property, retrieving value from collection.");
+                LOGGER.trace("> {}: '{}'", entry.getKey(), testRunner.getPropertyValue(cellReader.getKeyName(entry.getValue())));
+                properties.setProperty(entry.getKey(), testRunner.getPropertyValue(cellReader.getKeyName(entry.getValue())));
+            } else {
             LOGGER.trace("> {}: '{}'", entry.getKey(), entry.getValue());
             properties.setProperty(entry.getKey(), entry.getValue());
+            }
           }
           break;
         }

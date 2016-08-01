@@ -22,7 +22,7 @@
   <properties>
     <prova.install.dir>${project.parent.basedir}</prova.install.dir>
     <artifact.install.dir>${prova.install.dir}/${prova.plugins.output.path}</artifact.install.dir>
-    <artifact.package>nl.dictu.prova.plugins.output.jdbc</artifact.package>
+    <artifact.package>nl.dictu.prova.plugins.output.db.jdbc</artifact.package>
     <artifact.mainclass>Jdbc</artifact.mainclass>
     <dir.lib.rel>../../lib</dir.lib.rel>
 

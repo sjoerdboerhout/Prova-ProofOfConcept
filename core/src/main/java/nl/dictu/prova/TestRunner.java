@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import nl.dictu.prova.framework.TestSuite;
 import nl.dictu.prova.plugins.input.InputPlugin;
+import nl.dictu.prova.plugins.output.DbOutputPlugin;
 import nl.dictu.prova.plugins.output.ShellOutputPlugin;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
@@ -26,6 +27,7 @@ public interface TestRunner
 
   public InputPlugin                getInputPlugin();
   public WebOutputPlugin            getWebActionPlugin();
+  public DbOutputPlugin             getDbActionPlugin();
   public ShellOutputPlugin          getShellActionPlugin();
   public ArrayList<ReportingPlugin> getReportingPlugins();
 }
