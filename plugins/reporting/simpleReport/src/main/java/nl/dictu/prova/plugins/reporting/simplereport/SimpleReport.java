@@ -191,7 +191,26 @@ public class SimpleReport implements ReportingPlugin
 		  color = "lightgreen";
 	  }
 
-	  pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()+1) +"</td></tr>");
+	  try
+          {
+                if(action != null & status != null)
+                {
+                      pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()+1) +"</td></tr>");
+                } 
+                else if (action != null)
+                {
+                      pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">N/A</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()+1) +"</td></tr>");
+                }
+                else if (status != null)
+                {
+                      pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">?</td></tr>");
+                }    
+          }
+          catch(Exception eX)
+          {
+                LOGGER.error("Exception in logging testAction!");
+                eX.printStackTrace();
+          }
     
   }
 
