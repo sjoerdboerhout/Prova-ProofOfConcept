@@ -49,7 +49,7 @@ class SetDbProperties extends TestAction {
         if(!isValid()){
             throw new Exception("Properties not set properly!");
         }
-        this.testRunner.getDbActionPlugin().doSetDbProperties(adress, user, password, rollback);
+        this.testRunner.getDbActionPlugin().doSetDbProperties(adress, user, password, prefix, rollback);
     }
 
     @Override

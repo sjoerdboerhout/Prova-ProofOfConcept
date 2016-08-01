@@ -322,10 +322,11 @@ public class TestCaseBuilder
                 }
             }
             
-            if(rowMap.containsKey("Rollback")){
-                String rollback = rowMap.get("Rollback");
-                if(!rollback.equalsIgnoreCase("false") | !rollback.equalsIgnoreCase("true")){
-                    throw new Exception("Rollback value must be false or true!");
+            if(rowMap.containsKey("rollback")){
+                String rollback = rowMap.get("rollback");
+                rollback = rollback.trim().toLowerCase();
+                if(!(rollback.equals("false") || rollback.equals("true"))){
+                    throw new Exception("Rollback value must be 'false' or 'true'!");
                 }
                 testAction.setAttribute("prova.properties.rollback", rollback);
             } 

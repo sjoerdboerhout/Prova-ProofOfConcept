@@ -252,7 +252,14 @@ public class TestCase
   public void addSetUpAction(TestAction setUpAction)
   {
     LOGGER.debug("Add setup action '{}'", () -> setUpAction.toString());
-    setUpActions.add(setUpAction);
+    if(setUpActions.isEmpty())
+    {
+      setUpAction.setId(1);
+      setUpActions.add(setUpAction);
+    } else {
+      setUpAction.setId(setUpActions.getLast().getId() + 1);
+      setUpActions.add(setUpAction);
+    }
   }
 
   /**
@@ -261,7 +268,14 @@ public class TestCase
   public void addTestAction(TestAction testAction)
   {
     LOGGER.debug("Add test action {}", () -> testAction.toString());
-    testActions.add(testAction);
+    if(testActions.isEmpty())
+    {
+      testAction.setId(1);
+      testActions.add(testAction);
+    } else {
+      testAction.setId(testActions.getLast().getId() + 1);
+      testActions.add(testAction);
+    }
   }
 
   /**
@@ -270,7 +284,14 @@ public class TestCase
   public void addTearDownAction(TestAction tearDownAction)
   {
     LOGGER.debug("Add teardown action {}", () -> tearDownAction.toString());
-    tearDownActions.add(tearDownAction);
+    if(tearDownActions.isEmpty())
+    {
+      tearDownAction.setId(1);
+      tearDownActions.add(tearDownAction);
+    } else {
+      tearDownAction.setId(tearDownActions.getLast().getId() + 1);
+      tearDownActions.add(tearDownAction);
+    }
   }
 
   
