@@ -200,11 +200,18 @@ public class SimpleReport implements ReportingPlugin
                 else if (action != null)
                 {
                       pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">N/A</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()+1) +"</td></tr>");
+                      LOGGER.error("Status is not available!");
                 }
                 else if (status != null)
                 {
                       pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">?</td></tr>");
+                      LOGGER.error("Action is not available!");
                 }    
+                else
+                {
+                      pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">?</td></tr>");
+                      LOGGER.error("Status and action are not available!");
+                }
           }
           catch(Exception eX)
           {
