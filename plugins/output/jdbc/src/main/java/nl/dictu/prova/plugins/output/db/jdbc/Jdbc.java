@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import oracle.jdbc.connector.OracleConnectionManager;
 import java.sql.DriverManager;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -42,6 +43,7 @@ public class Jdbc implements DbOutputPlugin {
     private String currentPrefix = null;
     private String currentQuery = null;
     private Boolean currentRollback = true;
+    private Integer row = 0;
 
     @Override
     public String getName() {
@@ -51,14 +53,12 @@ public class Jdbc implements DbOutputPlugin {
     @Override
     public void init(TestRunner testRunner) throws Exception {
         LOGGER.debug("Init: output plugin Jdbc!");
-
         this.testRunner = testRunner;
-
     }
 
     @Override
     public void doSetDbProperties(String adress, String user, String password, String prefix, Boolean rollback) {
-        LOGGER.trace("Setting properties in output plugin Jdbc.");
+        LOGGER.debug("Setting properties in output plugin Jdbc.");
         this.currentAdress = adress;
         this.currentUser = user;
         this.currentPassword = password;
@@ -68,43 +68,57 @@ public class Jdbc implements DbOutputPlugin {
 
     @Override
     public void doSetQuery(String query) {
-        LOGGER.trace("Setting query in output plugin Jdbc.");
+        LOGGER.debug("Setting query in output plugin Jdbc.");
         this.currentQuery = query;
     }
 
     @Override
     public Properties doProcessDbResponse() throws Exception {
         Properties sqlProperties = new Properties();
-        LOGGER.trace("Executing and processing query in output plugin Jdbc.");
+        LOGGER.debug("Executing and processing query in output plugin Jdbc.");
 
         if (!isValid()) {
             throw new Exception("Properties not properly set!");
         }
-
-        DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-        connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
-
+        
         try {
-            statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(currentQuery);
-            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-            Integer row = 0;
-      
-            while (resultSet.next()) {
-                for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
-                    String name = resultSetMetaData.getColumnName(i);
-                    String key = currentPrefix + "_" + name.toLowerCase() + resultSet.getRow();
-                    String value = resultSet.getString(name);
-                    if(key == null) break;
-                    if(value == null) value = "null";
-                    sqlProperties.put(key, value);
+            DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+            connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
+            row = 0;
+            
+            if(getQueryType() == StatementType.SELECT){
+                statement = connection.createStatement();
+                ResultSet resultSet = statement.executeQuery(currentQuery);
+                ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+
+                while (resultSet.next()) {
+                    for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
+                        String name = resultSetMetaData.getColumnName(i);
+                        String key = currentPrefix + "_" + name.toLowerCase() + resultSet.getRow();
+                        String value = resultSet.getString(name);
+                        if(key == null) break;
+                        if(value == null) value = "null";
+                        sqlProperties.put(key, value);
+                    }
+                    row = resultSet.getRow();
                 }
-                row = resultSet.getRow();
-                
+                resultSet.close();
+                LOGGER.info(row + " rows returned.");
+            } else if (getQueryType() == StatementType.DELETE | getQueryType() == StatementType.INSERT | getQueryType() == StatementType.UPDATE){
+                PreparedStatement preparedStatement = connection.prepareStatement(currentQuery);
+                row = preparedStatement.executeUpdate();
+                preparedStatement.close();
+                LOGGER.info(row + " rows affected.");
+                if (currentRollback) {
+                    connection.rollback();
+                    LOGGER.debug("Statement rolled back");
+                } else {
+                    connection.commit();
+                    LOGGER.debug("Statement committed");
+                }   
+            } else {
+                throw new Exception("The provided query '" + currentQuery.substring(0, 30) + "...' is not supported! See documentation.");
             }
-            
-            LOGGER.info(row + " rows returned.");
-            
         } catch (SQLException e) {
             LOGGER.error("SQLException occured! : " + e.getMessage());
         } catch (Exception e) {
@@ -113,16 +127,26 @@ public class Jdbc implements DbOutputPlugin {
         }
         return sqlProperties;
     }
+    
+    public enum StatementType{
+        SELECT, DELETE, INSERT, UPDATE, UNSUPPORTED;
+    }
+    
+    public StatementType getQueryType (){
+        String[] splitQuery = currentQuery.split(" ", 2);
+        switch(splitQuery[0].trim().toUpperCase()){
+            case "SELECT": return StatementType.SELECT;
+            case "UPDATE": return StatementType.UPDATE;
+            case "DELETE": return StatementType.DELETE;
+            case "INSERT": return StatementType.INSERT;
+            default: return StatementType.UNSUPPORTED;
+        }
+    }
 
     @Override
     public void shutDown() {
-        LOGGER.trace("Shutting down output plugin Jdbc");
+        LOGGER.debug("Shutting down output plugin Jdbc");
         try {
-            if (currentRollback) {
-                connection.rollback();
-            } else {
-                connection.commit();
-            }
             connection.close();
         } catch (SQLException ex) {
             LOGGER.error("Unable to close database connection!");
@@ -132,7 +156,7 @@ public class Jdbc implements DbOutputPlugin {
 
     @Override
     public void setUp(TestCase testCase) throws Exception {
-        LOGGER.trace("Setting up output plugin Jdbc");
+        LOGGER.debug("Setting up output plugin Jdbc");
         this.testCase = testCase;
     }
 
@@ -143,23 +167,15 @@ public class Jdbc implements DbOutputPlugin {
         try {
             Thread.sleep(waitTime);
         } catch (Exception eX) {
-            LOGGER.debug("Exception while waiting '{}' ms: {}",
-                    waitTime, eX.getMessage());
-
+            LOGGER.debug("Exception while waiting '{}' ms: {}", waitTime, eX.getMessage());
             throw eX;
         }
     }
 
     private boolean isValid() {
-        if (currentAdress == null) {
-            return false;
-        }
-        if (currentUser == null) {
-            return false;
-        }
-        if (currentPassword == null) {
-            return false;
-        }
+        if (currentAdress == null) return false;
+        if (currentUser == null) return false;
+        if (currentPassword == null) return false;
         return true;
     }
 

@@ -22,6 +22,7 @@ class ProcessDbResponse extends TestAction {
 
     @Override
     public void execute() throws Exception {
+        LOGGER.info("> Execute test action: {}", () -> this.getClass().getSimpleName());
         if(!isValid())
             throw new Exception("TestRunner is not set.");
         Properties response = this.testRunner.getDbActionPlugin().doProcessDbResponse();

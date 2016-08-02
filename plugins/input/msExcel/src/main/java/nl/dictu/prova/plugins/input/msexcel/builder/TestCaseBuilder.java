@@ -23,25 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import nl.dictu.prova.framework.db.DbActionFactory;
 import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
-import org.apache.poi.hssf.util.PaneInformation;
-import org.apache.poi.ss.usermodel.AutoFilter;
-import org.apache.poi.ss.usermodel.CellRange;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Comment;
-import org.apache.poi.ss.usermodel.DataValidation;
-import org.apache.poi.ss.usermodel.DataValidationHelper;
-import org.apache.poi.ss.usermodel.Drawing;
-import org.apache.poi.ss.usermodel.Footer;
-import org.apache.poi.ss.usermodel.Header;
-import org.apache.poi.ss.usermodel.Hyperlink;
-import org.apache.poi.ss.usermodel.PrintSetup;
-import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
-import org.apache.poi.ss.util.CellAddress;
-import org.apache.poi.ss.util.CellRangeAddress;
 
 /**
  * @author Hielke de Haan
@@ -250,7 +233,7 @@ public class TestCaseBuilder
         {
             for(String entry : rowMap.values()){
                 if(entry != null & entry.length() > 0){
-                    dbQuery += entry;
+                    dbQuery += entry + " ";
                 }
             }
             testAction.setAttribute("prova.properties.query", dbQuery);
@@ -323,6 +306,7 @@ public class TestCaseBuilder
             }
             
             if(rowMap.containsKey("rollback")){
+                LOGGER.trace("Rollback found. Processing.");
                 String rollback = rowMap.get("rollback");
                 rollback = rollback.trim().toLowerCase();
                 if(!(rollback.equals("false") || rollback.equals("true"))){

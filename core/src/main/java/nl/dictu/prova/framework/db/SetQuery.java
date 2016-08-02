@@ -17,6 +17,7 @@ class SetQuery extends TestAction {
 
     @Override
     public void setAttribute(String key, String value) throws Exception {
+        LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
         switch (key) {
             case ("prova.properties.query"):
                 query = value;
@@ -29,7 +30,7 @@ class SetQuery extends TestAction {
 
     @Override
     public void execute() throws Exception {
-        LOGGER.trace("Executing testAction setQuery");
+        LOGGER.info("> Execute test action: {}", () -> this.getClass().getSimpleName());
         if (!isValid()) {
             throw new Exception("testRunner and/or query are not properly set!");
         }

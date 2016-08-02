@@ -20,6 +20,7 @@ class SetDbTests extends TestAction {
 
     @Override
     public void execute() throws Exception {
+        LOGGER.info("> Execute test action: {}", () -> this.getClass().getSimpleName());
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

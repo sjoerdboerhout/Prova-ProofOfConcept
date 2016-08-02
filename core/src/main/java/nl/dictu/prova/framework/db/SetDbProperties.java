@@ -20,6 +20,7 @@ class SetDbProperties extends TestAction {
 
     @Override
     public void setAttribute(String key, String value) throws Exception {
+        LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
         switch(key){
             case("prova.properties.password"): 
                 password = value;
@@ -46,6 +47,7 @@ class SetDbProperties extends TestAction {
 
     @Override
     public void execute() throws Exception {
+        LOGGER.info("> Execute test action: {}", () -> this.getClass().getSimpleName());
         if(!isValid()){
             throw new Exception("Properties not set properly!");
         }
