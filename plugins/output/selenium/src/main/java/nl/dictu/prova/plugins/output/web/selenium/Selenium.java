@@ -290,13 +290,15 @@ public class Selenium implements WebOutputPlugin
 	  
 	  try {
 		qualifiedUrl = new URL(url);
-	} catch (MalformedURLException e) {
-		// TODO Auto-generated catch block
-		LOGGER.debug("Provided URL is malformed.");
-	} 
-	  LOGGER.debug("Url not malformed, navigating to " + qualifiedUrl.getPath());
+                
+                LOGGER.debug("Url not malformed, navigating to " + qualifiedUrl.getPath());
 	  
-	  webdriver.navigate().to(qualifiedUrl);
+                webdriver.navigate().to(qualifiedUrl);
+	  } catch (MalformedURLException e) {
+	  	// TODO Auto-generated catch block
+	  	LOGGER.debug("Provided URL is malformed.");
+	  } 
+	  
   }
 
 
