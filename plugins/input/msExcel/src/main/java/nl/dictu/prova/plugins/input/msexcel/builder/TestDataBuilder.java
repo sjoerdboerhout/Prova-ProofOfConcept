@@ -75,13 +75,23 @@ public class TestDataBuilder
    * @return 
    * @throws Exception
    */
-  public ArrayList<List<Properties>> buildTestDataAndTests(String path, Sheet sheet) throws Exception
+  public ArrayList<List<Properties>> buildTestDataAndTests(String path, String sheetname) throws Exception
   {
-      LOGGER.trace("Build testdata and tests for: {}", sheet.getSheetName());
+      LOGGER.trace("Build testdata and tests for: {}", sheetname);
       ArrayList<List<Properties>> datasets = new ArrayList<>();
-      
       List<Properties> testDataSets = new ArrayList<>();
       List<Properties> testValidationSets = new ArrayList<>();
+      
+      Workbook workbook = new XSSFWorkbook(new File(path));
+      workbookReader = new WorkbookReader(workbook);
+      Sheet sheet = null;
+      
+      for(Sheet sheetInWorkbook : workbook){
+          if(sheetInWorkbook.getSheetName().trim().contentEquals(sheetname.trim())){
+              sheet = sheetInWorkbook;
+              break;              
+          }
+      }
       
       Iterator<Row> rowIterator = sheet.rowIterator();
 
@@ -165,8 +175,8 @@ public class TestDataBuilder
           testValidationSets.add(testValidation);
         }
       }
-      datasets.add(testDataSets);
-      datasets.add(testValidationSets);
+      datasets.add(0, testDataSets);
+      datasets.add(1, testValidationSets);
       
       return datasets;
   }
