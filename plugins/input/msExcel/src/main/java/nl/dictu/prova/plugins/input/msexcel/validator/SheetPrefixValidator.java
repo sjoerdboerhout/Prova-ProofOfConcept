@@ -48,6 +48,20 @@ public class SheetPrefixValidator
     LOGGER.trace("Prefix = {}: {}", sheetNamePrefix, allowed ? "process" : "ignore");
     return allowed;
   }
+  
+  /**
+   * See if provided prefix matches the current sheet prefix.
+   * 
+   * @param prefix
+   * @return
+   */
+  public boolean validate(String prefix)
+  {
+    String sheetNamePrefix = getSheetNamePrefix(sheet);
+    boolean allowed = prefix.trim().toUpperCase().equals(sheetNamePrefix.toUpperCase());
+    LOGGER.trace("Prefix = {}: {}", sheetNamePrefix, allowed ? "process" : "ignore");
+    return allowed;
+  }
 
   /**
    * Check if the name of the given sheet contains a prefix.

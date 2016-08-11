@@ -12,10 +12,12 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
@@ -57,18 +59,6 @@ public class TestDataBuilder
     for(Sheet sheet : workbook)
     {
       LOGGER.trace("Sheet: {}", sheet::getSheetName);
-      String[] sheetSplit = sheet.getSheetName().split("_", 2);
-      switch(sheetSplit[0].trim().toUpperCase()){
-          case "WEB":
-              readWebSheet(sheet);
-              break;
-          case "SOAP":
-          case "DB":
-              readSoapOrDbSheet(sheet);
-              break;
-          default:
-              LOGGER.debug("Skipping sheet " + sheet.getSheetName() + ", due to missing prefix.");
-      }
       readWebSheet(sheet).forEach(testData::put);
     }
 
@@ -76,7 +66,96 @@ public class TestDataBuilder
     
     return getAsProperties(testData, keySet);
   }
+  
+  /**
+   * Builds a list containing sets of testdata and tests for DB and SOAP sheets
+   * 
+   * @param path
+   * @param sheet
+   * @return 
+   * @throws Exception
+   */
+  public ArrayList<List<Properties>> buildTestDataAndTests(String path, Sheet sheet) throws Exception
+  {
+      LOGGER.trace("Build testdata and tests for: {}", sheet.getSheetName());
+      ArrayList<List<Properties>> datasets = new ArrayList<>();
+      
+      LinkedHashMap<String, Map<String, String>> testData = new LinkedHashMap<>();
+      Iterator<Row> rowIterator = sheet.rowIterator();
 
+      LOGGER.trace("TestData Builder readSoapOrDbSheet: '{}'", sheet.getSheetName());
+
+      if (rowIterator.hasNext())
+      {
+        // read headers
+        Map<Integer, String> headers = readHeaderRow(rowIterator.next());
+
+        // initialize submaps in testData map for eacht header
+        for (int colNum = 1; colNum < headers.size(); colNum++)
+        {
+          LOGGER.trace("Create a column for test set '{}'", headers.get(colNum));
+          testData.put(headers.get(colNum), new HashMap<>());
+        }
+
+        while (rowIterator.hasNext())
+        {
+          Row row = rowIterator.next();
+
+          // column 0 contains key
+          Cell keyCell = row.getCell(0);
+          if (keyCell != null)
+          {
+            String key = workbookReader.evaluateCellContent(keyCell);
+            LOGGER.trace("Found key: '{}'", key);
+
+            if (!key.isEmpty())
+            {
+              for (int colNum = 1; colNum < headers.size(); colNum++)
+              {
+                //Message/query validation column
+                if(colNum % 2 == 0)
+                {
+
+                } 
+                //Input data column
+                else 
+                {
+                  Cell cell = row.getCell(colNum);
+                  if (cell != null)
+                  {
+                    String value = workbookReader.evaluateCellContent(cell);
+
+                    // Empty values are only allowed in column 1
+                    // or keep all columns empty.
+                    if(value.isEmpty() && (colNum > 1))
+                    {
+                      LOGGER.trace("No value found for key '{}' in column '{}'; copying from column '{}' ({})", key, headers.get(colNum), headers.get(colNum - 1), colNum);
+                      testData.get(headers.get(colNum)).put(key, testData.get(headers.get(colNum - 1)).get(key));
+                    }
+                    else
+                    {
+                      LOGGER.trace("Found value '{}' for key '{}' in column '{}'", value, key, headers.get(colNum));
+                      testData.get(headers.get(colNum)).put(key, value);
+                    }
+                  }
+                }
+              }
+            } 
+            else
+            {
+              LOGGER.trace("Row {} is empty; skipping row", row.getRowNum());
+            }
+          }
+          else
+          {
+            LOGGER.debug("Row {} is empty; skipping row", row.getRowNum());
+          }
+        }
+      }
+      
+      return datasets;
+  }
+  
   /**
    * 
    * @param sheet
@@ -281,81 +360,6 @@ public class TestDataBuilder
     return properties;
   }
 
-    private LinkedHashMap<String, Map<String, String>> readSoapOrDbSheet(Sheet sheet) throws Exception {
-        LinkedHashMap<String, Map<String, String>> testData = new LinkedHashMap<>();
-        Iterator<Row> rowIterator = sheet.rowIterator();
-
-        LOGGER.trace("TestData Builder readSoapOrDbSheet: '{}'", sheet.getSheetName());
-
-        if (rowIterator.hasNext())
-        {
-          // read headers
-          Map<Integer, String> headers = readHeaderRow(rowIterator.next());
-
-          // initialize submaps in testData map for eacht header
-          for (int colNum = 1; colNum < headers.size(); colNum++)
-          {
-            LOGGER.trace("Create a column for test set '{}'", headers.get(colNum));
-            testData.put(headers.get(colNum), new HashMap<>());
-          }
-
-          while (rowIterator.hasNext())
-          {
-            Row row = rowIterator.next();
-
-            // column 0 contains key
-            Cell keyCell = row.getCell(0);
-            if (keyCell != null)
-            {
-              String key = workbookReader.evaluateCellContent(keyCell);
-              LOGGER.trace("Found key: '{}'", key);
-
-              if (!key.isEmpty())
-              {
-                for (int colNum = 1; colNum < headers.size(); colNum++)
-                {
-                  //Message/query validation column
-                  if(colNum % 2 == 0)
-                  {
-                    
-                  } 
-                  //Input data column
-                  else 
-                  {
-                    Cell cell = row.getCell(colNum);
-                    if (cell != null)
-                    {
-                      String value = workbookReader.evaluateCellContent(cell);
-
-                      // Empty values are only allowed in column 1
-                      // or keep all columns empty.
-                      if(value.isEmpty() && (colNum > 1))
-                      {
-                        LOGGER.trace("No value found for key '{}' in column '{}'; copying from column '{}' ({})", key, headers.get(colNum), headers.get(colNum - 1), colNum);
-                        testData.get(headers.get(colNum)).put(key, testData.get(headers.get(colNum - 1)).get(key));
-                      }
-                      else
-                      {
-                        LOGGER.trace("Found value '{}' for key '{}' in column '{}'", value, key, headers.get(colNum));
-                        testData.get(headers.get(colNum)).put(key, value);
-                      }
-                    }
-                  }
-                }
-              } 
-              else
-              {
-                LOGGER.trace("Row {} is empty; skipping row", row.getRowNum());
-              }
-            }
-            else
-            {
-              LOGGER.debug("Row {} is empty; skipping row", row.getRowNum());
-            }
-          }
-        }
-        return testData;
-    }
 }
 
 

@@ -18,5 +18,5 @@ public interface DbOutputPlugin extends OutputPlugin{
     
     public void doSetDbProperties (String adress, String user, String password, String prefix, Boolean rollback) throws Exception;
     
-    public void doSetTests (Properties tests) throws Exception;
+    public boolean doTest (String property, String test) throws Exception;
 }

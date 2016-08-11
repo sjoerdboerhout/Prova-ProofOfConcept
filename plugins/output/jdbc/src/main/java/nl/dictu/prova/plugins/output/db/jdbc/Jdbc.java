@@ -180,9 +180,27 @@ public class Jdbc implements DbOutputPlugin {
     }
 
     @Override
-    public void doSetTests(Properties prprts) throws Exception {
+    public boolean doTest(String property, String test) throws Exception {
         LOGGER.trace("Setting tests in output plugin Jdbc");
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        
+        if(test.equalsIgnoreCase("{null}")){
+            if(testRunner.hasPropertyValue(property) | testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
+                return false;
+            } else {
+                return true;
+            }
+        }
+        
+        if(testRunner.hasPropertyValue(property) | testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
+            String propertyValue = testRunner.getPropertyValue(property).trim();
+            String testValue = test.trim();
+            if(propertyValue.equalsIgnoreCase(testValue))
+                return true;
+            return false;
+        } else {
+            return false;
+        }
+                
     }
 
     @Override

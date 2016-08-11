@@ -89,7 +89,7 @@ public class TestSuiteBuilder
                                                     workbookReader.readProperty(row, cell),
                                                     "testdata");
                     
-                    if(testDataSets.size() > 0)
+                    if(testDataSets.size() > 0 & new SheetPrefixValidator(sheet).validate("WEB"))
                     {
                       for(int i=0; i<testDataSets.size(); i++)
                       {

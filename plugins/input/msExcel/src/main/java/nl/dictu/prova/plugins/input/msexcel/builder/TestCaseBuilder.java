@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import nl.dictu.prova.framework.db.DbActionFactory;
 import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 
@@ -134,6 +136,12 @@ public class TestCaseBuilder
   private void parseSheet(TestCase testCase, Sheet sheet) throws Exception
   {
     MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
+    
+    if(new SheetPrefixValidator(sheet).validate("SOAP") || new SheetPrefixValidator(sheet).validate("DB"))
+    {
+        //new TestDataBuilder(testRunner).buildTestData(dbQuery, dbQuery);.
+    }
+    
     while (rowNum.intValue() < sheet.getLastRowNum())
     {
       Row row = sheet.getRow(rowNum.intValue());
@@ -145,54 +153,57 @@ public class TestCaseBuilder
           String firstCellContent = flowWorkbookReader.evaluateCellContent(firstCell);
           if (flowWorkbookReader.isTag(firstCellContent))
           {
-            String tagName = flowWorkbookReader.getTagName(firstCellContent);
-            LOGGER.trace("Found tag: {}", tagName);
-            switch (tagName)
+            for(List<Properties> dataset : new TestDataBuilder(testRunner).buildTestDataAndTests(dataWorkbookPath, sheet))
             {
-              case "tcid":
-                // Already read in earlier state
-                break;
-              case "beschrijving":
-                testCase.setSummary(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "functionaliteit":
-                // TODO add field to TestCase
-                break;
-              case "issueid":
-                testCase.setIssueId(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "prioriteit":
-                testCase.setPriority(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "project":
-                testCase.setProjectName(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "requirement":
-                // TODO add field to TestCase
-                break;
-              case "status":
-                testCase.setStatus(TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
-                break;
-              case "labels":
-                // Ignore
-                break;
-              case "query":
-              case "queryproperties":
-              case "execute":
-                parseDbTemplate(sheet, rowNum, tagName).forEach(testCase::addTestAction);
-                break;
-              case "message":
-              case "soapproperties":
-              case "send":
-                parseSoapTemplate(sheet, rowNum, tagName).forEach(testCase::addTestAction);
-                break;    
-              case "setup":
-              case "test":
-              case "teardown":
-                parseTestCaseSection(testCase, sheet, rowNum, tagName);
-                break;
-              default:
-                LOGGER.warn("Ignoring unknown tag {} ({})", tagName, testCase.getId());
+              String tagName = flowWorkbookReader.getTagName(firstCellContent);
+              LOGGER.trace("Found tag: {}", tagName);
+              switch (tagName)
+              {
+                case "tcid":
+                  // Already read in earlier state
+                  break;
+                case "beschrijving":
+                  testCase.setSummary(flowWorkbookReader.readProperty(row, firstCell));
+                  break;
+                case "functionaliteit":
+                  // TODO add field to TestCase
+                  break;
+                case "issueid":
+                  testCase.setIssueId(flowWorkbookReader.readProperty(row, firstCell));
+                  break;
+                case "prioriteit":
+                  testCase.setPriority(flowWorkbookReader.readProperty(row, firstCell));
+                  break;
+                case "project":
+                  testCase.setProjectName(flowWorkbookReader.readProperty(row, firstCell));
+                  break;
+                case "requirement":
+                  // TODO add field to TestCase
+                  break;
+                case "status":
+                  testCase.setStatus(TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
+                  break;
+                case "labels":
+                  // Ignore
+                  break;
+                case "query":
+                case "queryproperties":
+                case "execute":
+                  parseDbTemplate(sheet, rowNum, tagName, dataset).forEach(testCase::addTestAction);
+                  break;
+                case "message":
+                case "soapproperties":
+                case "send":
+                  parseSoapTemplate(sheet, rowNum, tagName, dataset).forEach(testCase::addTestAction);
+                  break;    
+                case "setup":
+                case "test":
+                case "teardown":
+                  parseTestCaseSection(testCase, sheet, rowNum, tagName);
+                  break;
+                default:
+                  LOGGER.warn("Ignoring unknown tag {} ({})", tagName, testCase.getId());
+              }
             }
           }
         }
@@ -210,7 +221,7 @@ public class TestCaseBuilder
    * @param tagname
    * @throws Exception
    */
-  private List<TestAction> parseDbTemplate(Sheet sheet, MutableInt rowNum, String tagName) throws Exception
+  private List<TestAction> parseDbTemplate(Sheet sheet, MutableInt rowNum, String tagName, List<Properties> dataset) throws Exception
   {     
     Map<Integer, String> headers = null;
     Map<String, String> rowMap = null;
@@ -233,7 +244,7 @@ public class TestCaseBuilder
         {
             for(String entry : rowMap.values()){
                 if(entry != null & entry.length() > 0){
-                    dbQuery += entry + " ";
+                    dbQuery += replaceKeywords(entry) + " ";
                 }
             }
             testAction.setAttribute("prova.properties.query", dbQuery);
@@ -249,6 +260,7 @@ public class TestCaseBuilder
             //Check for prefix on current row. If found then check for existence in 
             //global properties with most recent incrementation (e.g. "SOAP_message10_")
             
+            //PREFIX
             if(rowMap.containsKey("prefix")){
                 LOGGER.trace("Prefix found. Processing.");
                 prefix = rowMap.get("prefix");
@@ -273,6 +285,7 @@ public class TestCaseBuilder
                 throw new Exception("No prefix has been supplied! Please add a 'Prefix' key and value below your [QueryProperties] tag.");
             }
             
+            //PASSWORD
             if(rowMap.containsKey("password")){
                 LOGGER.trace("Password found. Processing.");
                 String password = null;
@@ -289,6 +302,7 @@ public class TestCaseBuilder
                 }
             }
             
+            //USER
             if(rowMap.containsKey("user")){
                 LOGGER.trace("User found. Processing.");
                 String user = null;
@@ -305,6 +319,7 @@ public class TestCaseBuilder
                 }
             }
             
+            //ROLLBACK
             if(rowMap.containsKey("rollback")){
                 LOGGER.trace("Rollback found. Processing.");
                 String rollback = rowMap.get("rollback");
@@ -315,24 +330,36 @@ public class TestCaseBuilder
                 testAction.setAttribute("prova.properties.rollback", rollback);
             } 
             
-            if(rowMap.containsKey("adress")){
-                LOGGER.trace("Adress found. Processing.");
-                String adress = null;
-                if(cellReader.isKey(rowMap.get("adress"))){
-                    LOGGER.trace("Adress value is a key, retrieving property value.");
-                    adress = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("adress")));
-                    if(adress != null){
-                        testAction.setAttribute("prova.properties.adress", adress);
+            //ADDRESS
+            if(rowMap.containsKey("address")){
+                LOGGER.trace("Address found. Processing.");
+                String address = null;
+                if(cellReader.isKey(rowMap.get("address"))){
+                    LOGGER.trace("Address value is a key, retrieving property value.");
+                    address = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("address")));
+                    if(address != null){
+                        testAction.setAttribute("prova.properties.address", address);
                     } else {
-                        LOGGER.debug("Unable to process adress tag");
+                        LOGGER.debug("Unable to process address tag");
                     }
                 } else {
-                    testAction.setAttribute("prova.properties.adress", rowMap.get("adress"));
+                    testAction.setAttribute("prova.properties.address", rowMap.get("address"));
                 }
             } else {
                 throw new Exception("No adress has been supplied! Please add a 'Adress' key and value below your [QueryProperties] tag.");
             }
             
+            //Add tests from datasheet
+            for(Entry entry : dataset.get(1).entrySet()){
+                try{
+                    TestAction test = dbActionFactory.getAction("setDbTest");
+                    test.setAttribute((String) entry.getKey(), (String) entry.getValue());
+                    testActions.add(test);
+                } catch (Exception eX){
+                    LOGGER.error("Exception while setting attribute!" + eX.getMessage());
+                    eX.printStackTrace();
+                }
+            }
         }
     } 
     if(testAction == null){
@@ -353,7 +380,7 @@ public class TestCaseBuilder
    * @param tagname
    * @throws Exception
    */
-  private List<TestAction> parseSoapTemplate(Sheet sheet, MutableInt rowNum, String tagName) throws Exception
+  private List<TestAction> parseSoapTemplate(Sheet sheet, MutableInt rowNum, String tagName, List<Properties> dataset) throws Exception
   {      
     Map<Integer, String> headers = null;
     Map<String, String> rowMap = null;
@@ -871,4 +898,21 @@ public class TestCaseBuilder
       LOGGER.trace("> " + key + " => " + props.getProperty(key));
     }
   }
+
+    private String replaceKeywords(String entry) throws Exception {
+        Pattern pattern = Pattern.compile("\\{[A-Za-z0-9.]+\\}");
+        Matcher matcher = pattern.matcher(entry);
+        StringBuffer entryBuffer = new StringBuffer("");
+
+        while(matcher.find()){
+            String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 2);
+            System.out.println("Found keyword " + matcher.group(0) + " in supplied string.");
+            if(!testRunner.hasPropertyValue(keyword))
+                throw new Exception("No value found for property " + keyword);
+            matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
+        }
+        matcher.appendTail(entryBuffer);
+        
+        return entryBuffer.toString();
+    }
 }
