@@ -137,7 +137,17 @@ public class TestCaseBuilder
   {
     MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
     ArrayList<List<Properties>> testData = new ArrayList<>();
-    dataWorkbookPath = getFlowPathFromTCID(testCase.getId());
+    dataWorkbookPath = getFlowPathFromTCID(testCase.getId()).substring(0, getFlowPathFromTCID(testCase.getId()).lastIndexOf(File.separator));
+    
+    //Check if last character is a separator
+    if((dataWorkbookPath.charAt(dataWorkbookPath.length() - 1) + "").equals(File.separator))
+    {
+        dataWorkbookPath += "testdata" + File.separator + sheet.getSheetName() + ".xlsx";
+    }
+    else
+    {
+        dataWorkbookPath += File.separator + "testdata" + File.separator + sheet.getSheetName() + ".xlsx";
+    }
     
     //Load SOAP or DB specific testdata sheets
     if(new SheetPrefixValidator(sheet).validate("SOAP") || new SheetPrefixValidator(sheet).validate("DB"))
@@ -146,7 +156,8 @@ public class TestCaseBuilder
         {
             LOGGER.debug("Reading testdata sheet for SOAP and DB tests.");
             testData = new TestDataBuilder(testRunner).buildTestDataAndTests(dataWorkbookPath, sheet.getSheetName());
-            if(testData.isEmpty()){
+            if(testData.isEmpty())
+            {
                 LOGGER.debug("No testdata returned for path " + dataWorkbookPath + " and sheetname " + sheet.getSheetName());
                 //testData must always contain one list so that the sheet will be parsed at least once.
                 List<Properties> dummyList = new ArrayList<>();
@@ -255,7 +266,6 @@ public class TestCaseBuilder
     
     LOGGER.info("Parsing Db template with sheet " + sheet.getSheetName());
     
-    
     //Add input properties to the central properties collection
     if(!dataset.isEmpty()){
         for(Entry entry : dataset.get(0).entrySet()){
@@ -287,6 +297,11 @@ public class TestCaseBuilder
         
         while((rowMap = readRow(sheet, rowNum, headers))!= null)
         {
+            if(rowMap.isEmpty()) 
+            {
+                LOGGER.debug("End of query/mesage block reached at row " + rowNum);
+                break;
+            }
             for(String entry : rowMap.values()){
                 if(entry != null & entry.length() > 0){
                     String processedCellValue = replaceKeywords(entry);

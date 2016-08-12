@@ -59,7 +59,6 @@ public class SheetPrefixValidator
   {
     String sheetNamePrefix = getSheetNamePrefix(sheet);
     boolean allowed = prefix.trim().toUpperCase().equals(sheetNamePrefix.toUpperCase());
-    LOGGER.trace("Prefix = {}: {}", sheetNamePrefix, allowed ? "process" : "ignore");
     return allowed;
   }
 
