@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import nl.dictu.prova.framework.ActionFactory;
 import nl.dictu.prova.framework.db.DbActionFactory;
 import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 
@@ -39,12 +40,9 @@ public class TestCaseBuilder
                  dataWorkbookPath,
                  dataSetName,
                  testRootPath,
-                 dbQuery,
-                 soapMessage;
+                 messageOrQuery;
   private Workbook workbook;
   private WorkbookReader flowWorkbookReader;
-  private WebActionFactory webActionFactory;
-  private DbActionFactory dbActionFactory;
   private TestRunner testRunner;
   private Properties testDataKeywords;
 
@@ -61,8 +59,6 @@ public class TestCaseBuilder
     
     this.testRootPath = testRootPath;
     this.testRunner = testRunner;
-    this.webActionFactory = new WebActionFactory();
-    this.dbActionFactory = new DbActionFactory();
     this.testDataKeywords = new Properties();
   }
 
@@ -202,15 +198,26 @@ public class TestCaseBuilder
    * @param tagname
    * @throws Exception
    */
-  private List<TestAction> parseDbTemplate(Sheet sheet, MutableInt rowNum, String tagName, List<Properties> dataset) throws Exception
+  private List<TestAction> parseSoapDbTemplate(Sheet sheet, MutableInt rowNum, String tagName, List<Properties> dataset) throws Exception
   {     
     Map<Integer, String> headers = null;
     Map<String, String> rowMap = null;
     TestAction testAction = null;
     List<TestAction> testActions = new ArrayList<>();
     CellReader cellReader = new CellReader();
+    String type = null;
+    ActionFactory actionFactory = null;
     
-    LOGGER.info("Parsing Db template with sheet " + sheet.getSheetName());
+    if(new SheetPrefixValidator(sheet).validate("DB")){
+        type = "DB";
+        actionFactory = new DbActionFactory();
+    } else if(new SheetPrefixValidator(sheet).validate("SOAP")){
+        type = "SOAP";
+        //actionFactory = new SoapActionFactory();
+    }
+    
+    LOGGER.info("Parsing " + type + " template with sheet " + sheet.getSheetName());
+    
     
     //Add input properties to the central properties collection
     if(dataset != null & !dataset.isEmpty()){
@@ -219,10 +226,10 @@ public class TestCaseBuilder
         }
     }
     
-    //Read and process the specified part of the SOAP template based on the tagname. Each tagname 
+    //Read and process the specified part of the SOAP/DB template based on the tagname. Each tagname 
     //is linked to a unique TestAction. Together they form the basis for sending and testing.
-    if (tagName.toLowerCase().equals("execute")){
-        TestAction execute = DbActionFactory.getAction("PROCESSDBRESPONSE");
+    if(tagName.toLowerCase().equals("execute") | tagName.toLowerCase().equals("send")){
+        TestAction execute = actionFactory.getAction("PROCESS" + type + "RESPONSE");
         execute.setTestRunner(testRunner);
         testActions.add(execute);
         
@@ -230,7 +237,7 @@ public class TestCaseBuilder
         if(dataset != null & !dataset.isEmpty()){
             for(Entry entry : dataset.get(1).entrySet()){
                 try{
-                    TestAction test = dbActionFactory.getAction("EXECUTEDBTEST");
+                    TestAction test = actionFactory.getAction("EXECUTE" + type + "TEST");
                     test.setAttribute((String) entry.getKey(), (String) entry.getValue());
                     test.setTestRunner(testRunner);
                     testActions.add(test);
@@ -240,10 +247,10 @@ public class TestCaseBuilder
                 }
             }
         } 
-    } else if(tagName.toLowerCase().equals("query")){
-        testAction = DbActionFactory.getAction("SETQUERY");
+    } else if(tagName.toLowerCase().equals("query") | tagName.toLowerCase().equals("message")){
+        testAction = actionFactory.getAction("SET" + type + "QUERY");
         headers = readSectionHeaderRow(sheet, rowNum);
-        dbQuery = "";
+        messageOrQuery = "";
         
         while((rowMap = readRow(sheet, rowNum, headers))!= null)
         {
@@ -256,14 +263,14 @@ public class TestCaseBuilder
                     String processedCellValue = replaceKeywords(entry);
                     if(processedCellValue.trim().equalsIgnoreCase("skipcell"))
                         continue;
-                    dbQuery += processedCellValue + " ";
+                    messageOrQuery += processedCellValue + " ";
                 }
             }
         }
-        testAction.setAttribute("prova.properties.query", dbQuery);
-        dbQuery = "";
-    } else if (tagName.toLowerCase().equals("queryproperties")){
-        testAction = DbActionFactory.getAction("SETDBPROPERTIES");
+        testAction.setAttribute("prova.properties.query", messageOrQuery);
+        messageOrQuery = "";
+    } else if (tagName.toLowerCase().equals("queryproperties") | tagName.toLowerCase().equals("soapproperties")){
+        testAction = actionFactory.getAction("SET" + type + "PROPERTIES");
         headers = readSectionHeaderRow(sheet, rowNum);
         String prefix = null;
         
@@ -294,7 +301,7 @@ public class TestCaseBuilder
                 //Setting prefix as current prefix on key prova.properties.prefix.
                 testAction.setAttribute("prova.properties.prefix", prefix);
             } else {
-                throw new Exception("No prefix has been supplied! Please add a 'Prefix' key and value below your [QueryProperties] tag.");
+                throw new Exception("No prefix has been supplied! Please add a 'Prefix' key and value below your Properties tag.");
             }
             
             //PASSWORD
@@ -339,22 +346,23 @@ public class TestCaseBuilder
                 testAction.setAttribute("prova.properties.rollback", rollback);
             } 
             
-            //ADDRESS
-            if(rowMap.containsKey("address")){
-                LOGGER.trace("Address found. Processing.");
-                if(cellReader.isKey(rowMap.get("address"))){
-                    LOGGER.trace("Address value is a key, retrieving property value.");
-                    String address = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("address")));
-                    if(address != null){
-                        testAction.setAttribute("prova.properties.address", address);
+            //ADDRESS or URL
+            if(rowMap.containsKey("address") | rowMap.containsKey("url")){
+                LOGGER.trace("Address or URL found. Processing.");
+                String addressOrUrl = rowMap.containsKey("address") ? "ADDRESS" : "URL";
+                if(cellReader.isKey(rowMap.get(addressOrUrl))){
+                    LOGGER.trace("Address or URL value is a key, retrieving property value.");
+                    String addressOrUrlPropertyValue = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get(addressOrUrl)));
+                    if(addressOrUrlPropertyValue != null){
+                        testAction.setAttribute("prova.properties." + addressOrUrl, addressOrUrlPropertyValue);
                     } else {
                         LOGGER.debug("Unable to process address tag");
                     }
                 } else {
-                    testAction.setAttribute("prova.properties.address", rowMap.get("address"));
+                    testAction.setAttribute("prova.properties." + addressOrUrl, rowMap.get(addressOrUrl));
                 }
             } else {
-                throw new Exception("No address has been supplied! Please add a 'Address' key and value below your [QueryProperties] tag.");
+                throw new Exception("No address or URL has been supplied! Please add a 'Address' or 'URL' key and value below your Properties tag.");
             }
         }
     } 
@@ -373,7 +381,7 @@ public class TestCaseBuilder
    * @param rowNum
    * @param tagname
    * @throws Exception
-   */
+   *
   private List<TestAction> parseSoapTemplate(Sheet sheet, MutableInt rowNum, String tagName, List<Properties> dataset) throws Exception
   {      
     Map<Integer, String> headers = null;
@@ -493,7 +501,7 @@ public class TestCaseBuilder
         testActions.add(testAction);
     }
     return testActions;
-  }
+  }*/
 
   /**
    * Parse test actions and add the actions found to the correct action list.
@@ -624,12 +632,12 @@ public class TestCaseBuilder
               case "query":
               case "queryproperties":
               case "execute":
-                parseDbTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
+                parseSoapDbTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
                 break;
               case "message":
               case "soapproperties":
               case "send":
-                parseSoapTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
+                parseSoapDbTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
                 break;    
             }
           }
@@ -656,13 +664,14 @@ public class TestCaseBuilder
     Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
     Map<String, String> rowMap;
     String keyword;
+    ActionFactory actionFactory = new WebActionFactory();
     
     while ((rowMap = readRow(sheet, rowNum, headers)) != null)
     {
       switch (tagName)
       {
         case "sectie":
-          TestAction testAction = WebActionFactory.getAction(rowMap.get("actie"));
+          TestAction testAction = actionFactory.getAction(rowMap.get("actie"));
           String locatorName = rowMap.get("locator").toLowerCase();
           String xPath = "";
           

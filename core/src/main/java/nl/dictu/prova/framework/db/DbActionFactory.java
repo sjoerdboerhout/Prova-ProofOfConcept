@@ -1,5 +1,6 @@
 package nl.dictu.prova.framework.db;
 
+import nl.dictu.prova.framework.ActionFactory;
 import nl.dictu.prova.framework.db.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +13,7 @@ import nl.dictu.prova.framework.TestAction;
  * @author  Sjoerd Boerhout
  * @since   2016-04-19
  */
-public class DbActionFactory
+public class DbActionFactory implements ActionFactory
 {
   protected final static Logger LOGGER = LogManager.getLogger();
   
@@ -28,7 +29,7 @@ public class DbActionFactory
    * @return
    * @throws Exception
    */
-  public static TestAction getAction(String name) throws Exception
+  public TestAction getAction(String name) throws Exception
   {
     LOGGER.trace("Request to produce webaction '{}'", () -> name);
     
