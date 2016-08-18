@@ -112,9 +112,7 @@ public class TestCaseBuilder
       {
         LOGGER.trace("Sheet: {}", sheet::getSheetName);
         if (new SheetPrefixValidator(sheet).validate())
-        {
-          parseSheet(testCase, sheet);
-        }
+          parseSheet(testCase, sheet);        
       }
     }
     else
@@ -136,42 +134,6 @@ public class TestCaseBuilder
   private void parseSheet(TestCase testCase, Sheet sheet) throws Exception
   {
     MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
-    ArrayList<List<Properties>> testData = new ArrayList<>();
-    dataWorkbookPath = getFlowPathFromTCID(testCase.getId()).substring(0, getFlowPathFromTCID(testCase.getId()).lastIndexOf(File.separator));
-    
-    //Check if last character is a separator
-    if((dataWorkbookPath.charAt(dataWorkbookPath.length() - 1) + "").equals(File.separator))
-    {
-        dataWorkbookPath += "testdata" + File.separator + sheet.getSheetName() + ".xlsx";
-    }
-    else
-    {
-        dataWorkbookPath += File.separator + "testdata" + File.separator + sheet.getSheetName() + ".xlsx";
-    }
-    
-    //Load SOAP or DB specific testdata sheets
-    if(new SheetPrefixValidator(sheet).validate("SOAP") || new SheetPrefixValidator(sheet).validate("DB"))
-    {
-        if(new File(dataWorkbookPath).isFile())
-        {
-            LOGGER.debug("Reading testdata sheet for SOAP and DB tests.");
-            testData = new TestDataBuilder(testRunner).buildTestDataAndTests(dataWorkbookPath, sheet.getSheetName());
-            if(testData.isEmpty())
-            {
-                LOGGER.debug("No testdata returned for path " + dataWorkbookPath + " and sheetname " + sheet.getSheetName());
-                //testData must always contain one list so that the sheet will be parsed at least once.
-                List<Properties> dummyList = new ArrayList<>();
-                testData.add(dummyList);
-            }
-        } 
-        else
-        {
-            LOGGER.debug("No testdata file found for path " + dataWorkbookPath + " and sheetname " + sheet.getSheetName());
-            //testData must always contain one list so that the sheet will be parsed at least once.
-            List<Properties> dummyList = new ArrayList<>();
-            testData.add(dummyList);
-        }
-    }
     
     while (rowNum.intValue() < sheet.getLastRowNum())
     {
@@ -215,22 +177,6 @@ public class TestCaseBuilder
                 case "labels":
                   // Ignore
                   break;
-                case "query":
-                case "queryproperties":
-                case "execute":
-                  for(List<Properties> dataset : testData){  
-                    LOGGER.trace("Parsing database row " + testData.size() + " times.");
-                    parseDbTemplate(sheet, rowNum, tagName, dataset).forEach(testCase::addTestAction);
-                  }
-                  break;
-                case "message":
-                case "soapproperties":
-                case "send":
-                  for(List<Properties> dataset : testData){  
-                    LOGGER.trace("Parsing SOAP row " + testData.size() + " times.");
-                    parseSoapTemplate(sheet, rowNum, tagName, dataset).forEach(testCase::addTestAction);
-                  }
-                  break;    
                 case "setup":
                 case "test":
                 case "teardown":
@@ -267,7 +213,7 @@ public class TestCaseBuilder
     LOGGER.info("Parsing Db template with sheet " + sheet.getSheetName());
     
     //Add input properties to the central properties collection
-    if(!dataset.isEmpty()){
+    if(dataset != null & !dataset.isEmpty()){
         for(Entry entry : dataset.get(0).entrySet()){
             testRunner.setPropertyValue((String) entry.getKey(), (String) entry.getValue());
         }
@@ -276,20 +222,24 @@ public class TestCaseBuilder
     //Read and process the specified part of the SOAP template based on the tagname. Each tagname 
     //is linked to a unique TestAction. Together they form the basis for sending and testing.
     if (tagName.toLowerCase().equals("execute")){
-        testActions.add(DbActionFactory.getAction("PROCESSDBRESPONSE"));
-        //Add tests from datasheet
-        if(!dataset.isEmpty()){
+        TestAction execute = DbActionFactory.getAction("PROCESSDBRESPONSE");
+        execute.setTestRunner(testRunner);
+        testActions.add(execute);
+        
+        //After adding execute TestAction, add tests from datasheet if available.
+        if(dataset != null & !dataset.isEmpty()){
             for(Entry entry : dataset.get(1).entrySet()){
                 try{
-                    TestAction test = dbActionFactory.getAction("setDbTest");
+                    TestAction test = dbActionFactory.getAction("EXECUTEDBTEST");
                     test.setAttribute((String) entry.getKey(), (String) entry.getValue());
+                    test.setTestRunner(testRunner);
                     testActions.add(test);
                 } catch (Exception eX){
                     LOGGER.error("Exception while setting attribute!" + eX.getMessage());
                     eX.printStackTrace();
                 }
             }
-        }
+        } 
     } else if(tagName.toLowerCase().equals("query")){
         testAction = DbActionFactory.getAction("SETQUERY");
         headers = readSectionHeaderRow(sheet, rowNum);
@@ -297,9 +247,8 @@ public class TestCaseBuilder
         
         while((rowMap = readRow(sheet, rowNum, headers))!= null)
         {
-            if(rowMap.isEmpty()) 
-            {
-                LOGGER.debug("End of query/mesage block reached at row " + rowNum);
+            if(rowMap.isEmpty()){
+                LOGGER.debug("End of query/message block reached at row " + rowNum);
                 break;
             }
             for(String entry : rowMap.values()){
@@ -310,8 +259,8 @@ public class TestCaseBuilder
                     dbQuery += processedCellValue + " ";
                 }
             }
-            testAction.setAttribute("prova.properties.query", dbQuery);
         }
+        testAction.setAttribute("prova.properties.query", dbQuery);
         dbQuery = "";
     } else if (tagName.toLowerCase().equals("queryproperties")){
         testAction = DbActionFactory.getAction("SETDBPROPERTIES");
@@ -351,10 +300,9 @@ public class TestCaseBuilder
             //PASSWORD
             if(rowMap.containsKey("password")){
                 LOGGER.trace("Password found. Processing.");
-                String password = null;
                 if(cellReader.isKey(rowMap.get("password"))){
                     LOGGER.trace("Password value is a key, retrieving property value.");
-                    password = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("password")));
+                    String password = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("password")));
                     if(password != null){
                         testAction.setAttribute("prova.properties.password", password);
                     } else {
@@ -368,10 +316,9 @@ public class TestCaseBuilder
             //USER
             if(rowMap.containsKey("user")){
                 LOGGER.trace("User found. Processing.");
-                String user = null;
                 if(cellReader.isKey(rowMap.get("user"))){
                     LOGGER.trace("User value is a key, retrieving property value.");
-                    user = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("user")));
+                    String user = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("user")));
                     if(user != null){
                         testAction.setAttribute("prova.properties.user", user);
                     } else {
@@ -385,8 +332,7 @@ public class TestCaseBuilder
             //ROLLBACK
             if(rowMap.containsKey("rollback")){
                 LOGGER.trace("Rollback found. Processing.");
-                String rollback = rowMap.get("rollback");
-                rollback = rollback.trim().toLowerCase();
+                String rollback = rowMap.get("rollback").trim().toLowerCase();
                 if(!(rollback.equals("false") || rollback.equals("true"))){
                     throw new Exception("Rollback value must be 'false' or 'true'!");
                 }
@@ -396,10 +342,9 @@ public class TestCaseBuilder
             //ADDRESS
             if(rowMap.containsKey("address")){
                 LOGGER.trace("Address found. Processing.");
-                String address = null;
                 if(cellReader.isKey(rowMap.get("address"))){
                     LOGGER.trace("Address value is a key, retrieving property value.");
-                    address = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("address")));
+                    String address = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("address")));
                     if(address != null){
                         testAction.setAttribute("prova.properties.address", address);
                     } else {
@@ -409,7 +354,7 @@ public class TestCaseBuilder
                     testAction.setAttribute("prova.properties.address", rowMap.get("address"));
                 }
             } else {
-                throw new Exception("No adress has been supplied! Please add a 'Adress' key and value below your [QueryProperties] tag.");
+                throw new Exception("No address has been supplied! Please add a 'Address' key and value below your [QueryProperties] tag.");
             }
         }
     } 
@@ -494,10 +439,9 @@ public class TestCaseBuilder
             
             if(rowMap.containsKey("password")){
                 LOGGER.trace("Password found. Processing.");
-                String pass = null;
                 if(cellReader.isKey(rowMap.get("password"))){
                     LOGGER.trace("Password value is a key, retrieving property value.");
-                    pass = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("password")));
+                    String pass = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("password")));
                     if(pass != null){
                         testAction.setAttribute("prova.properties.pass", pass);
                     } else {
@@ -510,10 +454,9 @@ public class TestCaseBuilder
             
             if(rowMap.containsKey("user")){
                 LOGGER.trace("User found. Processing.");
-                String user = null;
                 if(cellReader.isKey(rowMap.get("user"))){
                     LOGGER.trace("User value is a key, retrieving property value.");
-                    user = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("user")));
+                    String user = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("user")));
                     if(user != null){
                         testAction.setAttribute("prova.properties.user", user);
                     } else {
@@ -526,10 +469,9 @@ public class TestCaseBuilder
             
             if(rowMap.containsKey("url")){
                 LOGGER.trace("Url found. Processing.");
-                String url = null;
                 if(cellReader.isKey(rowMap.get("url"))){
                     LOGGER.trace("Url value is a key, retrieving property value.");
-                    url = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("url")));
+                    String url = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("url")));
                     if(url != null){
                         testAction.setAttribute("prova.properties.url", url);
                     } else {
@@ -576,13 +518,13 @@ public class TestCaseBuilder
           // TODO process label
           break;
         case "setup":
-          readTestActionsFromReference(rowMap).forEach(testCase::addSetUpAction);
+          readTestActionsFromReference(testCase, rowMap).forEach(testCase::addSetUpAction);
           break;
         case "test":
-          readTestActionsFromReference(rowMap).forEach(testCase::addTestAction);
+          readTestActionsFromReference(testCase, rowMap).forEach(testCase::addTestAction);
           break;
         case "teardown":
-          readTestActionsFromReference(rowMap).forEach(testCase::addTearDownAction);
+          readTestActionsFromReference(testCase, rowMap).forEach(testCase::addTearDownAction);
           break;
       }
     }
@@ -596,7 +538,7 @@ public class TestCaseBuilder
    * @return
    * @throws Exception
    */
-  private List<TestAction> readTestActionsFromReference(Map<String, String> rowMap) throws Exception
+  private List<TestAction> readTestActionsFromReference(TestCase testCase, Map<String, String> rowMap) throws Exception
   {
     Sheet nextSheet;
     
@@ -622,9 +564,25 @@ public class TestCaseBuilder
         throw new Exception("Sheet " + rowMap.get("test") + " not found in workbook " + nextPath);
     }
     
+    //In case the sheet is of type 'SOAP' or 'DB', (optional) testdata is collected and used for iteration over the sheet.
+    if(new SheetPrefixValidator(nextSheet).validate("SOAP") || new SheetPrefixValidator(nextSheet).validate("DB")){
+        List<TestAction> testActions = new ArrayList<>();
+        ArrayList<List<Properties>> testData = getSoapDbTestdata(testCase, nextSheet);
+        if(testData.size() > 0){
+            LOGGER.info(testData.size() + " sets of testdata found for sheet '" + nextSheet.getSheetName() + "'");
+            for(List<Properties> dataSet : testData){
+                testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet));
+            }
+            return testActions;
+        } else {
+            LOGGER.info("No testdata found for sheet '" + nextSheet.getSheetName() + "', processing once.");
+            testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, null));
+        }
+    }
+    
     // TODO READ keywords for reference sheet!
     
-    return readTestActionsFromSheet(nextSheet);
+    return readTestActionsFromSheet(testCase, nextSheet, null);
   }
 
   
@@ -635,7 +593,7 @@ public class TestCaseBuilder
    * @return
    * @throws Exception
    */
-  private List<TestAction> readTestActionsFromSheet(Sheet sheet) throws Exception
+  private List<TestAction> readTestActionsFromSheet(TestCase testCase, Sheet sheet, List<Properties> dataSet) throws Exception
   {
     List<TestAction> testActions = new ArrayList<>();
     MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
@@ -661,7 +619,18 @@ public class TestCaseBuilder
             {
               case "sectie":
               case "tc":
-                parseTestActionSection(testActions, sheet, rowNum, tagName);
+                parseTestActionSection(testCase, testActions, sheet, rowNum, tagName);
+                break;
+              case "query":
+              case "queryproperties":
+              case "execute":
+                parseDbTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
+                break;
+              case "message":
+              case "soapproperties":
+              case "send":
+                parseSoapTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
+                break;    
             }
           }
         }
@@ -681,7 +650,7 @@ public class TestCaseBuilder
    * @param tagName
    * @throws Exception
    */
-  private void parseTestActionSection(List<TestAction> testActions, Sheet sheet, MutableInt rowNum, String tagName) throws Exception
+  private void parseTestActionSection(TestCase testCase, List<TestAction> testActions, Sheet sheet, MutableInt rowNum, String tagName) throws Exception
   {
     // get header row
     Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
@@ -744,7 +713,7 @@ public class TestCaseBuilder
           testActions.add(testAction);
           break;
         case "tc":
-          readTestActionsFromReference(rowMap).forEach(testActions::add);
+          readTestActionsFromReference(testCase, rowMap).forEach(testActions::add);
           break;
       }
     }
@@ -955,16 +924,49 @@ public class TestCaseBuilder
 
         while(matcher.find()){
             String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 1);
-            if(keyword.equalsIgnoreCase("skipCell"))
+            if(keyword.equalsIgnoreCase("SKIPCELL")){
+                LOGGER.debug("Skipping cell with keyword " + keyword);
                 return "skipcell";
+            }
             
             LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
             if(!testRunner.hasPropertyValue(keyword))
                 throw new Exception("No value found for property " + keyword);
+            if(testRunner.getPropertyValue(keyword).equalsIgnoreCase("{SKIPCELL}")){
+                LOGGER.debug("Skipping cell with keyword '{" + keyword + "}'");
+                return "skipcell";
+            }
             matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
         }
         matcher.appendTail(entryBuffer);
         
         return entryBuffer.toString();
+    }
+    
+    private ArrayList<List<Properties>> getSoapDbTestdata (TestCase testCase, Sheet sheet) throws Exception{
+        ArrayList<List<Properties>> testData = new ArrayList<>();
+        
+        dataWorkbookPath = getFlowPathFromTCID(testCase.getId()).substring(0, getFlowPathFromTCID(testCase.getId()).lastIndexOf(File.separator));
+
+        //Check if last character is a separator
+        if((dataWorkbookPath.charAt(dataWorkbookPath.length() - 1) + "").equals(File.separator))        {
+            dataWorkbookPath += "testdata" + File.separator + sheet.getSheetName() + ".xlsx";
+        } else { 
+            dataWorkbookPath += File.separator + "testdata" + File.separator + sheet.getSheetName() + ".xlsx";
+        }
+
+        //Load SOAP or DB specific testdata sheets
+        if(new SheetPrefixValidator(sheet).validate("SOAP") || new SheetPrefixValidator(sheet).validate("DB")){
+            if(new File(dataWorkbookPath).isFile()){
+                LOGGER.debug("Reading SOAP/DB testdata sheet: '" + dataWorkbookPath + "'");
+                testData = new TestDataBuilder(testRunner).buildTestDataAndTests(dataWorkbookPath, sheet.getSheetName());
+                if(testData.isEmpty()){
+                    LOGGER.debug("No testdata returned for path " + dataWorkbookPath + " and sheetname " + sheet.getSheetName());
+                }
+            } else {
+                LOGGER.debug("No testdata file found for path " + dataWorkbookPath + " and sheetname " + sheet.getSheetName());
+            }
+        }
+        return testData;
     }
 }

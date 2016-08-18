@@ -28,7 +28,7 @@ class SetDbProperties extends TestAction {
             case("prova.properties.user"): 
                 user = value;
                 break;
-            case("prova.properties.adress"): 
+            case("prova.properties.address"): 
                 adress = value;
                 break;
             case("prova.properties.prefix"):
@@ -70,7 +70,7 @@ class SetDbProperties extends TestAction {
      */
     @Override
     public String toString() {
-        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + adress + "'" + "', '" + user + "'" + "', '" + password + "'" + "', '" + rollback + "'");
+        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': '" + adress + "', '" + user + "', '" + password + "', '" + rollback + "'");
     }
     
 }

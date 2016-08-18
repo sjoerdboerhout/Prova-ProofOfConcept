@@ -78,9 +78,8 @@ public class TestDataBuilder
   public ArrayList<List<Properties>> buildTestDataAndTests(String path, String sheetname) throws Exception
   {
       LOGGER.trace("Build testdata and tests for: {}", sheetname);
-      ArrayList<List<Properties>> datasets = new ArrayList<>();
-      List<Properties> testDataSets = new ArrayList<>();
-      List<Properties> testValidationSets = new ArrayList<>();
+      ArrayList<List<Properties>> testDataSets = new ArrayList<>();
+      List<Properties> dataSets = new ArrayList<>();
       
       Workbook workbook = new XSSFWorkbook(new File(path));
       workbookReader = new WorkbookReader(workbook);
@@ -173,14 +172,14 @@ public class TestDataBuilder
               LOGGER.debug("Row {} is empty; skipping row", row.getRowNum());
             }
           }
-          testDataSets.add(testData);
-          testValidationSets.add(testValidation);
+          dataSets.add(0, testData);
+          dataSets.add(1, testValidation);
         }
       }
-      datasets.add(0, testDataSets);
-      datasets.add(1, testValidationSets);
+      if(!dataSets.isEmpty())
+          testDataSets.add(dataSets);
       
-      return datasets;
+      return testDataSets;
   }
   
   /**

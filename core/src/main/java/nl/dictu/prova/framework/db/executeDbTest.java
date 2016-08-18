@@ -6,27 +6,25 @@
 package nl.dictu.prova.framework.db;
 
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import nl.dictu.prova.framework.TestAction;
 
 /**
  *
  * @author Coos van der Galiën
  */
-class SetDbTest extends TestAction {
+class executeDbTest extends TestAction {
     
     String property;
     String test;
+    String result = null;
 
     @Override
     public void setAttribute(String key, String value) throws Exception {
         LOGGER.trace("Request to set test '{}' to '{}'", () -> key, () -> value);
-        switch(key.trim().toUpperCase()){
-            case("PROPERTY"): this.property = value;
-                break;
-            case("TEST"): this.test = value;
-                break;
-            default: throw new Exception("Only 'Property' or 'Test' attributes are supported");
-        }
+        this.property = key;
+        this.test = value;
     }
 
     @Override
@@ -37,7 +35,11 @@ class SetDbTest extends TestAction {
             throw new Exception("testRunner, property or test not properly set!");
         }
         
-        testRunner.getDbActionPlugin().doTest(property, test);
+        if(testRunner.getDbActionPlugin().doTest(property, test)){
+            result = "succesful";
+        } else {
+            result = "unsuccesful";
+        }
     }
 
     @Override
@@ -55,7 +57,10 @@ class SetDbTest extends TestAction {
      */
     @Override
     public String toString() {
-        return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
+        if(result == null){
+            return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
+        }
+        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': Value of property '" + property + "' was checked with validation '" + test + "', result is '" + result + "'");
     }
     
 }

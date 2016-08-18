@@ -181,23 +181,28 @@ public class Jdbc implements DbOutputPlugin {
 
     @Override
     public boolean doTest(String property, String test) throws Exception {
-        LOGGER.trace("Setting tests in output plugin Jdbc");
+        LOGGER.trace("Executing test for property '" + property + "' with validation '" + test + "'");
         
         if(test.equalsIgnoreCase("{null}")){
-            if(testRunner.hasPropertyValue(property) | testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
+            if(testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
+                LOGGER.info("Test unsuccesful!");
                 return false;
             } else {
+                LOGGER.info("Test succesful!");
                 return true;
             }
         }
         
         if(testRunner.hasPropertyValue(property) | testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
             String propertyValue = testRunner.getPropertyValue(property).trim();
-            String testValue = test.trim();
-            if(propertyValue.equalsIgnoreCase(testValue))
+            if(propertyValue.equalsIgnoreCase(test.trim())){
+                LOGGER.info("Test succesful!");
                 return true;
+            }
+            LOGGER.info("Test unsuccesful!");
             return false;
         } else {
+            LOGGER.info("Test unsuccesful!");
             return false;
         }
                 

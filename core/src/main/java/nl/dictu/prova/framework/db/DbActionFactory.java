@@ -19,7 +19,7 @@ public class DbActionFactory
   public final static String ACTION_PROCESSDBRESPONSE   = "PROCESSDBRESPONSE";
   public final static String ACTION_SETDBPROPERTIES     = "SETDBPROPERTIES";
   public final static String ACTION_SETQUERY            = "SETQUERY";
-  public final static String ACTION_SETDBTEST          = "SETDBTEST";
+  public final static String ACTION_EXECUTEDBTEST       = "EXECUTEDBTEST";
     
   /**
    * Get the corresponding action for <name>
@@ -37,7 +37,7 @@ public class DbActionFactory
       case ACTION_PROCESSDBRESPONSE:    return new ProcessDbResponse();
       case ACTION_SETDBPROPERTIES:      return new SetDbProperties();
       case ACTION_SETQUERY:             return new SetQuery();
-      case ACTION_SETDBTEST:           return new SetDbTest();
+      case ACTION_EXECUTEDBTEST:        return new executeDbTest();
     }
     
     throw new Exception("Unknown action '" + name + "' requested");

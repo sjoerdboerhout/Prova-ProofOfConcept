@@ -104,7 +104,7 @@ public class Prova implements Runnable, TestRunner
   {
     try
     {
-      LOGGER.trace("join requested");
+      LOGGER.trace("Join requested");
       
       this.thread.join();
     }
@@ -360,7 +360,7 @@ public class Prova implements Runnable, TestRunner
       
       for(ReportingPlugin reportPlugin : getReportingPlugins())
       {
-      	LOGGER.debug("Aantal in lijst: "+getReportingPlugins().size());
+      	LOGGER.debug("Number of report plugins: " + getReportingPlugins().size());
       	LOGGER.debug("Report: start testsuite");
       	reportPlugin.logStartTestSuite(testSuite);
       }
