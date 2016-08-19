@@ -196,8 +196,6 @@ public class Selenium implements WebOutputPlugin
     }
   }
 
-
- @Override
   public void doCaptureScreen(String fileName) throws Exception
   {
     File scrFile = ((TakesScreenshot)webdriver).getScreenshotAs(OutputType.FILE);
@@ -802,6 +800,10 @@ public class Selenium implements WebOutputPlugin
 
     @Override
     public void doSetText(String string, String string1) throws Exception {
+        doSetText(string, string1, true);
+    }
+
+    public void tearDown(TestCase tc) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

@@ -37,6 +37,7 @@ public class Config
   public final static String PROVA_LOG_PATTERN_FILE                     = "prova.log.pattern.file";                     // String,    Log4j2 log pattern 
   
   public final static String PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX          = "prova.plugins.out.web.locator";              // String,    Prefix for locators 
+  public final static String PROVA_PLUGINS_OUT_SOAP_LOCATOR_PFX         = "prova.plugins.out.soap.locator";             // String,    Prefix for locators 
   
   public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_CHROME  = "prova.plugins.out.web.browser.path.chrome";  // String,    Browser executable location 
   public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_IE      = "prova.plugins.out.web.browser.path.ie";      // String,    Browser executable location 
@@ -49,7 +50,9 @@ public class Config
   public final static String PROVA_PLUGINS_INPUT_PACKAGE                = "prova.plugins.in.package";                   // String,    Active input plug-in 
   public final static String PROVA_PLUGINS_INPUT                        = "prova.plugins.in";                           // String,    Active input plug-in 
   public final static String PROVA_PLUGINS_OUTPUT_WEB_PACKAGE           = "prova.plugins.out.web.package";              // String,    Active output plug-in for web 
-  public final static String PROVA_PLUGINS_OUTPUT_WEB                   = "prova.plugins.out.web";                      // String,    Active output plug-in for web 
+  public final static String PROVA_PLUGINS_OUTPUT_WEB                   = "prova.plugins.out.web";                      // String,    Active output plug-in for web
+  public final static String PROVA_PLUGINS_OUTPUT_SOAP_PACKAGE          = "prova.plugins.out.soap.package";             // String,    Active output plug-in for soap
+  public final static String PROVA_PLUGINS_OUTPUT_SOAP                  = "prova.plugins.out.soap";                     // String,    Active output plug-in for soap
   public final static String PROVA_PLUGINS_OUTPUT_SHELL_PACKAGE         = "prova.plugins.out.shell.package";            // String,    Active output plug-in for shell 
   public final static String PROVA_PLUGINS_OUTPUT_SHELL                 = "prova.plugins.out.shell";                    // String,    Active output plug-in for shell 
   public final static String PROVA_PLUGINS_REPORTING_PACKAGE            = "prova.plugins.reporting.package";            // Boolean,   Execute or only validate 

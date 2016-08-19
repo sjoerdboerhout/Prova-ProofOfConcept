@@ -311,6 +311,7 @@ public class TestCase
       this.setStatus(TestStatus.FAILED);
       this.setSummary(eX.getMessage());
       exception = new SetUpActionException(eX.getMessage());
+      eX.printStackTrace();
     }
     
     // Execute all test actions if set up succeeded
@@ -362,7 +363,6 @@ public class TestCase
         this.setStatus(TestStatus.FAILED);
         this.setSummary(eX.getMessage());
         exception = new TestActionException(eX.getMessage());
-        
       }
     }
     
@@ -389,6 +389,7 @@ public class TestCase
       this.setStatus(TestStatus.FAILED);
       if(exception == null)
         exception = new TearDownActionException(eX.getMessage());
+      eX.printStackTrace();
     }
     
     // Exception occured? Throw it back to the test suite
