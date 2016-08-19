@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 public class SheetPrefixValidator
 {
   private final static Logger LOGGER = LogManager.getLogger();
-  private final static List<String> ALLOWED_PREFIXES = Arrays.asList("WEB", "SH", "SOAP");
+  private final static List<String> ALLOWED_PREFIXES = Arrays.asList("WEB", "SH", "SOAP", "DB");
   private Sheet sheet;
 
   /**
@@ -46,6 +46,19 @@ public class SheetPrefixValidator
     String sheetNamePrefix = getSheetNamePrefix(sheet);
     boolean allowed = ALLOWED_PREFIXES.contains(sheetNamePrefix);
     LOGGER.trace("Prefix = {}: {}", sheetNamePrefix, allowed ? "process" : "ignore");
+    return allowed;
+  }
+  
+  /**
+   * See if provided prefix matches the current sheet prefix.
+   * 
+   * @param prefix
+   * @return
+   */
+  public boolean validate(String prefix)
+  {
+    String sheetNamePrefix = getSheetNamePrefix(sheet);
+    boolean allowed = prefix.trim().toUpperCase().equals(sheetNamePrefix.toUpperCase());
     return allowed;
   }
 

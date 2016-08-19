@@ -26,22 +26,9 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import nl.dictu.prova.framework.soap.SoapActionFactory;
+import nl.dictu.prova.framework.ActionFactory;
+import nl.dictu.prova.framework.db.DbActionFactory;
 import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
-import org.apache.poi.hssf.util.PaneInformation;
-import org.apache.poi.ss.usermodel.AutoFilter;
-import org.apache.poi.ss.usermodel.CellRange;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.Comment;
-import org.apache.poi.ss.usermodel.DataValidation;
-import org.apache.poi.ss.usermodel.DataValidationHelper;
-import org.apache.poi.ss.usermodel.Drawing;
-import org.apache.poi.ss.usermodel.Footer;
-import org.apache.poi.ss.usermodel.Header;
-import org.apache.poi.ss.usermodel.Hyperlink;
-import org.apache.poi.ss.usermodel.PrintSetup;
-import org.apache.poi.ss.usermodel.SheetConditionalFormatting;
-import org.apache.poi.ss.util.CellAddress;
-import org.apache.poi.ss.util.CellRangeAddress;
 
 /**
  * @author Hielke de Haan
@@ -54,11 +41,10 @@ public class TestCaseBuilder
                  dataWorkbookPath,
                  dataSetName,
                  testRootPath,
-                 soapMessage;
+                 messageOrQuery;
   private Workbook workbook;
   private WorkbookReader flowWorkbookReader;
-  private WebActionFactory webActionFactory;
-  private SoapActionFactory soapActionFactory;
+  private ActionFactory actionFactory;
   private TestRunner testRunner;
   private Properties testDataKeywords;
 
@@ -75,8 +61,6 @@ public class TestCaseBuilder
     
     this.testRootPath = testRootPath;
     this.testRunner = testRunner;
-    this.webActionFactory = new WebActionFactory();
-    this.soapActionFactory = new SoapActionFactory();
     this.testDataKeywords = new Properties();
   }
 
@@ -126,9 +110,7 @@ public class TestCaseBuilder
       {
         LOGGER.trace("Sheet: {}", sheet::getSheetName);
         if (new SheetPrefixValidator(sheet).validate())
-        {
-          parseSheet(testCase, sheet);
-        }
+          parseSheet(testCase, sheet);        
       }
     }
     else
@@ -150,6 +132,7 @@ public class TestCaseBuilder
   private void parseSheet(TestCase testCase, Sheet sheet) throws Exception
   {
     MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
+    
     while (rowNum.intValue() < sheet.getLastRowNum())
     {
       Row row = sheet.getRow(rowNum.intValue());
@@ -161,49 +144,44 @@ public class TestCaseBuilder
           String firstCellContent = flowWorkbookReader.evaluateCellContent(firstCell);
           if (flowWorkbookReader.isTag(firstCellContent))
           {
-            String tagName = flowWorkbookReader.getTagName(firstCellContent);
-            LOGGER.trace("Found tag: {}", tagName);
-            switch (tagName)
-            {
-              case "tcid":
-                // Already read in earlier state
-                break;
-              case "beschrijving":
-                testCase.setSummary(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "functionaliteit":
-                // TODO add field to TestCase
-                break;
-              case "issueid":
-                testCase.setIssueId(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "prioriteit":
-                testCase.setPriority(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "project":
-                testCase.setProjectName(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "requirement":
-                // TODO add field to TestCase
-                break;
-              case "status":
-                testCase.setStatus(TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
-                break;
-              case "labels":
-                // Ignore
-                break;
-              case "message":
-              case "soapproperties":
-              case "send":
-                  parseSoapTemplate(sheet, rowNum, tagName).forEach(testCase::addTestAction);
-                  break;    
-              case "setup":
-              case "test":
-              case "teardown":
-                parseTestCaseSection(testCase, sheet, rowNum, tagName);
-                break;
-              default:
-                LOGGER.warn("Ignoring unknown tag {} ({})", tagName, testCase.getId());
+              String tagName = flowWorkbookReader.getTagName(firstCellContent);
+              LOGGER.trace("Found tag: {}", tagName);
+              switch (tagName)
+              {
+                case "tcid":
+                  // Already read in earlier state
+                  break;
+                case "beschrijving":
+                  testCase.setSummary(flowWorkbookReader.readProperty(row, firstCell));
+                  break;
+                case "functionaliteit":
+                  // TODO add field to TestCase
+                  break;
+                case "issueid":
+                  testCase.setIssueId(flowWorkbookReader.readProperty(row, firstCell));
+                  break;
+                case "prioriteit":
+                  testCase.setPriority(flowWorkbookReader.readProperty(row, firstCell));
+                  break;
+                case "project":
+                  testCase.setProjectName(flowWorkbookReader.readProperty(row, firstCell));
+                  break;
+                case "requirement":
+                  // TODO add field to TestCase
+                  break;
+                case "status":
+                  testCase.setStatus(TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
+                  break;
+                case "labels":
+                  // Ignore
+                  break;
+                case "setup":
+                case "test":
+                case "teardown":
+                  parseTestCaseSection(testCase, sheet, rowNum, tagName);
+                  break;
+                default:
+                  LOGGER.warn("Ignoring unknown tag {} ({})", tagName, testCase.getId());
             }
           }
         }
@@ -212,37 +190,91 @@ public class TestCaseBuilder
     }
   }
   
-  private List<TestAction> parseSoapTemplate(Sheet sheet, MutableInt rowNum, String tagName) throws Exception
-  {      
+
+  /**
+   * Parse the given sheet. Find tags and execute related actions to
+   * retrieve/set the data for this test case.
+   * 
+   * @param sheet
+   * @param rowNum
+   * @param tagname
+   * @throws Exception
+   */
+  private List<TestAction> parseSoapDbTemplate(Sheet sheet, MutableInt rowNum, String tagName, List<Properties> dataset) throws Exception
+  {     
     Map<Integer, String> headers = null;
     Map<String, String> rowMap = null;
     TestAction testAction = null;
     List<TestAction> testActions = new ArrayList<>();
     CellReader cellReader = new CellReader();
+    String type = null;
+    ActionFactory actionFactory = null;
     
-    LOGGER.info("Parsing Soap template with sheet " + sheet.getSheetName());
+    if(new SheetPrefixValidator(sheet).validate("DB")){
+        type = "DB";
+        actionFactory = new DbActionFactory();
+    } else if(new SheetPrefixValidator(sheet).validate("SOAP")){
+        type = "SOAP";
+        actionFactory = new SoapActionFactory();
+    }
     
-    //Read and process the specified part of the SOAP template based on the tagname. Each tagname 
+    LOGGER.info("Parsing " + type + " template with sheet " + sheet.getSheetName());
+    
+    //Add input properties to the central properties collection
+    if(dataset != null){
+        LOGGER.debug("Adding " + dataset.get(0).size() + " properties from testdata.");
+        for(Entry entry : dataset.get(0).entrySet()){
+            testRunner.setPropertyValue((String) entry.getKey(), (String) entry.getValue());
+        }
+    } else {
+        LOGGER.debug("Dataset from testdata is empty, continuing.");
+    }
+    
+    //Read and process the specified part of the SOAP/DB template based on the tagname. Each tagname 
     //is linked to a unique TestAction. Together they form the basis for sending and testing.
-    if (tagName.toLowerCase().equals("send")){
-        testAction = SoapActionFactory.getAction("PROCESSRESPONSE");
-    } else if(tagName.toLowerCase().equals("message")){
-        testAction = SoapActionFactory.getAction("SETMESSAGE");
+    if(tagName.toLowerCase().equals("execute") | tagName.toLowerCase().equals("send")){
+        TestAction execute = actionFactory.getAction("PROCESS" + type + "RESPONSE");
+        execute.setTestRunner(testRunner);
+        testActions.add(execute);
+        
+        //After adding execute TestAction, add tests from datasheet if available.
+        if(dataset != null & !dataset.isEmpty()){
+            for(Entry entry : dataset.get(1).entrySet()){
+                try{
+                    TestAction test = actionFactory.getAction("EXECUTE" + type + "TEST");
+                    test.setAttribute((String) entry.getKey(), (String) entry.getValue());
+                    test.setTestRunner(testRunner);
+                    testActions.add(test);
+                } catch (Exception eX){
+                    LOGGER.error("Exception while setting attribute!" + eX.getMessage());
+                    eX.printStackTrace();
+                }
+            }
+        } 
+    } else if(tagName.toLowerCase().equals("query") | tagName.toLowerCase().equals("message")){
+        testAction = actionFactory.getAction("SET" + type + "QUERY");
         headers = readSectionHeaderRow(sheet, rowNum);
-        soapMessage = "";
+        messageOrQuery = "";
         
         while((rowMap = readRow(sheet, rowNum, headers))!= null)
         {
+            if(rowMap.isEmpty()){
+                LOGGER.debug("End of query/message block reached at row " + rowNum);
+                break;
+            }
             for(String entry : rowMap.values()){
                 if(entry != null & entry.length() > 0){
-                    soapMessage += entry;
+                    String processedCellValue = replaceKeywords(entry);
+                    if(processedCellValue.trim().equalsIgnoreCase("skipcell"))
+                        continue;
+                    messageOrQuery += processedCellValue + " ";
                 }
             }
-            testAction.setAttribute("MESSAGE", soapMessage);
         }
-        soapMessage = "";
-    } else if (tagName.toLowerCase().equals("soapproperties")){
-        testAction = SoapActionFactory.getAction("SETPROPERTIES");
+        testAction.setAttribute("prova.properties.query", messageOrQuery);
+        messageOrQuery = "";
+    } else if (tagName.toLowerCase().equals("queryproperties") | tagName.toLowerCase().equals("soapproperties")){
+        testAction = actionFactory.getAction("SET" + type + "PROPERTIES");
         headers = readSectionHeaderRow(sheet, rowNum);
         String prefix = null;
         
@@ -251,6 +283,7 @@ public class TestCaseBuilder
             //Check for prefix on current row. If found then check for existence in 
             //global properties with most recent incrementation (e.g. "SOAP_message10_")
             
+            //PREFIX
             if(rowMap.containsKey("prefix")){
                 LOGGER.trace("Prefix found. Processing.");
                 prefix = rowMap.get("prefix");
@@ -272,31 +305,31 @@ public class TestCaseBuilder
                 //Setting prefix as current prefix on key prova.properties.prefix.
                 testAction.setAttribute("prova.properties.prefix", prefix);
             } else {
-                throw new Exception("No prefix has been supplied! Please add a 'Prefix' key and value below your [SoapProperties] tag.");
+                throw new Exception("No prefix has been supplied! Please add a 'Prefix' key and value below your Properties tag.");
             }
             
+            //PASSWORD
             if(rowMap.containsKey("password")){
                 LOGGER.trace("Password found. Processing.");
-                String pass = null;
                 if(cellReader.isKey(rowMap.get("password"))){
                     LOGGER.trace("Password value is a key, retrieving property value.");
-                    pass = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("password")));
-                    if(pass != null){
-                        testAction.setAttribute("prova.properties.pass", pass);
+                    String password = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("password")));
+                    if(password != null){
+                        testAction.setAttribute("prova.properties.password", password);
                     } else {
                         LOGGER.debug("Unable to process user tag");
                     }
                 } else {
-                    testAction.setAttribute("prova.properties.pass", rowMap.get("pass"));
+                    testAction.setAttribute("prova.properties.password", rowMap.get("password"));
                 }
             }
             
+            //USER
             if(rowMap.containsKey("user")){
                 LOGGER.trace("User found. Processing.");
-                String user = null;
                 if(cellReader.isKey(rowMap.get("user"))){
                     LOGGER.trace("User value is a key, retrieving property value.");
-                    user = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("user")));
+                    String user = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("user")));
                     if(user != null){
                         testAction.setAttribute("prova.properties.user", user);
                     } else {
@@ -307,34 +340,43 @@ public class TestCaseBuilder
                 }
             }
             
-            if(rowMap.containsKey("url")){
-                LOGGER.trace("Url found. Processing.");
-                String url = null;
-                if(cellReader.isKey(rowMap.get("url"))){
-                    LOGGER.trace("Url value is a key, retrieving property value.");
-                    url = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("url")));
-                    if(url != null){
-                        testAction.setAttribute("prova.properties.url", url);
+            //ROLLBACK
+            if(rowMap.containsKey("rollback")){
+                LOGGER.trace("Rollback found. Processing.");
+                String rollback = rowMap.get("rollback").trim().toLowerCase();
+                if(!(rollback.equals("false") || rollback.equals("true"))){
+                    throw new Exception("Rollback value must be 'false' or 'true'!");
+                }
+                testAction.setAttribute("prova.properties.rollback", rollback);
+            } 
+            
+            //ADDRESS or URL
+            if(rowMap.containsKey("address") | rowMap.containsKey("url")){
+                LOGGER.trace("Address or URL found. Processing.");
+                String addressOrUrl = rowMap.containsKey("address") ? "ADDRESS" : "URL";
+                if(cellReader.isKey(rowMap.get(addressOrUrl))){
+                    LOGGER.trace("Address or URL value is a key, retrieving property value.");
+                    String addressOrUrlPropertyValue = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get(addressOrUrl)));
+                    if(addressOrUrlPropertyValue != null){
+                        testAction.setAttribute("prova.properties." + addressOrUrl, addressOrUrlPropertyValue);
                     } else {
-                        LOGGER.debug("Unable to process url tag");
+                        LOGGER.debug("Unable to process address tag");
                     }
                 } else {
-                    testAction.setAttribute("prova.properties.url", rowMap.get("url"));
+                    testAction.setAttribute("prova.properties." + addressOrUrl, rowMap.get(addressOrUrl));
                 }
             } else {
-                throw new Exception("No url has been supplied! Please add a 'Url' key and value below your [SoapProperties] tag.");
+                throw new Exception("No address or URL has been supplied! Please add a 'Address' or 'URL' key and value below your Properties tag.");
             }
-            
         }
     } 
-    if(testAction == null){
-        LOGGER.error("testAction has not been created, please check your tags");
-    } else{
+    if(testAction != null){
         testAction.setTestRunner(testRunner);
         testActions.add(testAction);
     }
     return testActions;
   }
+
 
   /**
    * Parse test actions and add the actions found to the correct action list.
@@ -359,13 +401,13 @@ public class TestCaseBuilder
           // TODO process label
           break;
         case "setup":
-          readTestActionsFromReference(rowMap).forEach(testCase::addSetUpAction);
+          readTestActionsFromReference(testCase, rowMap).forEach(testCase::addSetUpAction);
           break;
         case "test":
-          readTestActionsFromReference(rowMap).forEach(testCase::addTestAction);
+          readTestActionsFromReference(testCase, rowMap).forEach(testCase::addTestAction);
           break;
         case "teardown":
-          readTestActionsFromReference(rowMap).forEach(testCase::addTearDownAction);
+          readTestActionsFromReference(testCase, rowMap).forEach(testCase::addTearDownAction);
           break;
       }
     }
@@ -379,7 +421,7 @@ public class TestCaseBuilder
    * @return
    * @throws Exception
    */
-  private List<TestAction> readTestActionsFromReference(Map<String, String> rowMap) throws Exception
+  private List<TestAction> readTestActionsFromReference(TestCase testCase, Map<String, String> rowMap) throws Exception
   {
     Sheet nextSheet;
     
@@ -405,9 +447,25 @@ public class TestCaseBuilder
         throw new Exception("Sheet " + rowMap.get("test") + " not found in workbook " + nextPath);
     }
     
+    //In case the sheet is of type 'SOAP' or 'DB', (optional) testdata is collected and used for iteration over the sheet.
+    if(new SheetPrefixValidator(nextSheet).validate("SOAP") || new SheetPrefixValidator(nextSheet).validate("DB")){
+        List<TestAction> testActions = new ArrayList<>();
+        ArrayList<List<Properties>> testData = getSoapDbTestdata(testCase, nextSheet);
+        if(testData.size() > 0){
+            LOGGER.info(testData.size() + " sets of testdata found for sheet '" + nextSheet.getSheetName() + "'");
+            for(List<Properties> dataSet : testData){
+                testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet));
+            }
+            return testActions;
+        } else {
+            LOGGER.info("No testdata found for sheet '" + nextSheet.getSheetName() + "', processing once.");
+            testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, null));
+        }
+    }
+    
     // TODO READ keywords for reference sheet!
     
-    return readTestActionsFromSheet(nextSheet);
+    return readTestActionsFromSheet(testCase, nextSheet, null);
   }
 
   
@@ -418,7 +476,7 @@ public class TestCaseBuilder
    * @return
    * @throws Exception
    */
-  private List<TestAction> readTestActionsFromSheet(Sheet sheet) throws Exception
+  private List<TestAction> readTestActionsFromSheet(TestCase testCase, Sheet sheet, List<Properties> dataSet) throws Exception
   {
     List<TestAction> testActions = new ArrayList<>();
     MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
@@ -444,7 +502,18 @@ public class TestCaseBuilder
             {
               case "sectie":
               case "tc":
-                parseTestActionSection(testActions, sheet, rowNum, tagName);
+                parseTestActionSection(testCase, testActions, sheet, rowNum, tagName);
+                break;
+              case "query":
+              case "queryproperties":
+              case "execute":
+                parseSoapDbTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
+                break;
+              case "message":
+              case "soapproperties":
+              case "send":
+                parseSoapDbTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
+                break;    
             }
           }
         }
@@ -464,25 +533,26 @@ public class TestCaseBuilder
    * @param tagName
    * @throws Exception
    */
-  private void parseTestActionSection(List<TestAction> testActions, Sheet sheet, MutableInt rowNum, String tagName) throws Exception
+  private void parseTestActionSection(TestCase testCase, List<TestAction> testActions, Sheet sheet, MutableInt rowNum, String tagName) throws Exception
   {
     // get header row
     Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
     Map<String, String> rowMap;
     String keyword;
+    ActionFactory actionFactory = new WebActionFactory();
     
     while ((rowMap = readRow(sheet, rowNum, headers)) != null)
     {
       switch (tagName)
       {
         case "sectie":
-          TestAction testAction = WebActionFactory.getAction(rowMap.get("actie"));
+          TestAction testAction = actionFactory.getAction(rowMap.get("actie"));
           String locatorName = rowMap.get("locator").toLowerCase();
           String xPath = "";
           
-          if( testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_SOAP_LOCATOR_PFX + "." + locatorName))
+          if( testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_DB_LOCATOR_PFX + "." + locatorName))
           {
-            xPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_SOAP_LOCATOR_PFX + "." + locatorName);
+            xPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_DB_LOCATOR_PFX + "." + locatorName);
             testAction.setAttribute("xpath", xPath);
           }
           
@@ -527,7 +597,7 @@ public class TestCaseBuilder
           testActions.add(testAction);
           break;
         case "tc":
-          readTestActionsFromReference(rowMap).forEach(testActions::add);
+          readTestActionsFromReference(testCase, rowMap).forEach(testActions::add);
           break;
       }
     }
@@ -730,4 +800,57 @@ public class TestCaseBuilder
       LOGGER.trace("> " + key + " => " + props.getProperty(key));
     }
   }
+
+    private String replaceKeywords(String entry) throws Exception {
+        Pattern pattern = Pattern.compile("\\{[A-Za-z0-9.]+\\}");
+        Matcher matcher = pattern.matcher(entry);
+        StringBuffer entryBuffer = new StringBuffer("");
+
+        while(matcher.find()){
+            String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 1);
+            if(keyword.equalsIgnoreCase("SKIPCELL")){
+                LOGGER.debug("Skipping cell with keyword " + keyword);
+                return "skipcell";
+            }
+            
+            LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
+            if(!testRunner.hasPropertyValue(keyword))
+                throw new Exception("No value found for property " + keyword);
+            if(testRunner.getPropertyValue(keyword).equalsIgnoreCase("{SKIPCELL}")){
+                LOGGER.debug("Skipping cell with keyword '{" + keyword + "}'");
+                return "skipcell";
+            }
+            matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
+        }
+        matcher.appendTail(entryBuffer);
+        
+        return entryBuffer.toString();
+    }
+    
+    private ArrayList<List<Properties>> getSoapDbTestdata (TestCase testCase, Sheet sheet) throws Exception{
+        ArrayList<List<Properties>> testData = new ArrayList<>();
+        
+        dataWorkbookPath = getFlowPathFromTCID(testCase.getId()).substring(0, getFlowPathFromTCID(testCase.getId()).lastIndexOf(File.separator));
+
+        //Check if last character is a separator
+        if((dataWorkbookPath.charAt(dataWorkbookPath.length() - 1) + "").equals(File.separator))        {
+            dataWorkbookPath += "testdata" + File.separator + sheet.getSheetName() + ".xlsx";
+        } else { 
+            dataWorkbookPath += File.separator + "testdata" + File.separator + sheet.getSheetName() + ".xlsx";
+        }
+
+        //Load SOAP or DB specific testdata sheets
+        if(new SheetPrefixValidator(sheet).validate("SOAP") || new SheetPrefixValidator(sheet).validate("DB")){
+            if(new File(dataWorkbookPath).isFile()){
+                LOGGER.debug("Reading SOAP/DB testdata sheet: '" + dataWorkbookPath + "'");
+                testData = new TestDataBuilder(testRunner).buildTestDataAndTests(dataWorkbookPath, sheet.getSheetName());
+                if(testData.isEmpty()){
+                    LOGGER.debug("No testdata returned for path " + dataWorkbookPath + " and sheetname " + sheet.getSheetName());
+                }
+            } else {
+                LOGGER.debug("No testdata file found for path " + dataWorkbookPath + " and sheetname " + sheet.getSheetName());
+            }
+        }
+        return testData;
+    }
 }

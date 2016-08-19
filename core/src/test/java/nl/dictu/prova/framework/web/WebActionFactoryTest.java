@@ -34,13 +34,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("CaptureScreen");
+      TestAction testAction = new WebActionFactory().getAction("CaptureScreen");
       assertTrue(testAction instanceof CaptureScreen);
       
-      testAction = WebActionFactory.getAction("capturescreen");
+      testAction = new WebActionFactory().getAction("capturescreen");
       assertTrue(testAction instanceof CaptureScreen);
       
-      testAction = WebActionFactory.getAction("CAPTURESCREEN");
+      testAction = new WebActionFactory().getAction("CAPTURESCREEN");
       assertTrue(testAction instanceof CaptureScreen);
     }
     catch (Exception eX)
@@ -60,13 +60,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("Click");
+      TestAction testAction = new WebActionFactory().getAction("Click");
       assertTrue(testAction instanceof Click);
       
-      testAction = WebActionFactory.getAction("click");
+      testAction = new WebActionFactory().getAction("click");
       assertTrue(testAction instanceof Click);
       
-      testAction = WebActionFactory.getAction("CLICK");
+      testAction = new WebActionFactory().getAction("CLICK");
       assertTrue(testAction instanceof Click);
     }
     catch (Exception eX)
@@ -86,13 +86,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("DownloadFile");
+      TestAction testAction = new WebActionFactory().getAction("DownloadFile");
       assertTrue(testAction instanceof DownloadFile);
       
-      testAction = WebActionFactory.getAction("downloadfile");
+      testAction = new WebActionFactory().getAction("downloadfile");
       assertTrue(testAction instanceof DownloadFile);
       
-      testAction = WebActionFactory.getAction("DOWNLOADFILE");
+      testAction = new WebActionFactory().getAction("DOWNLOADFILE");
       assertTrue(testAction instanceof DownloadFile);
     }
     catch (Exception eX)
@@ -112,13 +112,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("Select");
+      TestAction testAction = new WebActionFactory().getAction("Select");
       assertTrue(testAction instanceof Select);
       
-      testAction = WebActionFactory.getAction("select");
+      testAction = new WebActionFactory().getAction("select");
       assertTrue(testAction instanceof Select);
       
-      testAction = WebActionFactory.getAction("SELECT");
+      testAction = new WebActionFactory().getAction("SELECT");
       assertTrue(testAction instanceof Select);
     }
     catch (Exception eX)
@@ -138,13 +138,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("SendKeys");
+      TestAction testAction = new WebActionFactory().getAction("SendKeys");
       assertTrue(testAction instanceof SendKeys);
       
-      testAction = WebActionFactory.getAction("sendkeys");
+      testAction = new WebActionFactory().getAction("sendkeys");
       assertTrue(testAction instanceof SendKeys);
       
-      testAction = WebActionFactory.getAction("SENDKEYS");
+      testAction = new WebActionFactory().getAction("SENDKEYS");
       assertTrue(testAction instanceof SendKeys);
     }
     catch (Exception eX)
@@ -164,13 +164,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("SetText");
+      TestAction testAction = new WebActionFactory().getAction("SetText");
       assertTrue(testAction instanceof SetText);
       
-      testAction = WebActionFactory.getAction("settext");
+      testAction = new WebActionFactory().getAction("settext");
       assertTrue(testAction instanceof SetText);
       
-      testAction = WebActionFactory.getAction("SETTEXT");
+      testAction = new WebActionFactory().getAction("SETTEXT");
       assertTrue(testAction instanceof SetText);
     }
     catch (Exception eX)
@@ -190,13 +190,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("Sleep");
+      TestAction testAction = new WebActionFactory().getAction("Sleep");
       assertTrue(testAction instanceof Sleep);
       
-      testAction = WebActionFactory.getAction("sleep");
+      testAction = new WebActionFactory().getAction("sleep");
       assertTrue(testAction instanceof Sleep);
       
-      testAction = WebActionFactory.getAction("SLEEP");
+      testAction = new WebActionFactory().getAction("SLEEP");
       assertTrue(testAction instanceof Sleep);
     }
     catch (Exception eX)
@@ -216,13 +216,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("UploadFile");
+      TestAction testAction = new WebActionFactory().getAction("UploadFile");
       assertTrue(testAction instanceof UploadFile);
       
-      testAction = WebActionFactory.getAction("uploadfile");
+      testAction = new WebActionFactory().getAction("uploadfile");
       assertTrue(testAction instanceof UploadFile);
       
-      testAction = WebActionFactory.getAction("UPLOADFILE");
+      testAction = new WebActionFactory().getAction("UPLOADFILE");
       assertTrue(testAction instanceof UploadFile);
     }
     catch (Exception eX)
@@ -242,13 +242,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("ValidateElement");
+      TestAction testAction = new WebActionFactory().getAction("ValidateElement");
       assertTrue(testAction instanceof ValidateElement);
       
-      testAction = WebActionFactory.getAction("validateelement");
+      testAction = new WebActionFactory().getAction("validateelement");
       assertTrue(testAction instanceof ValidateElement);
       
-      testAction = WebActionFactory.getAction("VALIDATEELEMENT");
+      testAction = new WebActionFactory().getAction("VALIDATEELEMENT");
       assertTrue(testAction instanceof ValidateElement);
     }
     catch (Exception eX)
@@ -268,13 +268,13 @@ public class WebActionFactoryTest
   {
     try
     {
-      TestAction testAction = WebActionFactory.getAction("ValidateText");
+      TestAction testAction = new WebActionFactory().getAction("ValidateText");
       assertTrue(testAction instanceof ValidateText);
       
-      testAction = WebActionFactory.getAction("validatetext");
+      testAction = new WebActionFactory().getAction("validatetext");
       assertTrue(testAction instanceof ValidateText);
       
-      testAction = WebActionFactory.getAction("VALIDATETEXT");
+      testAction = new WebActionFactory().getAction("VALIDATETEXT");
       assertTrue(testAction instanceof ValidateText);
     }
     catch (Exception eX)

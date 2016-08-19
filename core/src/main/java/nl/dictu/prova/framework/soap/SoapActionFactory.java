@@ -1,9 +1,9 @@
 package nl.dictu.prova.framework.soap;
 
+import nl.dictu.prova.framework.TestAction;
+import nl.dictu.prova.framework.ActionFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import nl.dictu.prova.framework.TestAction;
 
 /**
  * A factory that allows the input plug-in to create a new web-action.
@@ -11,7 +11,7 @@ import nl.dictu.prova.framework.TestAction;
  * @author  Coos van der Galiën
  * @since   2016-06-27
  */
-public class SoapActionFactory {
+public class SoapActionFactory implements ActionFactory {
 
   protected final static Logger LOGGER = LogManager.getLogger();
   
@@ -27,7 +27,7 @@ public class SoapActionFactory {
    * @return
    * @throws Exception
    */
-  public static TestAction getAction(String name) throws Exception
+  public TestAction getAction(String name) throws Exception
   {
     LOGGER.trace("Request to produce webaction '{}'", () -> name);
     

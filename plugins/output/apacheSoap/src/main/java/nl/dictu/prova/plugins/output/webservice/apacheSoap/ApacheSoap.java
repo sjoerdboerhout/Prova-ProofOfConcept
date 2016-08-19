@@ -95,18 +95,18 @@ public class ApacheSoap implements SoapOutputPlugin {
         this.testCase = testCase;
     }
 
-    @Override
-    public void tearDown(TestCase testCase) throws Exception {
-        LOGGER.debug("TearDown Test Case ID '{}'. Status: '{}'", () -> testCase.getId(), () -> testCase.getStatus().name());
-
-        try {
-            cleanUp();
-            //httpResponse.close();
-        } catch (Exception e) {
-            LOGGER.trace("Exception while closing httpClient : " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
+//    @Override
+//    public void tearDown(TestCase testCase) throws Exception {
+//        LOGGER.debug("TearDown Test Case ID '{}'. Status: '{}'", () -> testCase.getId(), () -> testCase.getStatus().name());
+//
+//        try {
+//            cleanUp();
+//            //httpResponse.close();
+//        } catch (Exception e) {
+//            LOGGER.trace("Exception while closing httpClient : " + e.getMessage());
+//            e.printStackTrace();
+//        }
+//    }
     
     @Override
     public Properties doProcessResponse() throws Exception {        

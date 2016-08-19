@@ -16,6 +16,7 @@ import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
 import nl.dictu.prova.framework.exceptions.TestActionException;
 import nl.dictu.prova.plugins.input.InputPlugin;
+import nl.dictu.prova.plugins.output.DbOutputPlugin;
 import nl.dictu.prova.plugins.output.ShellOutputPlugin;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
@@ -39,6 +40,7 @@ public class Prova implements Runnable, TestRunner
   private ShellOutputPlugin           shellOutputPlugin;
   private WebOutputPlugin             webOutputPlugin;
   private SoapOutputPlugin            soapOutputPlugin;
+  private DbOutputPlugin              dbOutputPlugin;
   private ArrayList<ReportingPlugin>  reportPlugins = new ArrayList<ReportingPlugin>();
   
   private TestSuite                   rootTestSuite;
@@ -104,7 +106,7 @@ public class Prova implements Runnable, TestRunner
   {
     try
     {
-      LOGGER.trace("join requested");
+      LOGGER.trace("Join requested");
       
       this.thread.join();
     }
@@ -234,11 +236,11 @@ public class Prova implements Runnable, TestRunner
       
       // TODO: Load and initialize output shell plug-in
       LOGGER.debug("Load and initialize web output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB));
-//      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB_PACKAGE) +
-//                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB).toLowerCase() + "." +
-//                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB);
-//
-//      webOutputPlugin = pluginLoader.getInstanceOf(pluginName, WebOutputPlugin.class);
+      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB_PACKAGE) +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB).toLowerCase() + "." +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_WEB);
+
+      webOutputPlugin = pluginLoader.getInstanceOf(pluginName, WebOutputPlugin.class);
 //      
 //      if(webOutputPlugin != null)
 //        webOutputPlugin.init(this);
@@ -256,6 +258,18 @@ public class Prova implements Runnable, TestRunner
         soapOutputPlugin.init(this);
       else
         throw new Exception("Could not load webservice output plugin '" + pluginName + "'");
+      
+      LOGGER.debug("Load and initialize output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB));
+      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB_PACKAGE) +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB).toLowerCase() + "." +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB);
+
+      dbOutputPlugin = pluginLoader.getInstanceOf(pluginName, DbOutputPlugin.class);
+      
+      if(dbOutputPlugin != null)
+        dbOutputPlugin.init(this);
+      else
+        throw new Exception("Could not load db output plugin '" + pluginName + "'");
 
       // Load and initialize report plug-in(s)
       LOGGER.debug("Load and initialize reporting plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_REPORTING));
@@ -358,7 +372,7 @@ public class Prova implements Runnable, TestRunner
       
       for(ReportingPlugin reportPlugin : getReportingPlugins())
       {
-      	LOGGER.debug("Aantal in lijst: "+getReportingPlugins().size());
+      	LOGGER.debug("Number of report plugins: " + getReportingPlugins().size());
       	LOGGER.debug("Report: start testsuite");
       	reportPlugin.logStartTestSuite(testSuite);
       }
@@ -385,8 +399,8 @@ public class Prova implements Runnable, TestRunner
             }
             
             // (re-)set up output plug-in(s) for a new test case
-            if(webOutputPlugin != null)
-              webOutputPlugin.setUp(entry.getValue());
+//            if(webOutputPlugin != null)
+//              webOutputPlugin.setUp(entry.getValue());
             
             if(soapOutputPlugin != null)
               soapOutputPlugin.setUp(entry.getValue());
@@ -551,6 +565,19 @@ public class Prova implements Runnable, TestRunner
   public InputPlugin getInputPlugin()
   {
     return this.inputPlugin;
+  }
+  
+  /**
+   * Get a reference to the active web action plug-in
+   * 
+   * @return
+   */
+  @Override
+  public DbOutputPlugin getDbActionPlugin()
+  {
+    LOGGER.trace("Request for db action plugin. ({})", () -> this.dbOutputPlugin.getName() );
+    
+    return this.dbOutputPlugin;
   }
 
   /**

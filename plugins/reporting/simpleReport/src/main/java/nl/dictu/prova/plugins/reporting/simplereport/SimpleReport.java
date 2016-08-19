@@ -191,8 +191,15 @@ public class SimpleReport implements ReportingPlugin
 		  color = "lightgreen";
 	  }
 
-	  pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()+1) +"</td></tr>");
-    
+	  try
+          {
+                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()+1) +"</td></tr>");
+          }
+          catch(Exception eX)
+          {
+                LOGGER.error("Exception in logging testAction!");
+                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">Unknown action id</td></tr>");
+          }
   }
 
   @Override

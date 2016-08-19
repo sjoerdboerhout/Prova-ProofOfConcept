@@ -40,20 +40,17 @@ public class TestSuiteBuilder
     testSuite = addTestCases(testSuite);
 
     File[] directories = rootDirectory.listFiles(directoryFilter);
-    Arrays.sort(directories);
-    
     for (File directory : directories)
     {
       testSuite.addTestSuite(buildTestSuite(directory, testRunner));
     }
-    
+
     return testSuite;
   }
 
   private TestSuite addTestCases(TestSuite testSuite) throws Exception
   {
     File[] excelFiles = new File(testSuite.getId()).listFiles(excelFlowFileFilter);
-    Arrays.sort(excelFiles);
 
     for (File excelFile : excelFiles)
     {
@@ -92,7 +89,7 @@ public class TestSuiteBuilder
                                                     workbookReader.readProperty(row, cell),
                                                     "testdata");
                     
-                    if(testDataSets.size() > 0)
+                    if(testDataSets.size() > 0 & new SheetPrefixValidator(sheet).validate("WEB"))
                     {
                       for(int i=0; i<testDataSets.size(); i++)
                       {
@@ -154,9 +151,8 @@ public class TestSuiteBuilder
     {
       String startDir = flowFilePath + File.separator + testDataDir;
       
-      LOGGER.debug("Look for data file: '{}_{}.xlsx' in dir '{}'", flowName, testCaseName, startDir);
-      
       LOGGER.trace("Get data sets in dir: '{}' for file '{}' for flow '{}'", startDir, flowName, testCaseName);
+
       // Locate all data files in the test data directory
       if(!new File(startDir).isDirectory())
         return dataSetsList;

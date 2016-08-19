@@ -791,17 +791,7 @@ public class Selenium implements WebOutputPlugin
         }
       }
     }
-  }   
-
-    @Override
-    public void doSendKeys(String string) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void doSetText(String string, String string1) throws Exception {
-        doSetText(string, string1, true);
-    }
+  }  
 
     public void tearDown(TestCase tc) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.

@@ -1,5 +1,6 @@
 package nl.dictu.prova.framework.web;
 
+import nl.dictu.prova.framework.ActionFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,21 +12,21 @@ import nl.dictu.prova.framework.TestAction;
  * @author  Sjoerd Boerhout
  * @since   2016-04-19
  */
-public class WebActionFactory
+public class WebActionFactory implements ActionFactory
 {
   protected final static Logger LOGGER = LogManager.getLogger();
   
   public final static String ACTION_CAPTURESCREEN   = "CAPTURESCREEN";
   public final static String ACTION_CLICK           = "CLICK";
   public final static String ACTION_DOWNLOADFILE    = "DOWNLOADFILE";
-  public final static String ACTION_NAVIGATE		= "NAVIGATE";
+  public final static String ACTION_NAVIGATE	    = "NAVIGATE";
   public final static String ACTION_SELECT          = "SELECT";
   public final static String ACTION_SELECTDROPDOWN  = "SELECTDROPDOWN";
   public final static String ACTION_SENDKEYS        = "SENDKEYS";
   public final static String ACTION_SETTEXT         = "SETTEXT";
   public final static String ACTION_SLEEP           = "SLEEP";
   public final static String ACTION_SWITCHFRAME     = "SWITCHFRAME";
-  public final static String ACTION_SWITCHSCREEN	= "SWITCHSCREEN";
+  public final static String ACTION_SWITCHSCREEN    = "SWITCHSCREEN";
   public final static String ACTION_VALIDATEELEMENT = "VALIDATEELEMENT";
   public final static String ACTION_VALIDATETEXT    = "VALIDATETEXT";
   public final static String ACTION_UPLOADFILE      = "UPLOADFILE";
@@ -37,7 +38,7 @@ public class WebActionFactory
    * @return
    * @throws Exception
    */
-  public static TestAction getAction(String name) throws Exception
+  public TestAction getAction(String name) throws Exception
   {
     LOGGER.trace("Request to produce webaction '{}'", () -> name);
     
@@ -46,7 +47,7 @@ public class WebActionFactory
       case ACTION_CAPTURESCREEN:   return new CaptureScreen();
       case ACTION_CLICK:           return new Click();
       case ACTION_DOWNLOADFILE:    return new DownloadFile();
-      case ACTION_NAVIGATE:		   return new Navigate();
+      case ACTION_NAVIGATE:        return new Navigate();
       case ACTION_SELECT:          return new Select();
       case ACTION_SELECTDROPDOWN:  return new SelectDropdown();
       case ACTION_SENDKEYS:        return new SendKeys();

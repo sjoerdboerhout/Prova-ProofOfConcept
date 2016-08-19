@@ -39,7 +39,7 @@ public class CellReader
   public String evaluateCellContent(Cell cell) throws Exception
   {
     final String LOG_PREFIX = getLogPrefix(cell);
-    if(cell.getStringCellValue().length() > 0)
+    if(new DataFormatter().formatCellValue(cell).toString().length() > 0)
         LOGGER.trace(LOG_PREFIX + "evaluating cell content '{}'", () -> cell);
 
     String result;
@@ -87,7 +87,7 @@ public class CellReader
   {
     final String LOG_PREFIX = getLogPrefix(cell);
     
-    LOGGER.trace(LOG_PREFIX + "evaluating formula: '" + cell.getCellFormula() + "'");
+    LOGGER.trace(LOG_PREFIX + "evaluating formula");
 
     try
     {
