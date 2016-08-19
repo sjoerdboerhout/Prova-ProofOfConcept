@@ -19,7 +19,7 @@ public class DbActionFactory implements ActionFactory
   
   public final static String ACTION_PROCESSDBRESPONSE   = "PROCESSDBRESPONSE";
   public final static String ACTION_SETDBPROPERTIES     = "SETDBPROPERTIES";
-  public final static String ACTION_SETQUERY            = "SETQUERY";
+  public final static String ACTION_SETQUERY            = "SETDBQUERY";
   public final static String ACTION_EXECUTEDBTEST       = "EXECUTEDBTEST";
     
   /**

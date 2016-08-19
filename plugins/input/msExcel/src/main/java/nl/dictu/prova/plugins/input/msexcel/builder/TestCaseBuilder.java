@@ -220,10 +220,13 @@ public class TestCaseBuilder
     
     
     //Add input properties to the central properties collection
-    if(dataset != null & !dataset.isEmpty()){
+    if(dataset != null){
+        LOGGER.debug("Adding " + dataset.get(0).size() + " properties from testdata.");
         for(Entry entry : dataset.get(0).entrySet()){
             testRunner.setPropertyValue((String) entry.getKey(), (String) entry.getValue());
         }
+    } else {
+        LOGGER.debug("Dataset from testdata is empty, continuing.");
     }
     
     //Read and process the specified part of the SOAP/DB template based on the tagname. Each tagname 

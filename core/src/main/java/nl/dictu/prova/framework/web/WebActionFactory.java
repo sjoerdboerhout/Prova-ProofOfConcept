@@ -19,14 +19,14 @@ public class WebActionFactory implements ActionFactory
   public final static String ACTION_CAPTURESCREEN   = "CAPTURESCREEN";
   public final static String ACTION_CLICK           = "CLICK";
   public final static String ACTION_DOWNLOADFILE    = "DOWNLOADFILE";
-  public final static String ACTION_NAVIGATE		= "NAVIGATE";
+  public final static String ACTION_NAVIGATE	    = "NAVIGATE";
   public final static String ACTION_SELECT          = "SELECT";
   public final static String ACTION_SELECTDROPDOWN  = "SELECTDROPDOWN";
   public final static String ACTION_SENDKEYS        = "SENDKEYS";
   public final static String ACTION_SETTEXT         = "SETTEXT";
   public final static String ACTION_SLEEP           = "SLEEP";
   public final static String ACTION_SWITCHFRAME     = "SWITCHFRAME";
-  public final static String ACTION_SWITCHSCREEN	= "SWITCHSCREEN";
+  public final static String ACTION_SWITCHSCREEN    = "SWITCHSCREEN";
   public final static String ACTION_VALIDATEELEMENT = "VALIDATEELEMENT";
   public final static String ACTION_VALIDATETEXT    = "VALIDATETEXT";
   public final static String ACTION_UPLOADFILE      = "UPLOADFILE";

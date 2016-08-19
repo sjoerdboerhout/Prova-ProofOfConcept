@@ -107,7 +107,7 @@ public class TestDataBuilder
         Properties testValidation = null;
 
         //Iterate over one column at a time
-        for (int colNum = 1; colNum < headers.size(); colNum++)
+        for (int colNum = 1; colNum <= headers.size(); colNum++)
         {
           testData = new Properties();
           testValidation = new Properties();
@@ -134,29 +134,29 @@ public class TestDataBuilder
                   if (cell != null & cell.getStringCellValue().length() > 0)
                   {
                     String value = workbookReader.evaluateCellContent(cell);
-                    LOGGER.trace("Found value '{}' for key '{}' in column '{}'", value, key, headers.get(colNum));
+                    LOGGER.trace("Found value '{}' for key '{}' in tests column '{}'", value, key, headers.get(colNum));
                     testValidation.put(key, value);
                   } 
                   else 
                   {
-                    LOGGER.trace("Found no value for key '{}' in column '{}'", key, headers.get(colNum));
+                    LOGGER.trace("Found no value for key '{}' in tests column '{}'", key, headers.get(colNum));
                     LOGGER.trace("Adding value {null}");
                     testValidation.put(key, "{null}");
                   }
                 } 
-                //Input data column
+                //Input data column 
                 else 
                 {
                   Cell cell = row.getCell(colNum);
                   if (cell != null)
                   {
                     String value = (String) workbookReader.evaluateCellContent(cell);
-                    LOGGER.trace("Found value '{}' for key '{}' in column '{}'", value, key, headers.get(colNum));
+                    LOGGER.trace("Found value '{}' for key '{}' in data column '{}'", value, key, headers.get(colNum));
                     testData.put(key, value);
                   } 
                   else 
                   {
-                    LOGGER.trace("Found no value for key '{}' in column '{}'", key, headers.get(colNum));
+                    LOGGER.trace("Found no value for key '{}' in data column '{}'", key, headers.get(colNum));
                     LOGGER.trace("Adding empty string");
                     testData.put(key, "");
                   }
@@ -174,6 +174,7 @@ public class TestDataBuilder
           }
           dataSets.add(0, testData);
           dataSets.add(1, testValidation);
+          LOGGER.trace("Added " + testData.size() + " testdata properties and " + testValidation.size() + " tests to dataset.");
         }
       }
       if(!dataSets.isEmpty())
