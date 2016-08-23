@@ -79,7 +79,7 @@ public class TestDataBuilder
   {
       LOGGER.trace("Build testdata and tests for: {}", sheetname);
       ArrayList<List<Properties>> testDataSets = new ArrayList<>();
-      List<Properties> dataSets = new ArrayList<>();
+      List<Properties> datasets = new ArrayList<>();
       
       Workbook workbook = new XSSFWorkbook(new File(path));
       workbookReader = new WorkbookReader(workbook);
@@ -88,60 +88,55 @@ public class TestDataBuilder
       for(Sheet sheetInWorkbook : workbook){
           if(sheetInWorkbook.getSheetName().trim().contentEquals(sheetname.trim())){
               sheet = sheetInWorkbook;
-              break;              
+              break;
           }
       }
       
       Iterator<Row> rowIterator = sheet.rowIterator();
-
-      LOGGER.trace("TestData Builder for SOAP & DB: '{}'", sheet.getSheetName());
-
-      if (rowIterator.hasNext())
-      {
-        // read headers
+    
+      if(rowIterator.hasNext()){
         Map<Integer, String> headers = readHeaderRow(rowIterator.next());
-        
-        //Property objects for each test data/test validation column
-        //These are added as a set to the datasets collection
-        Properties testData = null;
-        Properties testValidation = null;
-
-        //Iterate over one column at a time
-        for (int colNum = 1; colNum <= headers.size(); colNum++)
-        {
-          testData = new Properties();
-          testValidation = new Properties();
+  
+        LOGGER.trace("TestData Builder for SOAP & DB: '{}'", sheet.getSheetName());
+  
+        int i = 0;
           
-          //Go through all rows per column
-          for(int rowNum = 2; rowNum <= sheet.getLastRowNum(); rowNum++)
-          {
-            // column 0 contains key
-            Row row = sheet.getRow(rowNum);
-            Cell keyCell = row.getCell(0);
-            if (keyCell != null)
-            {
-              String key = workbookReader.evaluateCellContent(keyCell);
-              LOGGER.trace("Found key: '{}'", key);
+        while(i < headers.size()){
+            if(datasets.size() <= 1){
+                
+            }
+        }
+      }
+      return testDataSets;
+  }
+  
+  public Properties readColumn(Sheet sheet, Integer column, Integer start, Integer end){
+    
+    Properties columnData = new Properties();
+    
+    for(int rowNum = start; rowNum <= end; rowNum++){
+      Row row = sheet.getRow(rowNum);
+      Cell keyCell = row.getCell(0);
+        if (keyCell != null){
+          String key = workbookReader.evaluateCellContent(keyCell);
+          LOGGER.trace("Found key: '{}'", key);
                   
-              if (!key.isEmpty())
-              {
-                row = sheet.getRow(rowNum);
+          if (!key.isEmpty()){
+            row = sheet.getRow(rowNum);
                                 
-                //Validation column
-                if(colNum % 2 == 0)
-                {
-                  Cell cell = row.getCell(colNum);
-                  if (cell != null & cell.getStringCellValue().length() > 0)
-                  {
-                    String value = workbookReader.evaluateCellContent(cell);
-                    LOGGER.trace("Found value '{}' for key '{}' in tests column '{}'", value, key, headers.get(colNum));
-                    testValidation.put(key, value);
-                  } 
-                  else 
+            //Validation column
+            if(colNum % 2 == 0){
+              Cell cell = row.getCell(colNum);
+              if (cell != null & cell.getStringCellValue().length() > 0){
+                String value = workbookReader.evaluateCellContent(cell);
+                LOGGER.trace("Found value '{}' for key '{}' in tests column '{}'", value, key, headers.get(colNum));
+                dataSets.get(colNum).put(key, value);
+              } 
+                 else 
                   {
                     LOGGER.trace("Found no value for key '{}' in tests column '{}'", key, headers.get(colNum));
                     LOGGER.trace("Adding value {null}");
-                    testValidation.put(key, "{null}");
+                    dataSets.get(colNum).put(key, "{null}");
                   }
                 } 
                 //Input data column 
@@ -152,13 +147,13 @@ public class TestDataBuilder
                   {
                     String value = (String) workbookReader.evaluateCellContent(cell);
                     LOGGER.trace("Found value '{}' for key '{}' in data column '{}'", value, key, headers.get(colNum));
-                    testData.put(key, value);
+                    dataSets.get(colNum).put(key, value);
                   } 
                   else 
                   {
                     LOGGER.trace("Found no value for key '{}' in data column '{}'", key, headers.get(colNum));
                     LOGGER.trace("Adding empty string");
-                    testData.put(key, "");
+                    dataSets.get(colNum).put(key, "");
                   }
                 }
               } 
@@ -172,16 +167,93 @@ public class TestDataBuilder
               LOGGER.debug("Row {} is empty; skipping row", row.getRowNum());
             }
           }
-          dataSets.add(0, testData);
-          dataSets.add(1, testValidation);
-          LOGGER.trace("Added " + testData.size() + " testdata properties and " + testValidation.size() + " tests to dataset.");
+          String message = colNum % 2 == 0 ? "Added " + dataSets.get(colNum).size() + "testdata properties to dataset." : "Added " + dataSets.get(colNum).size() + "testvalidation properties to dataset."; 
+          LOGGER.trace(message);
         }
-      }
-      if(!dataSets.isEmpty())
-          testDataSets.add(dataSets);
+    }
+    
+    return columnData;
+  }    
+        
+        //Property objects for each test data/test validation column
+        //These are added as a set to the datasets collection
+
+//        //Iterate over one column at a time
+//        for (int colNum = 1; colNum < headers.size(); colNum++)
+//        {
+//          LOGGER.trace("Reading column " + colNum);
+//          
+//          dataSets.add(colNum, new Properties());
+//          
+//          //Go through all rows per column
+//          for(int rowNum = 2; rowNum <= sheet.getLastRowNum(); rowNum++)
+//          {
+//            // column 0 contains key
+//            Row row = sheet.getRow(rowNum);
+//            Cell keyCell = row.getCell(0);
+//            if (keyCell != null)
+//            {
+//              String key = workbookReader.evaluateCellContent(keyCell);
+//              LOGGER.trace("Found key: '{}'", key);
+//                  
+//              if (!key.isEmpty())
+//              {
+//                row = sheet.getRow(rowNum);
+//                                
+//                //Validation column
+//                if(colNum % 2 == 0)
+//                {
+//                  Cell cell = row.getCell(colNum);
+//                  if (cell != null & cell.getStringCellValue().length() > 0)
+//                  {
+//                    String value = workbookReader.evaluateCellContent(cell);
+//                    LOGGER.trace("Found value '{}' for key '{}' in tests column '{}'", value, key, headers.get(colNum));
+//                    dataSets.get(colNum).put(key, value);
+//                  } 
+//                  else 
+//                  {
+//                    LOGGER.trace("Found no value for key '{}' in tests column '{}'", key, headers.get(colNum));
+//                    LOGGER.trace("Adding value {null}");
+//                    dataSets.get(colNum).put(key, "{null}");
+//                  }
+//                } 
+//                //Input data column 
+//                else 
+//                {
+//                  Cell cell = row.getCell(colNum);
+//                  if (cell != null)
+//                  {
+//                    String value = (String) workbookReader.evaluateCellContent(cell);
+//                    LOGGER.trace("Found value '{}' for key '{}' in data column '{}'", value, key, headers.get(colNum));
+//                    dataSets.get(colNum).put(key, value);
+//                  } 
+//                  else 
+//                  {
+//                    LOGGER.trace("Found no value for key '{}' in data column '{}'", key, headers.get(colNum));
+//                    LOGGER.trace("Adding empty string");
+//                    dataSets.get(colNum).put(key, "");
+//                  }
+//                }
+//              } 
+//              else
+//              {
+//                LOGGER.trace("Row {} is empty; skipping row", row.getRowNum());
+//              }
+//            }
+//            else
+//            {
+//              LOGGER.debug("Row {} is empty; skipping row", row.getRowNum());
+//            }
+//          }
+//          String message = colNum % 2 == 0 ? "Added " + dataSets.get(colNum).size() + "testdata properties to dataset." : "Added " + dataSets.get(colNum).size() + "testvalidation properties to dataset."; 
+//          LOGGER.trace(message);
+//        }
+//      }
+//      if(!dataSets.isEmpty())
+//          testDataSets.add(dataSets);
       
-      return testDataSets;
-  }
+//      return testDataSets;
+//  }
   
   /**
    * 

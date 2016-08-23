@@ -352,8 +352,8 @@ public class TestCaseBuilder
             
             //ADDRESS or URL
             if(rowMap.containsKey("address") | rowMap.containsKey("url")){
-                LOGGER.trace("Address or URL found. Processing.");
-                String addressOrUrl = rowMap.containsKey("address") ? "ADDRESS" : "URL";
+                String addressOrUrl = rowMap.containsKey("address") ? "address" : "url";
+                LOGGER.trace(addressOrUrl + " found. Processing.");
                 if(cellReader.isKey(rowMap.get(addressOrUrl))){
                     LOGGER.trace("Address or URL value is a key, retrieving property value.");
                     String addressOrUrlPropertyValue = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get(addressOrUrl)));
