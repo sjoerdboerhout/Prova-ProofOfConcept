@@ -1,454 +1,314 @@
+/**
+ *
+ * Licensed under the EUPL, Version 1.1 or - as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ * <p>
+ * http://ec.europa.eu/idabc/eupl
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ * <p>
+ * Date:      23-08-2016
+ * Author(s): Sjoerd Boerhout
+ * <p>
+ */
 package nl.dictu.prova.framework;
 
+import java.security.InvalidParameterException;
 import java.util.LinkedList;
-
+import java.util.Properties;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import nl.dictu.prova.Config;
-import nl.dictu.prova.TestRunner;
-import nl.dictu.prova.framework.exceptions.SetUpActionException;
-import nl.dictu.prova.framework.exceptions.TearDownActionException;
-import nl.dictu.prova.framework.exceptions.TestActionException;
-import nl.dictu.prova.plugins.reporting.ReportingPlugin;
-
 /**
- * Contains all the data of a test case including a list of all actions that
- * are part of this test.
- * 
- * @author  Sjoerd Boerhout
- * @since   2016-04-14
+ *
+ * @author Sjoerd Boerhout
  */
 public class TestCase
 {
   final static Logger LOGGER = LogManager.getLogger();
-  
-  // Unique test case ID for identification
-  private String     id         = "";
-  private TestStatus status     = TestStatus.NOTRUN;
-  private String     summary    = "";
-  private TestRunner testRunner = null;
-  
-  private String projectName  = "";
-  
-  // Test case information
-  private String issueId  = "";
-  private String priority = "";
 
-  // Test actions lists per type
-  private LinkedList<TestAction> setUpActions     = new LinkedList<TestAction>();
-  private LinkedList<TestAction> testActions      = new LinkedList<TestAction>();
-  private LinkedList<TestAction> tearDownActions  = new LinkedList<TestAction>();
-  
+  private String id;
+  private TestStatus testStatus;
+
+  private Properties headers;
+  private Properties variables;
+
+  private LinkedList<TestAction> setUpActions;
+  private LinkedList<TestAction> testActions;
+  private LinkedList<TestAction> tearDownActions;
+
+
   /**
-   * Constructor with mandatory ID
-   * 
-   * @param id
-   * @throws Exception
+   * Constructor. Provided ID must be unique and is an identifier for the input
+   * plug-in to locate the test case
+   *
+   * @param newId
+   *
+   * @throws InvalidParameterException
    */
-  public TestCase(String id) throws Exception
+  public TestCase(String newId) throws InvalidParameterException
   {
-    LOGGER.debug("Construct a new TestCase with id '{}'", () -> id);
-    
-    setId(id);
+    LOGGER.debug("Creation of new testcase with test id '{}'", () -> newId);
   }
-  
+
+
   /**
-   * Set the id of this test case
-   * 
-   * @param id
-   * @throws Exception
-   */
-  private void setId(String id) throws Exception
-  {
-    LOGGER.trace("Set TestCase id: {}", () -> id);
-    
-    if(id.trim().length() < 1)
-    {
-      throw new Exception("Invalid testsuite id: " + id);
-    }
-    
-    this.id = id;
-  }
-  
-  /**
-   * Get the id of this test case
-   * 
+   * Return the ID of this test case
+   *
    * @return
    */
   public String getId()
   {
+    LOGGER.debug("Request for test id '{}'", () -> this.id);
+    
     return this.id;
-  }  
-  
-  
-  /**
-   * Set the test runner reference
-   * 
-   * @param testrunner
-   * @throws Exception
-   */
-  public void setTestRunner(TestRunner testRunner)
-  {
-    LOGGER.trace("Set TestRunner reference");
-    LOGGER.trace("TC: Testrunner set: {}", (testRunner != null ? "Yes" : "No"));
-            
-    this.testRunner = testRunner;
   }
-  
-  /**
-   * Get the testRunner of this test case
-   * 
-   * @return
-   */
-  public TestRunner getTestRunner()
-  {
-    return this.testRunner;
-  }  
-      
+
 
   /**
-   * Update the test status from external source.
-   * For example when the test is blocked by another tests failure
-   * 
-   * @param status
+   * Return the status of this test case
+   *
+   * @return
    */
-  public void setStatus(TestStatus status)
+  public TestStatus getTestStatus()
   {
-    LOGGER.debug("Set status of tc '{}' to: {}", () -> this.getId(), () -> status.name());
+    LOGGER.debug("Request for test status '{}'", () -> this.testStatus);
     
-    this.status = status;
+    return this.testStatus;
   }
-  
-  /**
-   * Get the current status of this test
-   * 
-   * @return
-   */
-  public TestStatus getStatus()
-  {
-    return this.status;
-  }  
-  
+
 
   /**
-   * Update the project name for this test script
-   * 
-   * @param projectName
+   * Update the test status because of an external cause.
+   * Accepted new states:
+   * - Blocked
+   *
+   * @param newTestStatus
+   * @param reason
+   *
+   * @return
+   *
+   * @throws InvalidParameterException
    */
-  public void setProjectName(String projectName)
+  public TestStatus updateTestStatus(TestStatus newTestStatus, String reason)
+          throws
+          InvalidParameterException
   {
-    LOGGER.debug("Update project name of tc from '{}' to {}", () -> this.projectName, () -> projectName);
+    LOGGER.debug("Updating testStatus to '{}' with reason '{}'", () -> newTestStatus, () -> reason);
     
-    this.projectName = projectName;
-  }
-  
-  /**
-   * Get the current project name of this test
-   * 
-   * @return
-   */
-  public String getProjectName()
-  {
-    return this.projectName;
-  }
-
-  
-  /**
-   * Set a summary for this test. Usefull when the test could not be
-   * completed.
-   * 
-   * @param testSummary
-   */
-  public void setSummary(String summary)
-  {
-    try
-    {
-      if(summary.trim().length() < 1 || summary == null)
-        throw new Exception("Invalid summary '" + summary + "'");
-      
-      this.summary = summary;
-    }
-    catch(Exception eX)
-    {
-      LOGGER.warn("Exception: " + eX + " (" + priority + ")");
-    }
-  }
-  
-  /**
-   * Get the current summary of the test run result.
-   * 
-   * @return
-   */
-  public String getSummary()
-  {
-    return this.summary;
-  }
-  
-  /**
-   * Set the id of the issue this test case will test
-   * @param issueId
-   */
-  public void setIssueId(String issueId)
-  {
-    LOGGER.trace("New issueId to set {}", () -> this.issueId);
+    testStatus = newTestStatus;
     
-    try
-    {
-      if(issueId.trim().length() < 1 || issueId == null)
-        throw new Exception("Invalid priority");
-     
-      this.issueId = issueId;
-    }
-    catch(Exception eX)
-    {
-      LOGGER.warn("Invalid issue id '{}'. Id '{}' not changed.", () -> issueId, () -> this.issueId);
-    }
-  }
-  
-  /**
-   * Get the issue id of this test case
-   * 
-   * @return
-   */
-  public String getIssueId()
-  {
-    return this.issueId;
-  }
-  
-
-  /**
-   * @param priority the priority to set
-   */
-  public void setPriority(String priority)
-  {
-    LOGGER.trace("New priority to set {}", () -> this.priority);
-    
-    try
-    {
-      if(priority.trim().length() < 1 || priority == null)
-        throw new Exception("Invalid priority '" + priority + "'");
-      
-      this.priority = priority;
-    }
-    catch(Exception eX)
-    {
-      LOGGER.warn("Exception: " + eX + " (" + priority + ")");
-    }
-  }
-
-  /**
-   * @return the priority
-   */
-  public String getPriority()
-  {
-    return this.priority;
+    return testStatus;
   }
 
 
   /**
-   * @param testAction the testActions to set
+   * Add the given {@link setUpAction} to this test case
+   *
+   * @param setUpAction
+   *
+   * @throws InvalidParameterException
    */
-  public void addSetUpAction(TestAction setUpAction)
+  public void addSetUpAction(TestAction setUpAction) throws
+          InvalidParameterException
   {
     LOGGER.debug("Add setup action '{}'", () -> setUpAction.toString());
-    if(setUpActions.isEmpty())
-    {
-      setUpAction.setId(1);
-      setUpActions.add(setUpAction);
-    } else {
-      setUpAction.setId(setUpActions.getLast().getId() + 1);
-      setUpActions.add(setUpAction);
-    }
+    
+    setUpActions.add(setUpAction);
   }
 
-  /**
-   * @param testAction the testActions to set
-   */
-  public void addTestAction(TestAction testAction)
-  {
-    LOGGER.debug("Add test action {}", () -> testAction.toString());
-    if(testActions.isEmpty())
-    {
-      testAction.setId(1);
-      testActions.add(testAction);
-    } else {
-      testAction.setId(testActions.getLast().getId() + 1);
-      testActions.add(testAction);
-    }
-  }
 
   /**
-   * @param testAction the testActions to set
+   * Add the given {@link testAction} to this test case
+   *
+   * @param testAction
+   *
+   * @throws InvalidParameterException
    */
-  public void addTearDownAction(TestAction tearDownAction)
+  public void addTestAction(TestAction testAction) throws
+          InvalidParameterException
   {
-    LOGGER.debug("Add teardown action {}", () -> tearDownAction.toString());
-    if(tearDownActions.isEmpty())
-    {
-      tearDownAction.setId(1);
-      tearDownActions.add(tearDownAction);
-    } else {
-      tearDownAction.setId(tearDownActions.getLast().getId() + 1);
-      tearDownActions.add(tearDownAction);
-    }
+    LOGGER.debug("Add test action '{}'", () -> testAction.toString());
+    
+    testActions.add(testAction);
   }
 
-  
+
   /**
-   * Run this test case by executing all it's actions.
-   * 
-   * @throws Exception 
+   * Add the given {@link tearDownAction} to this test case
+   *
+   * @param tearDownAction
+   *
+   * @throws InvalidParameterException
    */
-  public void execute() throws  Exception
+  public void addTearDownAction(TestAction tearDownAction) throws
+          InvalidParameterException
   {
-    Exception exception = null;
-    Long waitTime = (long) 0;
+    LOGGER.debug("Add teardown action '{}'", () -> tearDownAction.toString());
     
-    LOGGER.info("Execute TC: '{}'", this.toString());
-    try
-    {
-      LOGGER.trace("Configured delay time: '{}'ms", testRunner.getPropertyValue(Config.PROVA_TESTS_DELAY));
-      waitTime = Long.parseLong(testRunner.getPropertyValue(Config.PROVA_TESTS_DELAY));
-    }
-    catch(Exception eX)
-    {
-      LOGGER.warn("Invalid test delay time. Falling back to default: 50 ms ({})", eX.getMessage());
-      waitTime = (long) 50;
-    }
-    // Execute all set up actions
-    try
-    {
-      for(TestAction setUpAction : setUpActions)
-      {
-        LOGGER.trace("Execute setUp action: {}", () -> setUpAction.toString());
-        setUpAction.execute();
-        
-      }      
-    }
-    catch(Exception eX)
-    {
-      LOGGER.error(eX);
-      this.setStatus(TestStatus.FAILED);
-      this.setSummary(eX.getMessage());
-      exception = new SetUpActionException(eX.getMessage());
-      eX.printStackTrace();
-    }
-    
-    // Execute all test actions if set up succeeded
-    if(exception == null)
-    {
-      try
-      {
-        for(TestAction testAction : testActions)
-        {
-          LOGGER.trace("Execute test action: {}", () -> testAction.toString());
-          try
-          {
-        	  testAction.execute();
-        	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
-              {
-              	LOGGER.debug("Report: log action");
-              	reportPlugin.logAction(testAction, "OK");
-              }
-          }
-          catch(Exception eX)
-          {
-        	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
-              {
-              	LOGGER.debug("Report: log action");
-              	reportPlugin.logAction(testAction, "NOK");
-              }
-        	  throw eX;
-          }
-          try
-          {
-            LOGGER.trace("Wait {} ms before executing next action.", waitTime);
-            Thread.sleep(waitTime);
-          }
-          catch(Exception eX)
-          {
-            LOGGER.debug("Exception while waiting '{}' ms: {}", 
-                          2000, eX.getMessage());
-                
-                throw eX;
-          }
-        }    
-        
-        // Errors during tearDown do not alter the test result
-        this.setStatus(TestStatus.PASSED);
-      }
-      catch(Exception eX)
-      {
-        LOGGER.error(eX);
-        this.setStatus(TestStatus.FAILED);
-        this.setSummary(eX.getMessage());
-        eX.printStackTrace();
-        exception = new TestActionException(eX.getMessage());
-      }
-    }
-    
-    // Always execute the tear down actions
-    try
-    {
-      for(TestAction tearDownAction : tearDownActions)
-      {
-        LOGGER.trace("Execute tear down action: {}", () -> tearDownAction.toString());
-        tearDownAction.execute();
-      }    
-    }
-    catch(TearDownActionException eX)
-    {
-      LOGGER.error(eX);
-      this.setSummary(eX.getMessage());
-      if(exception == null)
-        exception = eX;      
-    }
-    catch(Exception eX)
-    {
-      LOGGER.error(eX);
-      this.setSummary(eX.getMessage());
-      this.setStatus(TestStatus.FAILED);
-      if(exception == null)
-        exception = new TearDownActionException(eX.getMessage());
-      eX.printStackTrace();
-    }
-    
-    // Exception occured? Throw it back to the test suite
-    if(exception != null) 
-      throw exception;
+    tearDownActions.add(tearDownAction);
   }
-  
+
+
   /**
-   * Clear all test cases when the test case is executed.
-   * This to minimize memory usage.
+   * Set or update the given header {@link key} with {@link value}
+   *
+   * @param key
+   * @param value
+   *
+   * @throws InvalidParameterException
    */
-  public void clearAllActions()
+  public void setHeader(String key, String value) throws
+          InvalidParameterException
   {
-    try
-    {
-      setUpActions.clear();
-      testActions.clear();
-      tearDownActions.clear();
-    }
-    catch(Exception eX)
-    {
-      LOGGER.warn("Exception whie clearing test actions for TC '{}'", this.getId(), eX);
-    }
+    LOGGER.trace("Set value of header with key '{}' to '{}'", () -> key, () -> value);
+    
+    headers.put(key, value);
   }
-  
+
+
   /**
-   * Summarize this object for logging purpose
-   * 
+   * Check if the given header {@link key} is set in the test case
+   *
+   * @param key
+   *
+   * @return
+   *
+   * @throws InvalidParameterException
+   */
+  public boolean hasHeader(String key) throws
+          InvalidParameterException
+  {
+    LOGGER.trace("Has header: '{}': ({})", 
+                  () -> key, 
+                  () -> headers.containsKey(key) ? headers.getProperty(key) : "No");
+    
+    return headers.containsKey(key);
+  }
+
+
+  /**
+   * Return the {@link value} of the given header {@link key}
+   *
+   * @param key
+   *
+   * @return
+   *
+   * @throws InvalidParameterException
+   */
+  public String getHeader(String key) throws
+          InvalidParameterException
+  {
+    LOGGER.trace("Get value of header: '{}' ({})", 
+                  () -> key, 
+                  () -> headers.containsKey(key) ? headers.getProperty(key) : "Not found");
+    
+    if(!headers.containsKey(key))
+      throw new InvalidParameterException("No header with value '" + key + "' found!");
+    
+    return headers.getProperty(key);
+  }
+
+
+  /**
+   * Return a list of the setup actions in this test case
+   *
    * @return
    */
-  @Override
-  public String toString()
+  public LinkedList<TestAction> getSetUpActions()
   {
-    return String.format( "ID: %s (Setup: %d, Actions: %d, Teardown: %d)", 
-                          id, 
-                          this.setUpActions.size(),
-                          this.testActions.size(), 
-                          this.tearDownActions.size());
-  }  
+    LOGGER.trace("Request for ({}) setup actions", () -> this.setUpActions.size());
+    
+    return setUpActions;
+  }
+
+
+  /**
+   * Return a list of the test actions in this test case
+   *
+   * @return
+   */
+  public LinkedList<TestAction> getTestActions()
+  {
+    LOGGER.trace("Request for ({}) test actions", () -> this.testActions.size());
+    
+    return testActions;
+  }
+
+
+  /**
+   * Return a list of the teardown actions in this test case
+   *
+   * @return
+   */
+  public LinkedList<TestAction> getTearDownActions()
+  {
+    LOGGER.trace("Request for ({}) teardown actions", () -> this.tearDownActions.size());
+    
+    return tearDownActions;
+  }
+  
+  
+ /**
+   * Set or update the given variable {@link key} with {@link value}
+   *
+   * @param key
+   * @param value
+   *
+   * @throws InvalidParameterException
+   */
+  public void setVariable(String key, String value) throws InvalidParameterException
+  {
+    LOGGER.trace("Set value of variable with key '{}' to '{}'", () -> key, () -> value);
+    
+    variables.put(key, value);
+  }
+
+  
+  /**
+   * Check if the given variable {@link key} is set in the test case
+   *
+   * @param key
+   *
+   * @return
+   *
+   * @throws InvalidParameterException
+   */
+  public boolean hasVariable(String key) throws InvalidParameterException
+  {
+    LOGGER.trace("Get value of variable: '{}' ({})", 
+                  () -> key, 
+                  () -> variables.containsKey(key) ? variables.getProperty(key) : "Not found");
+    
+    return variables.containsKey(key);
+  }
+
+  
+   /**
+   * Return the {@link value} of the given variable {@link key}
+   *
+   * @param key
+   *
+   * @return
+   *
+   * @throws InvalidParameterException
+   */
+  public String getVariable(String key) throws InvalidParameterException
+  {
+     LOGGER.trace("Get value of variable: '{}' ({})", 
+                  () -> key, 
+                  () -> variables.containsKey(key) ? variables.getProperty(key) : "Not found");
+    
+    if(!variables.containsKey(key))
+      throw new InvalidParameterException("No variable with value '" + key + "' found!");
+    
+    return variables.getProperty(key);
+  }
+
 }

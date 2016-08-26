@@ -58,16 +58,17 @@
 
     <!-- Control Plugins -->
     <module>runners/cli</module>
+    <module>runners/gui</module>
 
     <!-- Input Plugins -->
     <module>plugins/input/msExcel</module>
 
     <!-- Output Plugins -->
+    <module>plugins/output/apacheSoap</module>
+    <module>plugins/output/jdbc</module>
     <module>plugins/output/scriptPrinter</module>
     <module>plugins/output/selenium</module>
     <module>plugins/output/shellCommand</module>
-    <module>plugins/output/apacheSoap</module>
-    <module>plugins/output/jdbc</module>
 
     <!-- Reporting Plugins -->
     <module>plugins/reporting/simpleReport</module>

@@ -8,41 +8,35 @@
   <parent>
     <groupId>nl.dictu</groupId>
     <artifactId>Prova</artifactId>
-    <version>0.1.0-SNAPSHOT</version>   
-    <relativePath>../../../pom.xml</relativePath> 
+    <version>0.1.0-SNAPSHOT</version>
+    <relativePath>../../../pom.xml</relativePath>
   </parent>
 
   <groupId>nl.dictu.prova.plugins.output</groupId>
   <artifactId>jdbc</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>Output plugin: Jdbc database functions</name>
-  <description>Plugin to execute queries and database tests</description>
+  <name>Output plugin: JDBC</name>
+  <description>Plugin to execute queries on databases</description>
   <packaging>jar</packaging>
 
   <properties>
+    <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
+
     <prova.install.dir>${project.parent.basedir}</prova.install.dir>
     <artifact.install.dir>${prova.install.dir}/${prova.plugins.output.path}</artifact.install.dir>
-    <artifact.package>nl.dictu.prova.plugins.output.db.jdbc</artifact.package>
+    <artifact.package>nl.dictu.prova.plugins.output.jdbc</artifact.package>
     <artifact.mainclass>Jdbc</artifact.mainclass>
     <dir.lib.rel>../../lib</dir.lib.rel>
-
-    <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
-  </properties>
-
+	</properties>
+	
   <dependencies>
     <dependency>
       <groupId>nl.dictu.prova</groupId>
       <artifactId>core</artifactId>
       <version>${prova.core.version}</version>
     </dependency>
-	
-	<dependency>
-	  <groupId>com.oracle</groupId>
-	  <artifactId>ojdbc6</artifactId>
-	  <version>11.2.0</version>
-	</dependency>
   </dependencies>
-
+	
   <build>
     <plugins>
       <plugin>
@@ -55,8 +49,8 @@
             </goals>
             <configuration>
               <tasks>
-                <echo>Copy '${project.build.directory}/${artifact.source.name}.jar'</echo>
-                <echo>To '${artifact.install.dir}/${artifact.dest.name}.jar'</echo>
+                <echo> Copy '${project.build.directory}/${artifact.source.name}.jar'</echo>
+                <echo> To '${artifact.install.dir}/${artifact.dest.name}.jar'</echo>
 
                 <copy file="${project.build.directory}/${artifact.source.name}.jar"
                       tofile="${artifact.install.dir}/${artifact.dest.name}.jar"
