@@ -34,6 +34,8 @@ public abstract class TestAction
 {
   protected final static Logger LOGGER = LogManager.getLogger();
   
+  public final static String ATTR_PARAMETER = "PARAMETER";
+  
   private Integer actionId;
   private String actionName;
   private TestCase parent;

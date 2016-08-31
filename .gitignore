@@ -56,3 +56,6 @@ core/src/main/resources/log4j2.out.xml
 config
 _Prova
 
+/plugins/output/selenium/nbproject/
+_doc/testSite/x.png
+plugins/output/selenium/Clickx.png

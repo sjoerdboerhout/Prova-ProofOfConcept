@@ -19,8 +19,6 @@
  */
 package nl.dictu.prova.plugins.output.selenium.actions;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.framework.parameters.Text;
@@ -35,6 +33,10 @@ import org.openqa.selenium.WebElement;
  */
 public class SendKeys extends TestAction
 {
+  // Action attribute names
+  public final static String ATTR_KEYS = "KEYS";
+  public final static String ATTR_XPATH = "XPATH";
+  
   Selenium selenium;
   private Text keys;
   private Xpath xPath;
@@ -52,6 +54,7 @@ public class SendKeys extends TestAction
     }
     catch (Exception ex)
     {
+      LOGGER.error("Exception while creating new SendKeys TestAction! " + ex.getMessage());
     }
   }
 
@@ -106,6 +109,7 @@ public class SendKeys extends TestAction
     catch(Exception eX)
     {
       LOGGER.debug("Exception while sending keys '{}'", keys);
+      eX.printStackTrace();
       return TestStatus.FAILED;
     }
   }
@@ -134,6 +138,41 @@ public class SendKeys extends TestAction
     if(!xPath.isValid())    return false;
     
     return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    try
+    {
+      LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+
+      switch(key.toUpperCase())
+      {
+        case ATTR_PARAMETER:
+        case ATTR_KEYS:  
+          keys.setValue(value); 
+        break;
+        case ATTR_XPATH:  
+          if(value!=null) xPath.setValue(value); 
+          break;
+      } 
+      xPath.setAttribute(key, value);
+    }
+    catch (Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction : " + ex.getMessage());
+    }
   }
 
 }

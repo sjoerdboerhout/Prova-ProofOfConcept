@@ -24,8 +24,6 @@ import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.framework.parameters.FileName;
 import nl.dictu.prova.framework.parameters.Url;
 import nl.dictu.prova.plugins.output.selenium.Selenium;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  *
@@ -97,6 +95,42 @@ public class DownloadFile extends TestAction
     if(!saveAs.isValid())   return false;
     
     return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    try
+    {
+      LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+
+      switch(key.toUpperCase())
+      {
+        case ATTR_XPATH:
+        case ATTR_URL: 
+          url.setValue(value); 
+        break;
+
+        case ATTR_PARAMETER:
+        case ATTR_SAVEAS:  
+          saveAs.setValue(value); 
+        break;
+      }
+    }
+    catch(Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction");
+    }
   }
   
 }

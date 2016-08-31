@@ -21,13 +21,10 @@ package nl.dictu.prova.plugins.output.selenium.actions;
 
 import java.io.File;
 import java.io.IOException;
-import nl.dictu.prova.Config;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.plugins.output.selenium.Selenium;
 import org.apache.commons.io.FileUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 
@@ -37,9 +34,11 @@ import org.openqa.selenium.TakesScreenshot;
  */
 public class CaptureScreen extends TestAction
 {
+  //Action attribute names
+  public final static String ATTR_FILENAME = "FILENAME";
+  
   private Selenium selenium;
   private String fileName;
-  
   
   public CaptureScreen(Selenium selenium)
   {
@@ -53,12 +52,16 @@ public class CaptureScreen extends TestAction
   @Override
   public TestStatus execute()
   {
-    File scrFile = ((TakesScreenshot)selenium.getWebdriver()).getScreenshotAs(OutputType.FILE);
+    File scrFile = ((TakesScreenshot) selenium.getWebdriver()).getScreenshotAs(OutputType.FILE);
     
     try 
     {
-      if(!new File(this.getAttribute("filename")).isFile())
-        fileName = this.getAttribute("filename");
+      if(this.hasAttribute("filename"))
+      {
+        String fileNameAttribute = this.getAttribute("filename");
+        if(fileNameAttribute != null & !new File(fileNameAttribute).isFile())
+          fileName = fileNameAttribute;
+      }
       
       if(!isValid())
       {
@@ -104,6 +107,30 @@ public class CaptureScreen extends TestAction
     if(fileName == null) return false;
     
     return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
+    switch(key.toUpperCase())
+    {
+      case ATTR_PARAMETER:
+      case ATTR_FILENAME:  
+        fileName = value;
+      break;
+    }
   }
 
 }

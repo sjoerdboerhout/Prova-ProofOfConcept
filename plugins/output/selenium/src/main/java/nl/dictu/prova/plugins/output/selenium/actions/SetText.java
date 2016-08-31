@@ -34,6 +34,11 @@ import org.openqa.selenium.WebElement;
  */
 public class SetText extends TestAction
 {
+    // Action attribute names
+  public final static String ATTR_XPATH = "XPATH";
+  public final static String ATTR_VALUE = "VALUE";
+  public final static String ATTR_REPLACE = "REPLACE";
+          
   Selenium selenium;
 
   // Declaration and default value
@@ -59,8 +64,9 @@ public class SetText extends TestAction
 
       replace = new Bool(true);
     }
-    catch(Exception eX)
+    catch(Exception ex)
     {
+      LOGGER.error("Exception while creating new SetText TestAction! " + ex.getMessage());
     }
   }
 
@@ -139,5 +145,46 @@ public class SetText extends TestAction
     if(!replace.isValid())  return false;
     
     return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    try
+    {
+      LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+
+      switch(key.toUpperCase())
+      {
+        case ATTR_XPATH:  
+          xPath.setValue(value); 
+        break;
+
+        case ATTR_PARAMETER:
+        case ATTR_VALUE:
+          text.setValue(value); 
+        break;
+
+        case ATTR_REPLACE:  
+          replace.setValue(value); 
+        break;
+      }
+
+      xPath.setAttribute(key, value);  
+    }
+    catch (Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction : " + ex.getMessage());
+    }
   }
 }

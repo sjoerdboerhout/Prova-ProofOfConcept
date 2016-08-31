@@ -21,6 +21,9 @@ package nl.dictu.prova.plugins.output.selenium.actions;
 
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestStatus;
+import nl.dictu.prova.framework.parameters.Bool;
+import nl.dictu.prova.framework.parameters.TimeOut;
+import nl.dictu.prova.framework.parameters.Xpath;
 import nl.dictu.prova.plugins.output.selenium.Selenium;
 
 /**
@@ -29,24 +32,98 @@ import nl.dictu.prova.plugins.output.selenium.Selenium;
  */
 public class ValidateElement extends TestAction
 {
+  // Action attribute names
+  public final static String ATTR_XPATH    = "XPATH";
+  public final static String ATTR_EXISTS   = "EXISTS";
+  public final static String ATTR_TIMEOUT  = "TIMEOUT";
+  
   Selenium selenium;
+  private Xpath   xPath;
+  private Bool    exists;
+  private TimeOut timeOut;
 
   public ValidateElement(Selenium selenium)
   {
     this.selenium = selenium;
   }
 
+  
+  /**
+   * Execute this action
+   */
   @Override
   public TestStatus execute()
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    throw new UnsupportedOperationException("ValidateElement not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
 
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
   @Override
   public String toString()
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Validate that element '" + xPath.getValue() + "' " +
+           (exists.getValue() ? "does" : "doesn't ") + "exist. " +
+           "TimeOut: " + timeOut.getValue());
+  }
+
+  
+  /**
+   * Check if all requirements are met to execute this action
+   */
+  @Override
+  public boolean isValid()
+  {
+    if(selenium == null)  return false;
+    if(!xPath.isValid())    return false;
+    if(!exists.isValid())   return false;
+    if(!timeOut.isValid())  return false;
+    
+    return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    try
+    {
+      switch(key.toUpperCase())
+      {
+        case ATTR_XPATH:  
+          xPath.setValue(value); 
+        break;
+
+        case ATTR_PARAMETER:
+        case ATTR_EXISTS:
+          exists.setValue(value); 
+        break;
+
+        case ATTR_TIMEOUT:
+          timeOut.setValue(value); 
+        break;
+      }
+      xPath.setAttribute(key, value);
+    }
+    catch(Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction : " + ex.getMessage());
+    }
+    
   }
 
 }

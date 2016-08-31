@@ -19,8 +19,6 @@
  */
 package nl.dictu.prova.plugins.output.selenium.actions;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.framework.parameters.Number;
@@ -34,6 +32,12 @@ import org.openqa.selenium.WebElement;
  */
 public class Click extends TestAction
 {
+  // Action attribute names
+  public final static String ATTR_XPATH               = "XPATH";
+  public final static String ATTR_RIGHTCLICK          = "RIGHTCLICK";
+  public final static String ATTR_NUMBEROFCLICKS      = "NUMBEROFCLICKS";
+  public final static String ATTR_WAITUNTILPAGELOADED = "WAITUNTILPAGELOADED";
+  
   private Selenium selenium = null;
   private Bool rightClick;
   private Bool waitUntilPageLoaded;
@@ -55,9 +59,9 @@ public class Click extends TestAction
       numberOfClicks.setMaxValue(3);
       waitUntilPageLoaded = new Bool(true);
     } 
-    catch (Exception eX)
+    catch (Exception ex)
     {
-      LOGGER.error("Exception while creating new Click TestAction! " + eX.getMessage());
+      LOGGER.error("Exception while creating new Click TestAction! " + ex.getMessage());
     }
   }
   
@@ -75,9 +79,12 @@ public class Click extends TestAction
     {
       try
       {
-        xPath.setValue(this.getAttribute("xPath"));
-        rightClick.setValue(this.getAttribute("rightClick").trim().equalsIgnoreCase("true"));
-        waitUntilPageLoaded.isValid(this.getAttribute("waitUntilPageLoaded").trim().equalsIgnoreCase("true"));
+        if(!xPath.isValid())
+          xPath.setValue(this.getAttribute("xPath"));
+        if(!rightClick.isValid())
+          rightClick.setValue(this.getAttribute("rightClick").trim().equalsIgnoreCase("true"));
+        if(!waitUntilPageLoaded.isValid())
+          waitUntilPageLoaded.setValue(this.getAttribute("waitUntilPageLoaded").trim().equalsIgnoreCase("true"));
         
         if(!isValid())
         {
@@ -125,6 +132,7 @@ public class Click extends TestAction
           CaptureScreen capture = new CaptureScreen(selenium);
           capture.setAttribute("filename", "Click");
           capture.execute();
+          eX.printStackTrace();
           return TestStatus.FAILED;
         }
       }
@@ -147,7 +155,7 @@ public class Click extends TestAction
   }
 
   
-  /**
+ /**
   * Check if all requirements are met to execute this action
   */
   @Override
@@ -160,6 +168,50 @@ public class Click extends TestAction
     if(numberOfClicks == null) return false;
     
     return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    try
+    {
+      LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+
+      switch(key.toUpperCase())
+      {
+        case ATTR_XPATH:  
+          xPath.setValue(value); 
+        break;
+
+        case ATTR_RIGHTCLICK: 
+          rightClick.setValue(value); 
+        break;
+
+        case ATTR_NUMBEROFCLICKS:
+          numberOfClicks.setValue(value);
+        break;
+
+        case ATTR_WAITUNTILPAGELOADED:  
+          waitUntilPageLoaded.setValue(value); 
+        break;
+      }
+
+      xPath.setAttribute(key, value);
+    }
+    catch(Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction");
+    }
   }
 
 }

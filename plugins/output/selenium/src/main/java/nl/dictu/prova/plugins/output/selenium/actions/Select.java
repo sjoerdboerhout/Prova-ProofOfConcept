@@ -19,14 +19,11 @@
  */
 package nl.dictu.prova.plugins.output.selenium.actions;
 
-import java.util.logging.Level;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.framework.parameters.Bool;
 import nl.dictu.prova.framework.parameters.Xpath;
 import nl.dictu.prova.plugins.output.selenium.Selenium;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebElement;
 
 /**
@@ -35,6 +32,10 @@ import org.openqa.selenium.WebElement;
  */
 public class Select extends TestAction
 {
+  // Action attribute names
+  public final static String ATTR_XPATH  = "XPATH";
+  public final static String ATTR_SELECT = "SELECT";
+  
   Selenium selenium;
   Xpath xPath;
   Bool select;
@@ -50,6 +51,7 @@ public class Select extends TestAction
     }
     catch (Exception ex)
     {
+      LOGGER.error("Exception while creating new Select TestAction! " + ex.getMessage());
     }
   }
 
@@ -121,5 +123,41 @@ public class Select extends TestAction
     if(!select.isValid())   return false;
     
     return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    try
+    {
+      LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+
+      switch(key.toUpperCase())
+      {
+        case ATTR_XPATH:  
+          xPath.setValue(value); 
+        break;
+
+        case ATTR_SELECT:
+          select.setValue(value); 
+        break;
+      }
+
+      xPath.setAttribute(key, value);
+    }
+    catch (Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction : " + ex.getMessage());
+    }
   }
 }

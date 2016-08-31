@@ -30,6 +30,9 @@ import nl.dictu.prova.plugins.output.selenium.Selenium;
  */
 public class Sleep extends TestAction
 {
+  // Action attribute names
+  public final static String ATTR_WAITTIME = "WAITTIME";
+  
   Selenium selenium;
   private TimeOut waitTime;
 
@@ -42,8 +45,9 @@ public class Sleep extends TestAction
       // Create parameters with (optional) defaults and limits
       waitTime = new TimeOut(500);
     }
-    catch(Exception eX)
+    catch(Exception ex)
     {
+      LOGGER.error("Exception while creating new Sleep TestAction! " + ex.getMessage());
     }
   }
 
@@ -100,5 +104,36 @@ public class Sleep extends TestAction
     if(!waitTime.isValid()) return false;
     
     return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    try
+    {
+      LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+
+      switch(key.toUpperCase())
+      { 
+        case ATTR_PARAMETER:
+        case ATTR_WAITTIME:
+          waitTime.setValue(value); 
+        break;
+      }
+    }
+    catch (Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction : " + ex.getMessage());
+    }
   }
 }

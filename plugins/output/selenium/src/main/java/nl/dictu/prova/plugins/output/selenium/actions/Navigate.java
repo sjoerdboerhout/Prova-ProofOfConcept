@@ -22,13 +22,10 @@ package nl.dictu.prova.plugins.output.selenium.actions;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.logging.Level;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.framework.parameters.Url;
 import nl.dictu.prova.plugins.output.selenium.Selenium;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Handles the function 'navigate' to navigate the current browser to an
@@ -38,6 +35,8 @@ import org.apache.logging.log4j.Logger;
  */
 public class Navigate extends TestAction
 {
+  private static final String ATTR_HYPERLINK = "HYPERLINK";
+  
   private Selenium selenium;
   private Url url = null;
   
@@ -50,6 +49,7 @@ public class Navigate extends TestAction
     }
     catch (Exception ex)
     {      
+      LOGGER.error("Exception while creating new Navigate TestAction! " + ex.getMessage());
     }
   }
 
@@ -75,6 +75,7 @@ public class Navigate extends TestAction
     catch (MalformedURLException e) 
     {
 	  	LOGGER.debug("Provided URL is malformed.");
+      e.printStackTrace();
       return TestStatus.FAILED;
 	  } 
   }
@@ -103,4 +104,33 @@ public class Navigate extends TestAction
     
     return true;
   }
+  
+  
+  /**
+	 * Set attribute <key> with <value> - Unknown attributes are ignored -
+	 * Invalid values result in an exception
+	 * 
+	 * @param key
+	 * @param value
+	 * @throws Exception
+	 */
+	@Override
+	public void setAttribute(String key, String value)
+  {
+    try
+    {
+      LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+
+      switch (key.toUpperCase().trim()) {
+      case ATTR_PARAMETER:
+      case ATTR_HYPERLINK:
+        url.setValue(value);
+        break;
+      }
+    }
+    catch (Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction : " + ex.getMessage());
+    }
+	}
 }

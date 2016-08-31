@@ -18,11 +18,9 @@
  */
 package nl.dictu.prova.plugins.output.selenium;
 
-import nl.dictu.prova.plugins.output.selenium.actions.UploadFile;
-import nl.dictu.prova.plugins.output.selenium.actions.SwitchScreen;
-import nl.dictu.prova.plugins.output.selenium.actions.Navigate;
-import nl.dictu.prova.plugins.output.selenium.actions.DownloadFile;
+import java.io.File;
 import java.security.InvalidParameterException;
+import nl.dictu.prova.Config;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import nl.dictu.prova.TestRunner;
@@ -40,12 +38,21 @@ import nl.dictu.prova.plugins.output.selenium.actions.Sleep;
 import nl.dictu.prova.plugins.output.selenium.actions.SwitchFrame;
 import nl.dictu.prova.plugins.output.selenium.actions.ValidateElement;
 import nl.dictu.prova.plugins.output.selenium.actions.ValidateText;
+import nl.dictu.prova.plugins.output.selenium.actions.SwitchScreen;
+import nl.dictu.prova.plugins.output.selenium.actions.Navigate;
+import nl.dictu.prova.plugins.output.selenium.actions.DownloadFile;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.firefox.internal.ProfilesIni;
+import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -61,6 +68,7 @@ public class Selenium implements OutputPlugin
   private WebDriver webdriver;
   private int maxTimeOut;
   private int maxRetries;
+  private TestCase testCase;
   
   public final static String ACTION_CAPTURESCREEN   = "CAPTURESCREEN";
   public final static String ACTION_CLICK           = "CLICK";
@@ -75,7 +83,6 @@ public class Selenium implements OutputPlugin
   public final static String ACTION_SWITCHSCREEN    = "SWITCHSCREEN";
   public final static String ACTION_VALIDATEELEMENT = "VALIDATEELEMENT";
   public final static String ACTION_VALIDATETEXT    = "VALIDATETEXT";
-  public final static String ACTION_UPLOADFILE      = "UPLOADFILE";
 
   @Override
   public void init(TestRunner testRunner) throws Exception
@@ -86,25 +93,37 @@ public class Selenium implements OutputPlugin
   @Override
   public void shutDown()
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    try
+    {
+      webdriver.close();
+    }
+    catch(NullPointerException eX)
+    {
+      // Ignore. Browser already closed
+    }
+    catch(Exception eX)
+    {
+      LOGGER.error("Exception during shutDown: '{}'", eX.getMessage());
+    }
   }
 
   @Override
   public String getName()
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return "Selenium Webdriver";
   }
 
   @Override
   public TestType[] getTestType()
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    TestType[] testType = {TestType.WEB};
+    return testType;
   }
 
   @Override
   public void setUp(TestCase tc)
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    this.testCase = tc;
   }
 
   @Override
@@ -124,20 +143,19 @@ public class Selenium implements OutputPlugin
 
     switch (name.toUpperCase())
     {
-      case ACTION_CAPTURESCREEN: return new CaptureScreen(this);
-      case ACTION_CLICK: return new Click(this);
-      case ACTION_DOWNLOADFILE: return new DownloadFile(this);
-      case ACTION_NAVIGATE: return new Navigate(this);
-      case ACTION_SELECT: return new Select(this);
-      case ACTION_SELECTDROPDOWN: return new SelectDropDown(this);
-      case ACTION_SENDKEYS: return new SendKeys(this);
-      case ACTION_SETTEXT: return new SetText(this);
-      case ACTION_SLEEP: return new Sleep(this);
-      case ACTION_SWITCHFRAME: return new SwitchFrame(this);
-      case ACTION_SWITCHSCREEN: return new SwitchScreen(this);
-      case ACTION_VALIDATEELEMENT: return new ValidateElement(this);
-      case ACTION_VALIDATETEXT: return new ValidateText(this);
-      case ACTION_UPLOADFILE: return new UploadFile(this);
+      case ACTION_CAPTURESCREEN:      return new CaptureScreen(this);
+      case ACTION_CLICK:              return new Click(this);
+      case ACTION_DOWNLOADFILE:       return new DownloadFile(this);
+      case ACTION_NAVIGATE:           return new Navigate(this);
+      case ACTION_SELECT:             return new Select(this);
+      case ACTION_SELECTDROPDOWN:     return new SelectDropDown(this);
+      case ACTION_SENDKEYS:           return new SendKeys(this);
+      case ACTION_SETTEXT:            return new SetText(this);
+      case ACTION_SLEEP:              return new Sleep(this);
+      case ACTION_SWITCHFRAME:        return new SwitchFrame(this);
+      case ACTION_SWITCHSCREEN:       return new SwitchScreen(this);
+      case ACTION_VALIDATEELEMENT:    return new ValidateElement(this);
+      case ACTION_VALIDATETEXT:       return new ValidateText(this);
     }
     
     throw new InvalidParameterException("Unknown action '" + name + "' requested");
@@ -146,6 +164,10 @@ public class Selenium implements OutputPlugin
   public WebElement findElement(String xPath)
   {
     WebElement element = null;
+    
+    if(webdriver == null){
+      startWebdriver();
+    }
 
     int count = 0;
 
@@ -226,6 +248,9 @@ public class Selenium implements OutputPlugin
 
   public WebDriver getWebdriver()
   {
+    if(webdriver == null){
+      startWebdriver();
+    }
     LOGGER.trace("Request for webdriver '{}'", () -> webdriver.toString());
     
     return webdriver;
@@ -257,6 +282,102 @@ public class Selenium implements OutputPlugin
     LOGGER.trace("Set value of max retries to '{}'", () -> maxRetries);
     
     this.maxRetries = maxRetries;
+  }
+  
+  public void startWebdriver()
+  {
+    try
+    {
+      String browserType = testRunner.getProperty(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_TYPE);
+      
+      LOGGER.debug("Setup: Test Case ID '{}' with browser '{}'", () -> testCase.getId(), () -> browserType);
+      
+      if(browserType.equalsIgnoreCase("FireFox"))
+      {
+        if(testRunner.hasProperty(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE))
+        {
+          ProfilesIni profile = new ProfilesIni();
+          FirefoxProfile ffProfile = profile.getProfile(testRunner.getProperty(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+          LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'", testRunner.getProperty(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+          webdriver = new FirefoxDriver(ffProfile);
+        }
+        else
+        {
+          LOGGER.trace("Try to load webdriver 'FireFox'");
+          webdriver = new FirefoxDriver();
+        }
+      }
+      else if(browserType.equalsIgnoreCase("Chrome"))
+      {
+        String chromePath = testRunner.getProperty(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_CHROME);
+        
+        LOGGER.trace("Try to load webdriver 'Chrome' ({})", chromePath);
+        System.setProperty("webdriver.chrome.driver", chromePath);  
+
+        webdriver = new ChromeDriver();
+      }
+      else if(browserType.equalsIgnoreCase("InternetExplorer") || browserType.equalsIgnoreCase("IE"))
+      {
+        String iePath = testRunner.getProperty(Config.PROVA_DIR) +
+                        File.separator +
+                        testRunner.getProperty(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_IE);
+        
+        LOGGER.trace("Try to locate webdriver 'IE': ({})", iePath);
+        if(!new File(iePath).isFile())
+        {
+          iePath = testRunner.getProperty(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_IE);
+          LOGGER.trace("Try to locate webdriver 'IE': ({})", iePath);
+          
+          if(!new File(iePath).isFile())
+            throw new Exception("No valid path to IE driver. (" + iePath + ")");
+        }
+        
+        LOGGER.trace("Try to load webdriver 'InternetExplorer' ({})", iePath);
+        System.setProperty("webdriver.ie.driver", iePath);        
+        webdriver = new InternetExplorerDriver();
+      }
+      else if(browserType.equalsIgnoreCase("Safari"))
+      {
+        LOGGER.trace("Try to load webdriver 'Safari'");
+        webdriver = new SafariDriver();
+      }
+      //else if(browserType.equalsIgnoreCase("PhantomJS"))
+      //{
+      //  LOGGER.trace("Try to load webdriver 'PhantomJSsele'");
+      //  webdriver = new PhantomJSDriver();
+      //}
+      else
+      {
+        throw new Exception("Unsupported browser '" + browserType + "' requested.");
+      }
+           
+      
+//      // Compose the setting name of the project url.
+//      String url =  Config.PROVA_ENV_PFX + "." +
+//                    testRunner.getProperty(Config.PROVA_ENV).toLowerCase() + "." +
+//                    testCase.getProjectName().toLowerCase();
+//  
+//      LOGGER.trace("URL property name '{}', value: '{}'", url, testRunner.getProperty(url));
+//            
+//      // Get the setting with the url
+//      url = testRunner.getProperty(url);
+//      
+//      // Set implicitly wait time when searching an element
+//      // Not preferred because an exception is thrown after this timeout which will
+//      // slow down test execution.
+//      // webdriver.manage().timeouts().implicitlyWait(maxTimeOut, TimeUnit.MILLISECONDS);
+//      
+//      
+//      LOGGER.debug("Open URL: '{}'", url);
+//      webdriver.get(url);
+      
+      LOGGER.trace("Selenium is ready to start the test!");
+    }
+    catch(Exception eX)
+    {
+      LOGGER.trace(eX);
+      webdriver.close();
+    }
   }
 
 }

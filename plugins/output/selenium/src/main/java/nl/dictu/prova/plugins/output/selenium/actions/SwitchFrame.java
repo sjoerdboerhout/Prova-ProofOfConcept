@@ -21,7 +21,11 @@ package nl.dictu.prova.plugins.output.selenium.actions;
 
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestStatus;
+import nl.dictu.prova.framework.parameters.Bool;
+import nl.dictu.prova.framework.parameters.Xpath;
 import nl.dictu.prova.plugins.output.selenium.Selenium;
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.WebElement;
 
 /**
  *
@@ -29,7 +33,15 @@ import nl.dictu.prova.plugins.output.selenium.Selenium;
  */
 public class SwitchFrame extends TestAction
 {
+  // Action attribute names
+  public final static String ATTR_XPATH = "XPATH";
+  public final static String ATTR_ALERT = "ALERT";
+  public final static String ATTR_ACCEPT = "ACCEPT";
+  
   Selenium selenium;
+  Xpath xPath;
+  Bool alert;
+  Bool accept;
 
   public SwitchFrame(Selenium selenium)
   {
@@ -37,13 +49,22 @@ public class SwitchFrame extends TestAction
     
     try
     {
-      
+      // Create parameters with (optional) defaults and limits
+      xPath = new Xpath();
+      xPath.setValue("DEFAULT");
+      alert = new Bool(false);
+      accept = new Bool(false);
     }
-    catch(Exception eX)
+    catch(Exception ex)
     {
+      LOGGER.error("Exception while creating new SwitchFrame TestAction! " + ex.getMessage());
     }
   }
 
+  
+  /**
+   * Execute this action in the active output plug-in
+   */
   @Override
   public TestStatus execute()
   {
@@ -52,19 +73,141 @@ public class SwitchFrame extends TestAction
       LOGGER.error("Action is not validated!");
       return TestStatus.FAILED;
     }
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    
+    LOGGER.debug(">> Switch to frame");
+    
+    int count = 0;
+    
+    while(true)
+    {
+      try
+      {
+        if (alert.getValue())
+        {
+        	//if 'alert' is true, we're expecting a non web message
+        	LOGGER.trace("Switching to alert (doSwitchFrame)");
+        	Alert popupalert = selenium.getWebdriver().switchTo().alert();
+        	if (accept.getValue())
+        	{
+        		//accepting the message by clicking 'yes' or whatever
+        		LOGGER.trace("Accepting alert (doSwitchFrame)");
+        		popupalert.accept();
+        	}
+        	else if (!accept.getValue())
+        	{
+        		//dismissing the message by clicking 'no' or whatever
+        		LOGGER.trace("Dismissing alert (doSwitchFrame)");
+        		popupalert.dismiss();
+        	}
+        	else
+        	{
+        		//if check on boolean works properly, the else is never reached
+        		throw new Exception("Value of Boolean 'alert' not valid");
+        	}
+
+        }
+        else
+        {
+	    	if (xPath.getValue()=="DEFAULT")
+	        {
+	        	//switching to the default frame
+	        	LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        selenium.getWebdriver().switchTo().defaultContent();
+	        }
+	        else
+	        {
+		        WebElement element = selenium.findElement(xPath.getValue());
+		        
+		        if(element == null || !element.isEnabled())
+		        {
+		          throw new Exception("Element '" + xPath + "' not found.");
+		        }
+		        
+		        // switching to frame by element, selected by xpath
+		        LOGGER.trace("Switching to frame '{}' (doSwitchFrame)", xPath);
+		        selenium.getWebdriver().switchTo().frame(element);
+	        } 
+        }
+        // Action succeeded. Return.
+        return TestStatus.PASSED;
+      }
+      catch(Exception eX)
+      {
+        if(++count > selenium.getMaxRetries())
+        {
+          LOGGER.debug("Exception while switching to frame '{}' : {} (retry count: {})", 
+                        xPath, eX.getMessage(), count);
+        }
+        return TestStatus.FAILED;
+      }
+    }    
   }
 
-
+  
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
   @Override
   public String toString()
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Switch to frame '" + xPath.getValue() + "'");
   }
 
+  
+  /**
+   * Check if all requirements are met to execute this action
+   */
   @Override
   public boolean isValid()
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    if(selenium == null)  return false;
+    if(!xPath.isValid())  return false;
+    if(!alert.isValid())  return false;
+    if(!accept.isValid()) return false;
+    
+    return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    try
+    {
+      LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+
+      switch(key.toUpperCase())
+      {
+        case ATTR_XPATH:  
+          if(value!=null) xPath.setValue(value); 
+        break;
+
+        case ATTR_ALERT:  
+          if(value!=null) alert.setValue(value); 
+        break;
+
+        case ATTR_ACCEPT:  
+          if(value!=null) accept.setValue(value); 
+        break;
+
+      }
+
+      xPath.setAttribute(key, value);  
+    }
+    catch (Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction : " + ex.getMessage());
+    }
   }
 }

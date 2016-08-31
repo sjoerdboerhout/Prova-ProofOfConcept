@@ -35,6 +35,10 @@ import org.openqa.selenium.support.ui.Select;
  */
 public class SelectDropDown extends TestAction
 {
+  // Action attribute names
+  public final static String ATTR_XPATH  = "XPATH";
+  public final static String ATTR_SELECT = "SELECT";
+  
   private Selenium selenium;
   private Xpath xPath;
   private Text select;
@@ -42,6 +46,8 @@ public class SelectDropDown extends TestAction
   public SelectDropDown(Selenium selenium)
   {
     this.selenium = selenium;
+    xPath = new Xpath();
+    select = new Text();
   }
 
   
@@ -53,6 +59,12 @@ public class SelectDropDown extends TestAction
   {
     LOGGER.debug("> Select '{}' on {}",select , xPath);
     int count = 0;
+    
+    if(!isValid())
+    {
+      LOGGER.error("Action is not validated!");
+      return TestStatus.FAILED;
+    }
     
     while(true)
     {
@@ -91,7 +103,7 @@ public class SelectDropDown extends TestAction
         if(++count > selenium.getMaxRetries())
         {
           LOGGER.debug("Exception while selecting '{}': {} (retry count: {})", xPath, eX.getMessage(), count);
-          
+          eX.printStackTrace();
           return TestStatus.FAILED;
         }
       }
@@ -122,5 +134,41 @@ public class SelectDropDown extends TestAction
     if(!select.isValid())   return false;
     
     return true;
+  }
+  
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value)
+  {
+    try
+    {
+      LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+
+      switch(key.toUpperCase())
+      {
+        case ATTR_XPATH:  
+          xPath.setValue(value); 
+        break;
+
+        case ATTR_PARAMETER:
+        case ATTR_SELECT:
+          select.setValue(value); 
+        break;
+      }
+    }
+    catch (Exception ex)
+    {
+      LOGGER.error("Exception while setting attribute to TestAction for key " + key);
+      ex.printStackTrace();
+    }
   }
 }
