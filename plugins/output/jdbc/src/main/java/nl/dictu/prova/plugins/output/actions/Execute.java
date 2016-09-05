@@ -60,7 +60,7 @@ public class Execute extends TestAction
   private String password = null;
   private String prefix = null;
   private String query = null;
-  private Boolean rollback = true;
+  private Boolean rollback = null;
   private Integer row = 0;
 
   public Execute(JDBC jdbc)
@@ -87,12 +87,20 @@ public class Execute extends TestAction
       String[] splitAddress = address.split(":");
       String driver = splitAddress[1];
       
-      switch(driver){
+      switch(driver)
+      {
         case "oracle" : DriverManager.registerDriver(new oracle.jdbc.OracleDriver()); break;
         case "sqlite" : DriverManager.registerDriver(new org.sqlite.JDBC()); break;
       }
       
-      connection = DriverManager.getConnection(address, user, password);
+      if(user == null)
+      {
+        connection = DriverManager.getConnection(address);
+      }
+      else
+      {
+        connection = DriverManager.getConnection(address, user, password);
+      }
       row = 0;
 
       switch(jdbc.getQueryType(query))
@@ -136,32 +144,36 @@ public class Execute extends TestAction
         case DELETE:
         case INSERT:
         case UPDATE:
+        case ATTACH:
           try
           {
             PreparedStatement preparedStatement = connection.prepareStatement(query);
             row = preparedStatement.executeUpdate();
             preparedStatement.close();
             LOGGER.info(row + " rows affected.");
-            if (rollback)
+            if(rollback != null)
             {
-              connection.rollback();
-              LOGGER.debug("Statement rolled back");
-            }
-            else
-            {
-              connection.commit();
-              LOGGER.debug("Statement committed");
+              if (rollback)
+              {
+                connection.rollback();
+                LOGGER.debug("Statement rolled back");
+              }
+              else
+              {
+                connection.commit();
+                LOGGER.debug("Statement committed");
+              }
             }
           }
           catch(Exception ex)
           {
-            LOGGER.error("Exception during INSERT/DELETE/UPDATE statement query : " + ex.getMessage());
+            LOGGER.error("Exception during INSERT/DELETE/UPDATE/ATTACH statement query : " + ex.getMessage());
             ex.printStackTrace();
             return TestStatus.FAILED;
           }
           break;
         default:
-          LOGGER.error("The provided query '" + query.substring(0, 40) + "...' is not supported! See documentation.");
+          LOGGER.error("The provided query '" + query.substring(0, (query.length() < 40 ? query.length() : 40)) + "...' is not supported! See documentation.");
           return TestStatus.NOTRUN;
       }
     }
@@ -182,13 +194,18 @@ public class Execute extends TestAction
   @Override
   public boolean isValid()
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    if(jdbc == null) return false;
+    if(query == null) return false;
+    if(prefix == null) return false;
+    if(address == null) return false;
+    
+    return true;
   }
 
   @Override
   public String toString()
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    return( "'" + this.getClass().getSimpleName().toUpperCase() + "'");
   }
 
   @Override

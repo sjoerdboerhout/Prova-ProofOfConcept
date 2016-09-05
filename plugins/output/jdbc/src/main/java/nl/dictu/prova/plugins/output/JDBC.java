@@ -38,7 +38,6 @@ import nl.dictu.prova.TestType;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.plugins.output.actions.Execute;
 import nl.dictu.prova.plugins.output.actions.RunTests;
-import nl.dictu.prova.plugins.output.actions.StatementType;
 
 /**
  * Driver for controlling Jdbc Webdriver
@@ -64,11 +63,13 @@ public class JDBC implements OutputPlugin
       return "Jdbc database functionality";
   }
 
+  
   @Override
   public void init(TestRunner testRunner) throws Exception {
       LOGGER.debug("Init: output plugin Jdbc!");
       this.testRunner = testRunner;
   }
+  
   
   @Override
   public TestType[] getTestType()
@@ -77,12 +78,14 @@ public class JDBC implements OutputPlugin
     return testTypes;
   }
 
+  
   @Override
   public void tearDown(TestCase tc)
   {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
 
+  
   @Override
   public TestAction getTestAction(String name) throws InvalidParameterException
   {
@@ -97,14 +100,14 @@ public class JDBC implements OutputPlugin
     throw new InvalidParameterException("Unknown action '" + name + "' requested");
   }
 
+  
   @Override
   public void setUp(TestCase tc)
   {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
     
-    
-    
+  
   public StatementType getQueryType (String query){
     String[] splitQuery = query.split(" ", 2);
     switch(splitQuery[0].trim().toUpperCase()){
@@ -112,10 +115,12 @@ public class JDBC implements OutputPlugin
       case "UPDATE": return StatementType.UPDATE;
       case "DELETE": return StatementType.DELETE;
       case "INSERT": return StatementType.INSERT;
+      case "ATTACH": return StatementType.ATTACH;
       default: return StatementType.UNSUPPORTED;
     }
   }
 
+  
   @Override
   public void shutDown() {
       LOGGER.debug("Shutting down output plugin Jdbc");

@@ -54,7 +54,7 @@ public abstract class TestAction
    * Constructor.
    * <p>
    */
-  public TestAction()
+  public TestAction(Logger LOGGER)
   {
 
   }

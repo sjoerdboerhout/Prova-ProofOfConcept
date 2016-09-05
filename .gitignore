@@ -59,3 +59,5 @@ _Prova
 /plugins/output/selenium/nbproject/
 _doc/testSite/x.png
 plugins/output/selenium/Clickx.png
+/plugins/output/jdbc/nbproject/
+plugins/output/jdbc/test.db

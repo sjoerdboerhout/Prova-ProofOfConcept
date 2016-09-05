@@ -46,31 +46,32 @@ public class RunTests extends TestAction
   @Override
   public TestStatus execute()
   {
-    LOGGER.trace("Executing test for property '" + property + "' with validation '" + test + "'");
-
-    
-      if(test.equalsIgnoreCase("{null}")){
-          if(jdbc.getTestCase().getVariable(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
-              LOGGER.info("Test unsuccesful!");
-              return false;
-          } else {
-              LOGGER.info("Test succesful!");
-              return true;
-          }
-      }
-
-      if(testRunner.hasPropertyValue(property) | testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
-          String propertyValue = testRunner.getPropertyValue(property).trim();
-          if(propertyValue.equalsIgnoreCase(test.trim())){
-              LOGGER.info("Test succesful!");
-              return true;
-          }
-          LOGGER.info("Test unsuccesful!");
-          return false;
-      } else {
-          LOGGER.info("Test unsuccesful!");
-          return false;
-      }
+//    LOGGER.trace("Executing test for property '" + property + "' with validation '" + test + "'");
+//
+//    
+//      if(test.equalsIgnoreCase("{null}")){
+//          if(jdbc.getTestCase().getVariable(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
+//              LOGGER.info("Test unsuccesful!");
+//              return false;
+//          } else {
+//              LOGGER.info("Test succesful!");
+//              return true;
+//          }
+//      }
+//
+//      if(testRunner.hasPropertyValue(property) | testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
+//          String propertyValue = testRunner.getPropertyValue(property).trim();
+//          if(propertyValue.equalsIgnoreCase(test.trim())){
+//              LOGGER.info("Test succesful!");
+//              return true;
+//          }
+//          LOGGER.info("Test unsuccesful!");
+//          return false;
+//      } else {
+//          LOGGER.info("Test unsuccesful!");
+//          return false;
+//      }
+    return TestStatus.NOTRUN;
   }
 
   @Override

@@ -17,12 +17,12 @@
  *  Author(s): <full name author>
  *  
  */
-package nl.dictu.prova.plugins.output.actions;
+package nl.dictu.prova.plugins.output;
 
 /**
  *
  * @author Coos van der Galiën
  */
 public enum StatementType{
-        SELECT, DELETE, INSERT, UPDATE, UNSUPPORTED;
+        SELECT, DELETE, INSERT, UPDATE, ATTACH, UNSUPPORTED;
     }
