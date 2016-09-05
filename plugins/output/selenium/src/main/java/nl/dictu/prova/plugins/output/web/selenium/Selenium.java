@@ -172,21 +172,28 @@ public class Selenium implements WebOutputPlugin
                     testRunner.getPropertyValue(Config.PROVA_ENV).toLowerCase() + "." +
                     testCase.getProjectName().toLowerCase();
   
-      LOGGER.trace("URL property name '{}', value: '{}'", url, testRunner.getPropertyValue(url));
-            
-      // Get the setting with the url
-      url = testRunner.getPropertyValue(url);
-      
-      // Set implicitly wait time when searching an element
-      // Not preferred because an exception is thrown after this timeout which will
-      // slow down test execution.
-      // webdriver.manage().timeouts().implicitlyWait(maxTimeOut, TimeUnit.MILLISECONDS);
-      
-      
-      LOGGER.debug("Open URL: '{}'", url);
-      webdriver.get(url);
-      
-      LOGGER.trace("Selenium is ready to start the test!");
+      if(testRunner.hasPropertyValue(url))
+      {
+        LOGGER.trace("URL property name '{}', value: '{}'", url, testRunner.getPropertyValue(url));
+
+        // Get the setting with the url
+        url = testRunner.getPropertyValue(url);
+
+        // Set implicitly wait time when searching an element
+        // Not preferred because an exception is thrown after this timeout which will
+        // slow down test execution.
+        // webdriver.manage().timeouts().implicitlyWait(maxTimeOut, TimeUnit.MILLISECONDS);
+
+
+        LOGGER.debug("Open URL: '{}'", url);
+        webdriver.get(url);
+
+        LOGGER.trace("Selenium is ready to start the test!");
+      }
+      else
+      {
+        LOGGER.error("URL property not available!");
+      }
     }
     catch(Exception eX)
     {

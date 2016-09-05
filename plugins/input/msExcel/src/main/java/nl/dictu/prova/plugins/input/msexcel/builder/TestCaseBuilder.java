@@ -550,9 +550,9 @@ public class TestCaseBuilder
           String locatorName = rowMap.get("locator").toLowerCase();
           String xPath = "";
           
-          if( testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_DB_LOCATOR_PFX + "." + locatorName))
+          if( testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName))
           {
-            xPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_DB_LOCATOR_PFX + "." + locatorName);
+            xPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_LOCATOR_PFX + "." + locatorName);
             testAction.setAttribute("xpath", xPath);
           }
           

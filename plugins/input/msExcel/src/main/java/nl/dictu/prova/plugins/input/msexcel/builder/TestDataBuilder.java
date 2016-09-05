@@ -34,11 +34,15 @@ public class TestDataBuilder
   private CellReader cellReader;
   private TestRunner testRunner;
   
-  public TestDataBuilder(){}
+  public TestDataBuilder()
+  {
+    cellReader = new CellReader();
+  }
   
   public TestDataBuilder(TestRunner testRunner)
   {
       this.testRunner = testRunner;
+      cellReader = new CellReader();
   }
   
   /**
