@@ -36,6 +36,9 @@ import java.sql.Statement;
 import java.util.Properties;
 import nl.dictu.prova.TestType;
 import nl.dictu.prova.framework.TestAction;
+import nl.dictu.prova.plugins.output.actions.Execute;
+import nl.dictu.prova.plugins.output.actions.RunTests;
+import nl.dictu.prova.plugins.output.actions.StatementType;
 
 /**
  * Driver for controlling Jdbc Webdriver
@@ -44,22 +47,17 @@ import nl.dictu.prova.framework.TestAction;
  * @since 2016-05-11
  *
  */
-public class JDBC implements OutputPlugin {
+public class JDBC implements OutputPlugin 
+{
 
   private final static Logger LOGGER = LogManager.getLogger(JDBC.class.
       getName());
+  
+  public final static String ACTION_EXECUTE = "EXECUTE";
+  public final static String ACTION_RUNTESTS = "RUNTESTS";
 
   private TestRunner testRunner     = null;
-  private Connection connection     = null;
-  private Statement statement       = null;
-
-  private String currentAdress      = null;
-  private String currentUser        = null;
-  private String currentPassword    = null;
-  private String currentPrefix      = null;
-  private String currentQuery       = null;
-  private Boolean currentRollback   = true;
-  private Integer row = 0;
+  private TestCase testCase         = null;
 
   @Override
   public String getName() {
@@ -71,108 +69,7 @@ public class JDBC implements OutputPlugin {
       LOGGER.debug("Init: output plugin Jdbc!");
       this.testRunner = testRunner;
   }
-
   
-  public void doSetDbProperties(String adress, String user, String password, String prefix, Boolean rollback) {
-      LOGGER.debug("Setting properties in output plugin Jdbc.");
-      this.currentAdress      = adress;
-      this.currentUser        = user;
-      this.currentPassword    = password;
-      this.currentPrefix      = prefix;
-      this.currentRollback    = rollback;
-  }
-
-
-  public void doSetQuery(String query) {
-      LOGGER.debug("Setting query in output plugin Jdbc.");
-      this.currentQuery = query;
-  }
-
-  
-  public Properties doProcessDbResponse() throws Exception {
-      Properties sqlProperties = new Properties();
-      LOGGER.debug("Executing and processing query in output plugin Jdbc.");
-
-      if (!isValid()) {
-          throw new Exception("Properties not properly set!");
-      }
-
-      try {
-          DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-          connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
-          row = 0;
-
-          if(getQueryType() == StatementType.SELECT){
-              statement = connection.createStatement();
-              ResultSet resultSet = statement.executeQuery(currentQuery);
-              ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-
-              while (resultSet.next()) {
-                  for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++) {
-                      String name = resultSetMetaData.getColumnName(i);
-                      String key = currentPrefix + "_" + name.toLowerCase() + resultSet.getRow();
-                      String value = resultSet.getString(name);
-                      if(key == null) break;
-                      if(value == null) value = "null";
-                      sqlProperties.put(key, value);
-                  }
-                  row = resultSet.getRow();
-              }
-              resultSet.close();
-              LOGGER.info(row + " rows returned.");
-          } else if (getQueryType() == StatementType.DELETE | getQueryType() == StatementType.INSERT | getQueryType() == StatementType.UPDATE){
-              PreparedStatement preparedStatement = connection.prepareStatement(currentQuery);
-              row = preparedStatement.executeUpdate();
-              preparedStatement.close();
-              LOGGER.info(row + " rows affected.");
-              if (currentRollback) {
-                  connection.rollback();
-                  LOGGER.debug("Statement rolled back");
-              } else {
-                  connection.commit();
-                  LOGGER.debug("Statement committed");
-              }   
-          } else {
-              throw new Exception("The provided query '" + currentQuery.substring(0, 30) + "...' is not supported! See documentation.");
-          }
-      } catch (SQLException e) {
-          LOGGER.error("SQLException occured! : " + e.getMessage());
-      } catch (Exception e) {
-          LOGGER.error("Exception occured! : " + e.getMessage());
-          e.printStackTrace();
-      }
-      return sqlProperties;
-  }
-
-  
-  public boolean doTest(String property, String test) throws Exception {
-      LOGGER.trace("Executing test for property '" + property + "' with validation '" + test + "'");
-
-      if(test.equalsIgnoreCase("{null}")){
-          if(testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
-              LOGGER.info("Test unsuccesful!");
-              return false;
-          } else {
-              LOGGER.info("Test succesful!");
-              return true;
-          }
-      }
-
-      if(testRunner.hasPropertyValue(property) | testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0){
-          String propertyValue = testRunner.getPropertyValue(property).trim();
-          if(propertyValue.equalsIgnoreCase(test.trim())){
-              LOGGER.info("Test succesful!");
-              return true;
-          }
-          LOGGER.info("Test unsuccesful!");
-          return false;
-      } else {
-          LOGGER.info("Test unsuccesful!");
-          return false;
-      }
-
-  }
-
   @Override
   public TestType[] getTestType()
   {
@@ -187,9 +84,17 @@ public class JDBC implements OutputPlugin {
   }
 
   @Override
-  public TestAction getTestAction(String string) throws InvalidParameterException
+  public TestAction getTestAction(String name) throws InvalidParameterException
   {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    LOGGER.trace("Request to produce webaction '{}'", () -> name);
+
+    switch (name.toUpperCase())
+    {
+      case ACTION_EXECUTE:            return new Execute(this);
+      case ACTION_RUNTESTS:           return new RunTests(this);
+    }
+    
+    throw new InvalidParameterException("Unknown action '" + name + "' requested");
   }
 
   @Override
@@ -198,37 +103,38 @@ public class JDBC implements OutputPlugin {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
     
-    public enum StatementType{
-        SELECT, DELETE, INSERT, UPDATE, UNSUPPORTED;
-    }
     
-    public StatementType getQueryType (){
-        String[] splitQuery = currentQuery.split(" ", 2);
-        switch(splitQuery[0].trim().toUpperCase()){
-            case "SELECT": return StatementType.SELECT;
-            case "UPDATE": return StatementType.UPDATE;
-            case "DELETE": return StatementType.DELETE;
-            case "INSERT": return StatementType.INSERT;
-            default: return StatementType.UNSUPPORTED;
-        }
+    
+  public StatementType getQueryType (String query){
+    String[] splitQuery = query.split(" ", 2);
+    switch(splitQuery[0].trim().toUpperCase()){
+      case "SELECT": return StatementType.SELECT;
+      case "UPDATE": return StatementType.UPDATE;
+      case "DELETE": return StatementType.DELETE;
+      case "INSERT": return StatementType.INSERT;
+      default: return StatementType.UNSUPPORTED;
     }
+  }
 
-    @Override
-    public void shutDown() {
-        LOGGER.debug("Shutting down output plugin Jdbc");
-        try {
-            connection.close();
-        } catch (SQLException ex) {
-            LOGGER.error("Unable to close database connection!");
-            ex.printStackTrace();
-        }
-    }
-
-    private boolean isValid() {
-        if (currentAdress == null) return false;
-        if (currentUser == null) return false;
-        if (currentPassword == null) return false;
-        return true;
-    }
+  @Override
+  public void shutDown() {
+      LOGGER.debug("Shutting down output plugin Jdbc");
+  }
+  
+    
+  public TestRunner getTestRunner()
+  {
+    LOGGER.trace("Request for testRunner");
+    
+    return testRunner;
+  }
+  
+  
+  public TestCase getTestCase()
+  {
+    LOGGER.trace("Request for testCase");
+    
+    return testCase;
+  }
     
 }

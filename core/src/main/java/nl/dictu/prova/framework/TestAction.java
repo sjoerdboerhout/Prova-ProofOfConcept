@@ -32,7 +32,7 @@ import org.apache.logging.log4j.Logger;
  */
 public abstract class TestAction
 {
-  protected final static Logger LOGGER = LogManager.getLogger();
+  public final static Logger LOGGER = LogManager.getLogger();
   
   public final static String ATTR_PARAMETER = "PARAMETER";
   
