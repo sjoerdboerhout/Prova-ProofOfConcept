@@ -97,7 +97,12 @@ public class TestDataBuilder
           break;
         }
       }
-      
+      if(sheet == null)
+      {
+        LOGGER.error("No sheet was found with sheetname " + sheetname.trim());
+        return testDatasets;
+      }
+        
       Iterator<Row> rowIterator = sheet.rowIterator();
     
       if(rowIterator.hasNext())
@@ -160,14 +165,40 @@ public class TestDataBuilder
             if (cell != null)
             {
               String value = workbookReader.evaluateCellContent(cell);
-              if(value.length() > 0)
+              if(!cellReader.isKey(value))
               {
-                LOGGER.trace("Found value '{}' for key '{}' in tests column '{}'", value, key, column);
-                columnData.put(key, value);
+                if(value.length() > 0)
+                {
+                  LOGGER.trace("Found value '{}' for key '{}' in tests column '{}'", value, key, column);
+                  columnData.put(key, value);
+                }
+                else
+                {
+                  LOGGER.trace("Found no value for key '{}' in tests column '{}'", key, column);
+                }
               }
+              //Value is a tag, searching value.
               else
               {
-                LOGGER.trace("Found no value for key '{}' in tests column '{}'", key, column);
+                value = value.substring(1, value.length() - 1);
+                LOGGER.trace("Property value is a property, retrieving value from collection.");
+                if(testRunner.hasPropertyValue(value))
+                {
+                  value = testRunner.getPropertyValue(value);
+                  if(value.length() > 0)
+                  {
+                    LOGGER.trace("Found value '{}' for key '{}' in tests column '{}'", value, key, column);
+                    columnData.put(key, value);
+                  }
+                  else
+                  {
+                    LOGGER.trace("Found no property value for key '{}' in tests column '{}'", key, column);
+                  }
+                }
+                else
+                {
+                  throw new Exception("No value available for tag " + value);
+                }
               }
             } 
             else 
@@ -182,14 +213,40 @@ public class TestDataBuilder
             if (cell != null)
             {
               String value = (String) workbookReader.evaluateCellContent(cell);
-              if(value.length() > 0)
+              if(!cellReader.isKey(value))
               {
-                LOGGER.trace("Found value '{}' for key '{}' in data column '{}'", value, key, column);
-                columnData.put(key, value);
+                LOGGER.trace("Property value is a property, retrieving value from collection.");
+                if(value.length() > 0)
+                {
+                  LOGGER.trace("Found value '{}' for key '{}' in data column '{}'", value, key, column);
+                  columnData.put(key, value);
+                }
+                else
+                {
+                  LOGGER.trace("Found no value for key '{}' in data column '{}'", key, column);
+                }
               }
+              //Value is a tag, searching value.
               else
               {
-                LOGGER.trace("Found no value for key '{}' in data column '{}'", key, column);
+                value = value.substring(1, (value.length() - 1));
+                if(testRunner.hasPropertyValue(value))
+                {
+                  value = testRunner.getPropertyValue(value);
+                  if(value.length() > 0)
+                  {
+                    LOGGER.trace("Found value '{}' for key '{}' in data column '{}'", value, key, column);
+                    columnData.put(key, value);
+                  }
+                  else
+                  {
+                    LOGGER.trace("Found no property value for key '{}' in data column '{}'", key, column);
+                  }
+                }
+                else
+                {
+                  throw new Exception("No value available for tag " + value);
+                }
               }
             } 
             else 
@@ -206,6 +263,10 @@ public class TestDataBuilder
       else
       {
         LOGGER.debug("Row {} is empty; skipping row", row.getRowNum());
+      }
+      if(rowNum == end)
+      {
+        LOGGER.trace("Finished reading column");
       }
     }
     String message = column % 2 == 0 ? "Added " + columnData.size() + " testdata properties to dataset." : "Added " + columnData.size() + " testvalidation properties to dataset."; 
@@ -393,13 +454,21 @@ public class TestDataBuilder
           for(Entry<String,String> entry : map.entrySet())
           {
             if(cellReader.isKey(entry.getValue())){
+              String value = entry.getValue().substring(1, entry.getValue().length() - 1);
                 if(testRunner == null){
                     LOGGER.error("testRunner is null, property " + entry.getValue() + " not stored.");
                     break;
                 }
                 LOGGER.trace("Property value is a property, retrieving value from collection.");
-                LOGGER.trace("> {}: '{}'", entry.getKey(), testRunner.getPropertyValue(cellReader.getKeyName(entry.getValue())));
-                properties.setProperty(entry.getKey(), testRunner.getPropertyValue(cellReader.getKeyName(entry.getValue())));
+                if(testRunner.hasPropertyValue(value))
+                {
+                  LOGGER.trace("> {}: '{}'", entry.getKey(), testRunner.getPropertyValue(value));
+                  properties.setProperty(entry.getKey(), testRunner.getPropertyValue(value));
+                }
+                else
+                {
+                  throw new Exception("No property value found for property " + entry.getValue() + " and key " + entry.getKey());
+                }
             } else {
             LOGGER.trace("> {}: '{}'", entry.getKey(), entry.getValue());
             properties.setProperty(entry.getKey(), entry.getValue());

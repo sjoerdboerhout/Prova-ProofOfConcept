@@ -5,7 +5,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import nl.dictu.prova.framework.TestAction;
 
-public class ProcessResponse extends TestAction {
+public class ProcessSoapResponse extends TestAction {
 
     String currentPrefix;
 

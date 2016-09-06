@@ -12,7 +12,7 @@ import nl.dictu.prova.framework.TestAction;
  * @author cimangalienc
  */
 class SetDbProperties extends TestAction {
-    private String adress;
+    private String address;
     private String user;
     private String password;
     private String prefix;
@@ -29,7 +29,7 @@ class SetDbProperties extends TestAction {
                 user = value;
                 break;
             case("prova.properties.address"): 
-                adress = value;
+                address = value;
                 break;
             case("prova.properties.prefix"):
                 prefix = value;
@@ -51,12 +51,12 @@ class SetDbProperties extends TestAction {
         if(!isValid()){
             throw new Exception("Properties not set properly!");
         }
-        this.testRunner.getDbActionPlugin().doSetDbProperties(adress, user, password, prefix, rollback);
+        this.testRunner.getDbActionPlugin().doSetDbProperties(address, user, password, prefix, rollback);
     }
 
     @Override
     public boolean isValid() throws Exception {
-        if(adress == null) return false;
+        if(address == null) return false;
         if(user == null) return false;
         if(password == null) return false;
         if(rollback == null) return false;
@@ -70,7 +70,7 @@ class SetDbProperties extends TestAction {
      */
     @Override
     public String toString() {
-        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': '" + adress + "', '" + user + "', '" + password + "', '" + rollback + "'");
+        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': '" + address + "', '" + user + "', '" + password + "', '" + rollback + "'");
     }
     
 }

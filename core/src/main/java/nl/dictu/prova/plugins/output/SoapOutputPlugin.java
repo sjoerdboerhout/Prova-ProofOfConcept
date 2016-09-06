@@ -9,7 +9,7 @@ public interface SoapOutputPlugin extends OutputPlugin {
 	
 	public void doSetMessage (String message) throws Exception;
 	
-	public void doSetTests (Properties tests) throws Exception;
+	public boolean doTest (String key, String value) throws Exception;
         
-        public String doGetCurrentPrefix () throws Exception;
+  public String doGetCurrentPrefix () throws Exception;
 }

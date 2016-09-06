@@ -38,7 +38,7 @@ public class DbActionFactory implements ActionFactory
       case ACTION_PROCESSDBRESPONSE:    return new ProcessDbResponse();
       case ACTION_SETDBPROPERTIES:      return new SetDbProperties();
       case ACTION_SETQUERY:             return new SetQuery();
-      case ACTION_EXECUTEDBTEST:        return new executeDbTest();
+      case ACTION_EXECUTEDBTEST:        return new ExecuteDbTest();
     }
     
     throw new Exception("Unknown action '" + name + "' requested");

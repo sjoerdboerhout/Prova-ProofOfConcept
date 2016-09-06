@@ -2,9 +2,9 @@ package nl.dictu.prova.framework.soap;
 
 import nl.dictu.prova.framework.TestAction;
 
-public class SetMessage extends TestAction {
+public class SetSoapMessage extends TestAction {
     
-        private final String ATTR_MESSAGE = "MESSAGE";
+        private final String ATTR_MESSAGE = "QUERY";
         private String message = null;
         private StringBuilder messageBuilder = new StringBuilder();
 
@@ -20,8 +20,6 @@ public class SetMessage extends TestAction {
             if(!isValid()){
                 throw new Exception("Message or testRunner not properly set!");
             }
-            
-            //messageBuilder.
             
             this.testRunner.getSoapActionPlugin().doSetMessage(message);
 	}

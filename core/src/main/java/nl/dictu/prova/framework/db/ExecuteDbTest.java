@@ -14,7 +14,7 @@ import nl.dictu.prova.framework.TestAction;
  *
  * @author Coos van der Galiën
  */
-class executeDbTest extends TestAction {
+class ExecuteDbTest extends TestAction {
     
     String property;
     String test;

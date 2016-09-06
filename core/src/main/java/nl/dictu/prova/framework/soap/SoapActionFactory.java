@@ -15,10 +15,10 @@ public class SoapActionFactory implements ActionFactory {
 
   protected final static Logger LOGGER = LogManager.getLogger();
   
-  public final static String ACTION_SETMESSAGE      = "SETMESSAGE";
-  public final static String ACTION_SETPROPERTIES   = "SETPROPERTIES";
-  public final static String ACTION_SETTESTS        = "SETTESTS";
-  public final static String ACTION_PROCESSRESPONSE = "PROCESSRESPONSE";
+  public final static String ACTION_SETMESSAGE      = "SETSOAPQUERY";
+  public final static String ACTION_SETPROPERTIES   = "SETSOAPPROPERTIES";
+  public final static String ACTION_EXECUTETEST     = "EXECUTESOAPTEST";
+  public final static String ACTION_PROCESSRESPONSE = "PROCESSSOAPRESPONSE";
     
   /**
    * Get the corresponding action for <name>
@@ -33,10 +33,10 @@ public class SoapActionFactory implements ActionFactory {
     
     switch(name.toUpperCase())
     {
-      case ACTION_SETMESSAGE:      return new SetMessage();
-      case ACTION_SETPROPERTIES:   return new SetProperties();
-      case ACTION_SETTESTS:        return new SetTests();
-      case ACTION_PROCESSRESPONSE: return new ProcessResponse();
+      case ACTION_SETMESSAGE:      return new SetSoapMessage();
+      case ACTION_SETPROPERTIES:   return new SetSoapProperties();
+      case ACTION_EXECUTETEST:     return new ExecuteSoapTest();
+      case ACTION_PROCESSRESPONSE: return new ProcessSoapResponse();
     }
     
     throw new Exception("Unknown action '" + name + "' requested");
