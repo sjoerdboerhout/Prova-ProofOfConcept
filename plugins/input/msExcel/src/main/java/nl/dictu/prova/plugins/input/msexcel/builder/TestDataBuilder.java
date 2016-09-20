@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
+import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 
 /**
@@ -33,6 +34,7 @@ public class TestDataBuilder
   private WorkbookReader workbookReader;
   private CellReader cellReader;
   private TestRunner testRunner;
+  private String dateFormat = null;
   
   public TestDataBuilder()
   {
@@ -43,6 +45,15 @@ public class TestDataBuilder
   {
       this.testRunner = testRunner;
       cellReader = new CellReader();
+      
+      try
+      {
+        //Argument for evaluateCellContent method
+        this.dateFormat = testRunner.getPropertyValue(Config.PROVA_PLUGINS_INPUT_DATEFORMAT);
+      }
+      catch(Exception ex)
+      {
+      }
   }
   
   /**
@@ -153,7 +164,7 @@ public class TestDataBuilder
       Cell keyCell = row.getCell(0);
       if (keyCell != null)
       {
-        String key = workbookReader.evaluateCellContent(keyCell);
+        String key = workbookReader.evaluateCellContent(keyCell, dateFormat);
         LOGGER.trace("Found key: '{}'", key);
                   
         if (!key.isEmpty())
@@ -164,7 +175,7 @@ public class TestDataBuilder
             Cell cell = row.getCell(column);
             if (cell != null)
             {
-              String value = workbookReader.evaluateCellContent(cell);
+              String value = workbookReader.evaluateCellContent(cell, dateFormat);
               if(!cellReader.isKey(value))
               {
                 if(value.length() > 0)
@@ -212,7 +223,7 @@ public class TestDataBuilder
             Cell cell = row.getCell(column);
             if (cell != null)
             {
-              String value = (String) workbookReader.evaluateCellContent(cell);
+              String value = (String) workbookReader.evaluateCellContent(cell, dateFormat);
               if(!cellReader.isKey(value))
               {
                 LOGGER.trace("Property value is a property, retrieving value from collection.");
@@ -307,7 +318,7 @@ public class TestDataBuilder
         Cell keyCell = row.getCell(0);
         if (keyCell != null)
         {
-          String key = workbookReader.evaluateCellContent(keyCell);
+          String key = workbookReader.evaluateCellContent(keyCell, dateFormat);
           LOGGER.trace("Found key: '{}'", key);
           
           if (!key.isEmpty())
@@ -318,7 +329,7 @@ public class TestDataBuilder
               Cell cell = row.getCell(colNum);
               if (cell != null)
               {
-                String value = workbookReader.evaluateCellContent(cell);
+                String value = workbookReader.evaluateCellContent(cell, dateFormat);
                 
                 // Empty values are only allowed in column 1
                 // or keep all columns empty.
@@ -354,7 +365,7 @@ public class TestDataBuilder
     Map<Integer, String> headers = new HashMap<>();
     for (Cell cell : row)
     {
-      String cellContent = workbookReader.evaluateCellContent(cell);
+      String cellContent = workbookReader.evaluateCellContent(cell, dateFormat);
       if (!cellContent.isEmpty())
         headers.put(cell.getColumnIndex(), cellContent);
     }

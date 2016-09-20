@@ -48,6 +48,7 @@ public class TestCaseBuilder
   private ActionFactory actionFactory;
   private TestRunner testRunner;
   private Properties testDataKeywords;
+  private String dateFormat =  null;
 
   /**
    * Constructor with test root path and link to test runner
@@ -63,6 +64,15 @@ public class TestCaseBuilder
     this.testRootPath = testRootPath;
     this.testRunner = testRunner;
     this.testDataKeywords = new Properties();
+    
+    try
+    {
+      //Argument for evaluateCellContent method
+      this.dateFormat = testRunner.getPropertyValue(Config.PROVA_PLUGINS_INPUT_DATEFORMAT);
+    }
+    catch(Exception ex)
+    {
+    }
   }
 
   /**
@@ -146,7 +156,7 @@ public class TestCaseBuilder
         Cell firstCell = row.getCell(0);
         if (firstCell != null)
         {
-          String firstCellContent = flowWorkbookReader.evaluateCellContent(firstCell);
+          String firstCellContent = flowWorkbookReader.evaluateCellContent(firstCell, dateFormat);
           if (flowWorkbookReader.isTag(firstCellContent))
           {
             String tagName = flowWorkbookReader.getTagName(firstCellContent);
@@ -559,7 +569,7 @@ public class TestCaseBuilder
         Cell firstCell = row.getCell(0);
         if (firstCell != null)
         {
-          String firstCellContent = flowWorkbookReader.evaluateCellContent(firstCell);
+          String firstCellContent = flowWorkbookReader.evaluateCellContent(firstCell, dateFormat);
 
           if (flowWorkbookReader.isTag(firstCellContent))
           {
@@ -691,7 +701,7 @@ public class TestCaseBuilder
     {
       for (Cell headerCell : headerRow)
       {
-        header = flowWorkbookReader.evaluateCellContent(headerCell);
+        header = flowWorkbookReader.evaluateCellContent(headerCell, dateFormat);
         header = header.replace("*", "");
         header = header.replace(":", "");
         header = header.toLowerCase();
@@ -736,7 +746,7 @@ public class TestCaseBuilder
       Cell labelCell = labelRow.getCell(headerEntry.getKey());
       if (labelCell != null)
       {
-        rowMap.put(headerEntry.getValue(), flowWorkbookReader.evaluateCellContent(labelCell));
+        rowMap.put(headerEntry.getValue(), flowWorkbookReader.evaluateCellContent(labelCell, dateFormat));
       }
       else
       {

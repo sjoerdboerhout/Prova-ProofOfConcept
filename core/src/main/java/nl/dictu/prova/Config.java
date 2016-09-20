@@ -50,6 +50,7 @@ public class Config
   public final static String PROVA_PLUGINS_EXT                          = "prova.plugins.ext";                          // String,    File extension for plug-ins   
   public final static String PROVA_PLUGINS_INPUT_PACKAGE                = "prova.plugins.in.package";                   // String,    Active input plug-in 
   public final static String PROVA_PLUGINS_INPUT                        = "prova.plugins.in";                           // String,    Active input plug-in 
+  public final static String PROVA_PLUGINS_INPUT_DATEFORMAT             = "prova.plugins.in.dateformat";                // String,    Dateformat for inputplugin
   public final static String PROVA_PLUGINS_OUTPUT_WEB_PACKAGE           = "prova.plugins.out.web.package";              // String,    Active output plug-in for web 
   public final static String PROVA_PLUGINS_OUTPUT_WEB                   = "prova.plugins.out.web";                      // String,    Active output plug-in for web
   public final static String PROVA_PLUGINS_OUTPUT_SOAP_PACKAGE          = "prova.plugins.out.soap.package";             // String,    Active output plug-in for soap
