@@ -280,7 +280,7 @@ public class CellReader
     // Because we use - more than / this hack is implemented.
     dateFormatString = dateFormatString.replaceAll("/", "-");
     
-    LOGGER.trace("Format date '{}' with '{}'", cell.getDateCellValue(), dateFormat);
+    LOGGER.trace("Format date '{}' with '{}'", cell.getDateCellValue(), dateFormatString);
     
     return new CellDateFormatter(dateFormatString).format(cell.getDateCellValue());
   }
