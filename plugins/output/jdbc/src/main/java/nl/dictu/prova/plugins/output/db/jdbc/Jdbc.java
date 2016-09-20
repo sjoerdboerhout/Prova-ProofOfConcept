@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Level;
+import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 /**
  * Driver for controlling Jdbc Webdriver
@@ -121,6 +122,10 @@ public class Jdbc implements DbOutputPlugin
         }
         resultSet.close();
         LOGGER.info(row + " rows returned.");
+        
+        for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
+          plugin.storeToTxt("" + currentQuery, currentPrefix);
+        }
       }
       else if (getQueryType() == StatementType.DELETE | getQueryType() == StatementType.INSERT | getQueryType() == StatementType.UPDATE)
       {
@@ -137,6 +142,9 @@ public class Jdbc implements DbOutputPlugin
         {
           connection.commit();
           LOGGER.debug("Statement committed");
+        }
+        for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
+          plugin.storeToTxt("" + currentQuery, currentPrefix);
         }
       }
       else

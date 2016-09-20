@@ -1,5 +1,6 @@
 package nl.dictu.prova.runners.cli;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -38,7 +39,6 @@ public class Cli extends ProvaRunner
   private Options           options;
   private Properties        cliProperties;
   private ArrayList<String> cliArguments;
-  
   
   /**
    * Create, initialize and start a Cli instance.

@@ -18,6 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import nl.dictu.prova.framework.TestStatus;
 import static nl.dictu.prova.plugins.output.webservice.apacheSoap.ApacheSoap.LOGGER;
+import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 
@@ -152,6 +153,10 @@ public class ApacheSoap implements SoapOutputPlugin
       }
 
       //Log the result
+      for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
+        plugin.storeToTxt(currentMessage, currentPrefix + "_request");
+        plugin.storeToTxt("" + result, currentPrefix + "_response");
+      }
       LOGGER.debug("Response body   : \n" + result);
       
       testCase.setStatus(TestStatus.FAILED);
@@ -172,6 +177,10 @@ public class ApacheSoap implements SoapOutputPlugin
       }
 
       //Log the result
+      for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
+        plugin.storeToTxt(currentMessage, currentPrefix + "_request");
+        plugin.storeToTxt("" + result, currentPrefix + "_response");
+      }
       LOGGER.debug("Response body   : \n" + result);
 
       return splitSoapMessage(result.toString());

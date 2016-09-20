@@ -336,4 +336,25 @@ public class SimpleReport implements ReportingPlugin
 	  return new PrintWriter(bw);
 	  
   }
+
+  @Override
+  public void storeToTxt(String text, String name) throws Exception
+  {
+    try
+    {
+      File folder = new File(outputDirectory + File.separator + "txt" + File.separator);
+      folder.mkdir();
+      
+      String file = outputDirectory + File.separator + "txt" + File.separator + name + ".txt";
+      PrintWriter printWriter = createPW(file);
+      printWriter.println(text);
+      printWriter.flush();
+      printWriter.close();
+      //pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"lightgreen\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">Stored message/query with name " + name + " to text file at <a href=\"" + file + "\">this location</a></td></tr>");
+      LOGGER.info("Stored message/query with name " + name + " to text file at '" + file + "'");
+    }
+    catch(Exception ex){
+      LOGGER.error("Exception while writing message/query to txt file! : " + ex.getMessage());
+    }
+  }
 }

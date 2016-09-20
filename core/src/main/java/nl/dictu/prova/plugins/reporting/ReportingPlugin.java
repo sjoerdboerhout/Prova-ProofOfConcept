@@ -31,5 +31,7 @@ public interface ReportingPlugin
   public void logMessage(String message) throws Exception;
   public void logMessage(String[] messages) throws Exception;
   
+  public void storeToTxt(String text, String filename) throws Exception;
+  
   public void shutDown();
 }
