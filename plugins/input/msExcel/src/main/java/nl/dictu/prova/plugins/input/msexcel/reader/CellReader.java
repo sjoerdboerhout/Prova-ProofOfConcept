@@ -1,5 +1,7 @@
 package nl.dictu.prova.plugins.input.msexcel.reader;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.format.CellDateFormatter;
@@ -20,6 +22,7 @@ public class CellReader
   private static final Logger LOGGER = LogManager.getLogger();
   private Workbook workbook;
   private FormulaEvaluator formulaEvaluator;
+  String dateFormat = null;
 
   public CellReader(){}
   
@@ -31,6 +34,23 @@ public class CellReader
 
   /**
    * Evaluates contents of a spreadsheet cell and returns a string representation of said content
+   * 
+   * The dateFormat argument is used to format possible date values. Once the dateFormat is set for 
+   * this instance of CellReader, it is used again until overwritten or set back to 'null'.
+   *
+   * @param cell Spreadsheet cell to be evaluated
+   * @return String representation of spreadsheet cell value
+   * @throws Exception
+   */
+  public String evaluateCellContent(Cell cell, String dateFormat) throws Exception
+  {
+    this.dateFormat = dateFormat;
+    
+    return evaluateCellContent(cell);
+  }
+  
+  /**
+   * Evaluates contents of a spreadsheet cell and returns a string representation of said content
    *
    * @param cell Spreadsheet cell to be evaluated
    * @return String representation of spreadsheet cell value
@@ -39,7 +59,7 @@ public class CellReader
   public String evaluateCellContent(Cell cell) throws Exception
   {
     final String LOG_PREFIX = getLogPrefix(cell);
-    if(new DataFormatter().formatCellValue(cell).toString().length() > 0)
+    if(new DataFormatter().formatCellValue(cell).length() > 0)
         LOGGER.trace(LOG_PREFIX + "evaluating cell content '{}'", () -> cell);
 
     String result;
@@ -238,17 +258,31 @@ public class CellReader
    */
   private String getDateString(Cell cell)
   {
+    //If dateFormat argument is supplied, date will be formatted according to the supplied style.
+    //Otherwise, dateformatting will be subtracted from the cell. 
+    if(dateFormat != null)
+    {
+      LOGGER.trace("getDateString: '{}' with format '{}'", () -> cell, () -> dateFormat);
+      
+      Date date = cell.getDateCellValue();
+      
+      SimpleDateFormat formatter = new SimpleDateFormat();
+      formatter.applyPattern(dateFormat);
+      
+      return formatter.format(date);
+    }
+    
     LOGGER.trace("getDateString: '{}'", () -> cell);
     
-    String dateFormat = cell.getCellStyle().getDataFormatString();
+    String dateFormatString = cell.getCellStyle().getDataFormatString();
 
     // TODO POI should respect the format set in Excel...  
     // Because we use - more than / this hack is implemented.
-    dateFormat = dateFormat.replaceAll("/", "-");
+    dateFormatString = dateFormatString.replaceAll("/", "-");
     
     LOGGER.trace("Format date '{}' with '{}'", cell.getDateCellValue(), dateFormat);
     
-    return new CellDateFormatter(dateFormat).format(cell.getDateCellValue());
+    return new CellDateFormatter(dateFormatString).format(cell.getDateCellValue());
   }
 
   /**
