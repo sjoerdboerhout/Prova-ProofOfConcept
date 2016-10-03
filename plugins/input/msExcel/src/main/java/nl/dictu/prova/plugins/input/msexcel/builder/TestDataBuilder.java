@@ -23,6 +23,7 @@ import java.util.Properties;
 import java.util.Map.Entry;
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
+import org.apache.poi.ss.formula.functions.Column;
 
 /**
  * @author Hielke de Haan
@@ -114,6 +115,53 @@ public class TestDataBuilder
         return testDatasets;
       }
         
+      //Optional horizontal testdata template reader
+      if(testRunner.hasPropertyValue("prova.plugins.in.horizontalcolumns"))
+      {
+        if(testRunner.getPropertyValue("prova.plugins.in.horizontalcolumns").equalsIgnoreCase("true"))
+        {
+          Iterator<Row> rowIterator = sheet.rowIterator();
+
+          if(rowIterator.hasNext())
+          {
+            Map<Integer, String> headers = readHeaderRow(rowIterator.next());
+
+            LOGGER.trace("TestData Builder for SOAP & DB: '{}'", sheet.getSheetName());
+
+            int i = 2;
+
+            //Dataset needs 1 testdata row and 1 test validation row.
+            //After size becomes 2 it is added to testDatasets and a new 
+            //one is created.
+            while(i < sheet.getLastRowNum())
+            {
+              if(dataset == null)
+              {
+                dataset = new ArrayList<>();
+                dataset.add(0, readHorizontalColumn(sheet, i));
+              } 
+              else if (dataset.size() == 1)
+              {
+                dataset.add(1, readHorizontalColumn(sheet, i));
+              } 
+              else if (dataset.size() == 2)
+              {
+                testDatasets.add(dataset);
+                dataset = new ArrayList<>();
+                dataset.add(0, readHorizontalColumn(sheet, i));
+              }
+              else
+              {
+                LOGGER.error("Invalid amount of columns for a dataset. Column number is " + i + " and dataset size is " + dataset.size());
+              }
+              i++;
+            }
+          }
+          return testDatasets;
+        }
+      }
+      
+      //Regular vertical testdata template reader
       Iterator<Row> rowIterator = sheet.rowIterator();
     
       if(rowIterator.hasNext())
@@ -154,9 +202,94 @@ public class TestDataBuilder
       return testDatasets;
   }
   
+  public Properties readHorizontalColumn(Sheet sheet, Integer selectedRow) throws Exception{
+    
+    Properties rowData = new Properties();
+    Integer userRow = selectedRow++;
+    
+    Map<Integer, String> headers = readHeaderRow(sheet.getRow(0));
+    //Remove first header "Keywords"
+    headers.remove(0);
+    
+    Row row = sheet.getRow(selectedRow);
+    
+    for(Entry header : headers.entrySet())
+    {
+      Cell keyCell = sheet.getRow(0).getCell((Integer) header.getKey());
+      String rowType = row.getRowNum() % 2 == 0 ? "data" : "tests";
+      
+      if (keyCell != null)
+      {
+        String key = workbookReader.evaluateCellContent(keyCell, dateFormat);
+        LOGGER.trace("Found key: '{}' on column '{}'", key, header.getKey());
+                  
+        if (!key.isEmpty())
+        {  
+          Cell cell = row.getCell((Integer) header.getKey());
+          if (cell != null)
+          {
+            String value = workbookReader.evaluateCellContent(cell, dateFormat);
+            if(!cellReader.isKey(value))
+            {
+              if(value.length() > 0)
+              {
+                LOGGER.trace("Found value '{}' for key '{}' in {} row '{}'", value, key, rowType, userRow);
+                rowData.put(key, value);
+              }
+              else
+              {
+                LOGGER.trace("Found no value for key '{}' in {} row '{}'", key, rowType, userRow);
+              }
+            }
+            //Value is a tag, searching value.
+            else
+            {
+              value = workbookReader.getTagName(value);
+
+              LOGGER.trace("Property value is a property, retrieving value from collection.");
+              if(testRunner.hasPropertyValue(value))
+              {
+                value = testRunner.getPropertyValue(value);
+                if(value.length() > 0)
+                {
+                  LOGGER.trace("Found property value '{}' for key '{}' in {} row '{}'", value, key, rowType, userRow);
+                  rowData.put(key, value);
+                }
+                else
+                {
+                  LOGGER.trace("Found no property value for key '{}' in {} row '{}'", key, rowType, userRow);
+                }
+              }
+              else
+              {
+                throw new Exception("No value available for " + rowType + " tag " + value);
+              }
+            }
+          }
+        } 
+        else
+        {
+        LOGGER.trace("Row {} is empty; skipping row", userRow);
+        }
+      }
+      else
+      {
+        LOGGER.debug("Row {} is empty; skipping row", userRow);
+      }
+      if((Integer) header.getKey() == headers.size() - 1)
+      {
+        LOGGER.trace("Finished reading horizontal column");
+      }
+    }
+    String message = selectedRow % 2 == 0 ? "Added " + rowData.size() + " testvalidation properties to dataset." : "Added " + rowData.size() + " testdata properties to dataset."; 
+    LOGGER.trace(message);
+    return rowData;
+  }    
+  
   public Properties readColumn(Sheet sheet, Integer column, Integer start, Integer end) throws Exception{
     
     Properties columnData = new Properties();
+    String columnType = column % 2 == 0 ? "tests" : "data";
     
     for(int rowNum = start; rowNum <= end; rowNum++)
     {
@@ -168,102 +301,50 @@ public class TestDataBuilder
         LOGGER.trace("Found key: '{}'", key);
                   
         if (!key.isEmpty())
-        {               
-          //Validation column
-          if(column % 2 == 0)
+        { 
+          Cell cell = row.getCell(column);
+          if (cell != null)
           {
-            Cell cell = row.getCell(column);
-            if (cell != null)
+            String value = workbookReader.evaluateCellContent(cell, dateFormat);
+            if(!cellReader.isKey(value))
             {
-              String value = workbookReader.evaluateCellContent(cell, dateFormat);
-              if(!cellReader.isKey(value))
+              if(value.length() > 0)
               {
+                LOGGER.trace("Found value '{}' for key '{}' in {} column '{}'", value, key, columnType, column);
+                columnData.put(key, value);
+              }
+              else
+              {
+                LOGGER.trace("Found no value for key '{}' in {} column '{}'", key, columnType, column);
+              }
+            }
+            //Value is a tag, searching value.
+            else
+            {
+              value = value.substring(1, value.length() - 1);
+              LOGGER.trace("Property value is a property, retrieving value from collection.");
+              if(testRunner.hasPropertyValue(value))
+              {
+                value = testRunner.getPropertyValue(value);
                 if(value.length() > 0)
                 {
-                  LOGGER.trace("Found value '{}' for key '{}' in tests column '{}'", value, key, column);
+                  LOGGER.trace("Found value '{}' for key '{}' in {} column '{}'", value, key, columnType, column);
                   columnData.put(key, value);
                 }
                 else
                 {
-                  LOGGER.trace("Found no value for key '{}' in tests column '{}'", key, column);
+                  LOGGER.trace("Found no property value for key '{}' in {} column '{}'", key, columnType, column);
                 }
               }
-              //Value is a tag, searching value.
               else
               {
-                value = value.substring(1, value.length() - 1);
-                LOGGER.trace("Property value is a property, retrieving value from collection.");
-                if(testRunner.hasPropertyValue(value))
-                {
-                  value = testRunner.getPropertyValue(value);
-                  if(value.length() > 0)
-                  {
-                    LOGGER.trace("Found value '{}' for key '{}' in tests column '{}'", value, key, column);
-                    columnData.put(key, value);
-                  }
-                  else
-                  {
-                    LOGGER.trace("Found no property value for key '{}' in tests column '{}'", key, column);
-                  }
-                }
-                else
-                {
-                  throw new Exception("No value available for tag " + value);
-                }
+                throw new Exception("No value available for tag " + value);
               }
-            } 
-            else 
-            {
-              LOGGER.trace("Found no value for key '{}' in tests column '{}'", key, column);
             }
           } 
-          //Input data column 
           else 
           {
-            Cell cell = row.getCell(column);
-            if (cell != null)
-            {
-              String value = (String) workbookReader.evaluateCellContent(cell, dateFormat);
-              if(!cellReader.isKey(value))
-              {
-                LOGGER.trace("Property value is a property, retrieving value from collection.");
-                if(value.length() > 0)
-                {
-                  LOGGER.trace("Found value '{}' for key '{}' in data column '{}'", value, key, column);
-                  columnData.put(key, value);
-                }
-                else
-                {
-                  LOGGER.trace("Found no value for key '{}' in data column '{}'", key, column);
-                }
-              }
-              //Value is a tag, searching value.
-              else
-              {
-                value = value.substring(1, (value.length() - 1));
-                if(testRunner.hasPropertyValue(value))
-                {
-                  value = testRunner.getPropertyValue(value);
-                  if(value.length() > 0)
-                  {
-                    LOGGER.trace("Found value '{}' for key '{}' in data column '{}'", value, key, column);
-                    columnData.put(key, value);
-                  }
-                  else
-                  {
-                    LOGGER.trace("Found no property value for key '{}' in data column '{}'", key, column);
-                  }
-                }
-                else
-                {
-                  throw new Exception("No value available for tag " + value);
-                }
-              }
-            } 
-            else 
-            {
-              LOGGER.trace("Found no value for key '{}' in data column '{}'", key, column);
-            }
+            LOGGER.trace("Found no value for key '{}' in {} column '{}'", key, columnType, column);
           }
         } 
         else

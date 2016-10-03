@@ -891,7 +891,7 @@ public class TestCaseBuilder
 
   private String replaceKeywords(String entry) throws Exception
   {
-    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9.]+\\}");
+    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
     Matcher matcher = pattern.matcher(entry);
     StringBuffer entryBuffer = new StringBuffer("");
 
@@ -907,7 +907,8 @@ public class TestCaseBuilder
       LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
       if (!testRunner.hasPropertyValue(keyword))
       {
-        throw new Exception("No value found for property " + keyword);
+        LOGGER.trace("No value found for property " + keyword + ", assuming it will be available at execute time.");
+        continue;
       }
       if (testRunner.getPropertyValue(keyword).equalsIgnoreCase("{SKIPCELL}"))
       {

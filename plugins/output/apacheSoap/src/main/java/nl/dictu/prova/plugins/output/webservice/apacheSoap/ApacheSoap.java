@@ -107,19 +107,6 @@ public class ApacheSoap implements SoapOutputPlugin
     post = new HttpPost();
     this.testCase = testCase;
   }
-
-//    @Override
-//    public void tearDown(TestCase testCase) throws Exception {
-//        LOGGER.debug("TearDown Test Case ID '{}'. Status: '{}'", () -> testCase.getId(), () -> testCase.getStatus().name());
-//
-//        try {
-//            cleanUp();
-//            //httpResponse.close();
-//        } catch (Exception e) {
-//            LOGGER.trace("Exception while closing httpClient : " + e.getMessage());
-//            e.printStackTrace();
-//        }
-//    }
   
   @Override
   public Properties doProcessResponse() throws Exception
@@ -131,6 +118,13 @@ public class ApacheSoap implements SoapOutputPlugin
     post.addHeader("Authorization", "Basic " + currentAuthorization);
 
     //Set soap message
+    while(containsKeywords(currentMessage))
+    {
+      LOGGER.trace("Found keyword in SOAP message, replacing it with corresponding value.");
+      currentMessage = replaceKeywords(currentMessage);
+    }
+    requestMessageEntity = new StringEntity(currentMessage);
+    requestMessageEntity.setContentType("text/xml;charset=UTF-8");
     post.setEntity(requestMessageEntity);
 
     //Set target
@@ -232,8 +226,6 @@ public class ApacheSoap implements SoapOutputPlugin
     //Message
     if (message != null)
     {
-      requestMessageEntity = new StringEntity(message);
-      requestMessageEntity.setContentType("text/xml;charset=UTF-8");
       currentMessage = message;
     }
   }
@@ -283,18 +275,53 @@ public class ApacheSoap implements SoapOutputPlugin
     currentUrl = null;
     currentPrefix = null;
   }
+  
+  private Boolean containsKeywords(String entry) throws Exception
+  {
+    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
+    Matcher matcher = pattern.matcher(entry);
+
+    while (matcher.find())
+    {
+      return true;
+    }
+    return false;
+  }
+  
+  private String replaceKeywords(String entry) throws Exception
+  {
+    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
+    Matcher matcher = pattern.matcher(entry);
+    StringBuffer entryBuffer = new StringBuffer("");
+
+    while (matcher.find())
+    {
+      String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 1);
+      
+      LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
+      if (!testRunner.hasPropertyValue(keyword))
+      {
+        throw new Exception("No value found for property " + keyword);
+      }
+      matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
+    }
+    matcher.appendTail(entryBuffer);
+
+    return entryBuffer.toString();
+  }
 
   public String doGetCurrentPrefix()
   {
     return this.currentPrefix;
   }
-
+  
   public Properties splitSoapMessage(String message)
   {
     Properties result = new Properties();
 
     //Pattern standalonePattern = Pattern.compile("\\<[A-Za-z0-9:]+\\/\\>");
-    Pattern variablePattern = Pattern.compile("\\<[A-Za-z0-9:]+\\>[^<>]+\\<\\/[A-Za-z0-9:]+\\>");
+    Pattern variablePattern = Pattern.compile("\\<[A-Za-z0-9 :\"=/_.]+\\>[^<>]+\\<\\/[A-Za-z0-9:]+\\>");
+    //Pattern variableXmlnsPattern = Pattern.compile("\\<[A-Za-z0-9:]+\\>[^<>]+\\<\\/[A-Za-z0-9:]+\\>");
     Pattern variableName = Pattern.compile("\\:(.+?)\\>");
     Pattern variable = Pattern.compile("\\>(.+?)\\<");
     ArrayList<String> matches = new ArrayList<String>();
@@ -308,28 +335,30 @@ public class ApacheSoap implements SoapOutputPlugin
     }
     for (String string : matches)
     {
-      Matcher variableNameMatcher = variableName.matcher(string);
       Matcher variableMatcher = variable.matcher(string);
 
       String key = null;
       String value = null;
 
-      while (variableNameMatcher.find())
-      {
-        key = variableNameMatcher.group(1);
-      }
       while (variableMatcher.find())
       {
         value = variableMatcher.group(1);
       }
-      LOGGER.info("Key : " + key + ", value : " + value);
+      string = string.replaceFirst(value, "");
+      
+      Matcher variableNameMatcher = variableName.matcher(string);
+      while (variableNameMatcher.find())
+      {
+        key = variableNameMatcher.group(1);
+      }
+      //System.out.println("Key : " + key + ", value : " + value);
       if (key != null)
       {
         result.put(key, value);
       }
     }
     //TODO: standalone elementen toevoegen
-    result.put("authorization", currentAuthorization);
+    //result.put("authorization", currentAuthorization);
 
     return result;
   }
@@ -345,7 +374,7 @@ public class ApacheSoap implements SoapOutputPlugin
       {
         nullChecks.put(entry.getKey(), "");
         testCases.remove(entry.getKey());
-        break;
+        continue;
       }
       if (splitResponse.containsKey(entry.getKey()))
       {
