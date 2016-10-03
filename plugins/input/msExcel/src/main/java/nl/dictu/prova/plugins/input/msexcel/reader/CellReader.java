@@ -107,7 +107,7 @@ public class CellReader
           if (DateUtil.isCellDateFormatted(cell))
             return getDateString(cell);
           else
-            return getNumericString(cell);
+            return getNumericString(cellValue);
           
         case Cell.CELL_TYPE_BLANK:
           return "";
