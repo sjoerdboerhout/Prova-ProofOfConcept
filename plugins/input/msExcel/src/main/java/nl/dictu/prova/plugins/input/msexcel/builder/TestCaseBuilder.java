@@ -562,7 +562,7 @@ public class TestCaseBuilder
                         xPath);
           
           testAction.setTestRunner(testRunner);
-          testAction.setId(rowNum.toInteger());
+          testAction.setId(sheet.getSheetName() + " | #" + ((rowNum.toInteger())+1));
           
           for (String key : rowMap.keySet())
           {

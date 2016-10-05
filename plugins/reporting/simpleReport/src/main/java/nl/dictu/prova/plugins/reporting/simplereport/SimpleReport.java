@@ -172,7 +172,7 @@ public class SimpleReport implements ReportingPlugin
 		  pwTestcase.println("<h1>"+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</h1>");
 		  startTime = System.currentTimeMillis();
 		  pwTestcase.println("<br><b>Starttime: </b>" + LocalDateTime.now() +"</br>");
-		  pwTestcase.println("<table>			<tr>				<th>Result</th><th>Action</th><th>Excelrow</th></tr>");
+		  pwTestcase.println("<table>			<tr>				<th>Result</th><th>Action</th><th>Info</th></tr>");
 		  
 		  //this.shutDown();
 	  }
@@ -193,7 +193,7 @@ public class SimpleReport implements ReportingPlugin
 
 	  try
           {
-                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()+1) +"</td></tr>");
+                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()) +"</td></tr>");
           }
           catch(Exception eX)
           {
@@ -232,7 +232,7 @@ public class SimpleReport implements ReportingPlugin
 	  				+ "<a href=\""+fileName
 	  				+ "\">Resultaat testgeval</a></td></tr>");
 	  }
-	  pwTestcase.println("<br><b>Error: </b>" + testCase.getSummary()+"</br>");
+	  pwTestcase.println("<br><b>Summary: </b>" + testCase.getSummary()+"</br>");
 	  pwTestcase.println("</table>");
 	  pwTestcase.println("</body>");
 	  pwTestcase.println("</html>");
