@@ -27,20 +27,22 @@
     <dir.lib.rel>../../lib</dir.lib.rel>
 
     <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
+    <ojdbc.artifact.id>ojdbc6</ojdbc.artifact.id>
+    <ojdbc.version>11.2.0.4</ojdbc.version>
   </properties>
-
+   
   <dependencies>
     <dependency>
       <groupId>nl.dictu.prova</groupId>
       <artifactId>core</artifactId>
       <version>${prova.core.version}</version>
     </dependency>
-	
-	<dependency>
-	  <groupId>com.oracle</groupId>
-	  <artifactId>ojdbc6</artifactId>
-	  <version>11.2.0</version>
-	</dependency>
+
+	  <dependency>
+	    <groupId>com.oracle</groupId>
+	    <artifactId>${ojdbc.artifact.id}</artifactId>
+	    <version>${ojdbc.version}</version>
+	  </dependency>  
   </dependencies>
 
   <build>
