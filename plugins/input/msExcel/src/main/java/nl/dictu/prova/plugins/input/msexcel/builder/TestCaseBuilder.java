@@ -673,7 +673,7 @@ public class TestCaseBuilder
 	    	  }
 	    	  else
 	    	  {
-	    		  //rowMap.put(headerEntry.getValue(), null);
+	    		  rowMap.put(headerEntry.getValue(), "");
 	   	          numEmptyFields = numEmptyFields + 1;
 	   	          LOGGER.trace("Empty field found. Current count empty fields is: {}. Header count is: {}. ",numEmptyFields,numHeaderEntries);
 	    		  //LOGGER.debug("Celllength < 1: {} ", flowWorkbookReader.evaluateCellContent(labelCell).length());
@@ -681,7 +681,7 @@ public class TestCaseBuilder
     	  }
       else
       {
-	       rowMap.put(headerEntry.getValue(), null);
+	       rowMap.put(headerEntry.getValue(), "");
 	       numEmptyFields = numEmptyFields + 1;
 	       LOGGER.trace("Empty field found. Current count empty fields is: {}. Header count is: {}. ",numEmptyFields,numHeaderEntries);
       }
