@@ -448,6 +448,7 @@ public class Prova implements Runnable, TestRunner
           // Tear down output plug-in(s) after the test case
           if(webOutputPlugin != null)
             //webOutputPlugin.tearDown(entry.getValue());
+        	  webOutputPlugin.shutDown();
           
           if(soapOutputPlugin != null)
             //soapOutputPlugin.tearDown(entry.getValue());

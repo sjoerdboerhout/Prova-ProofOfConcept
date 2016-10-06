@@ -641,8 +641,8 @@ public class TestCaseBuilder
                   xPath);
 
           testAction.setTestRunner(testRunner);
-          testAction.setId(rowNum.toInteger());
-
+          testAction.setId(sheet.getSheetName() + " | #" + ((rowNum.toInteger())+1));
+          
           for (String key : rowMap.keySet())
           {
             if (!key.equals("actie"))
@@ -740,18 +740,37 @@ public class TestCaseBuilder
 
     Map<String, String> rowMap = new HashMap<>();
     Set<Map.Entry<Integer, String>> headerEntries = headers.entrySet();
-
+    int numHeaderEntries = headerEntries.size();
+    int numEmptyFields = 0;
+    
     for (Map.Entry<Integer, String> headerEntry : headerEntries)
     {
       Cell labelCell = labelRow.getCell(headerEntry.getKey());
       if (labelCell != null)
       {
-        rowMap.put(headerEntry.getValue(), flowWorkbookReader.evaluateCellContent(labelCell, dateFormat));
+        if (flowWorkbookReader.evaluateCellContent(labelCell).length()>=1)
+        {
+          LOGGER.trace("Adding value to map: Cellvalue: {} ", flowWorkbookReader.evaluateCellContent(labelCell));
+          rowMap.put(headerEntry.getValue(), flowWorkbookReader.evaluateCellContent(labelCell, dateFormat));
+        }
+        else
+        {
+          rowMap.put(headerEntry.getValue(), "");
+          numEmptyFields = numEmptyFields + 1;
+          LOGGER.trace("Empty field found. Current count empty fields is: {}. Header count is: {}. ",numEmptyFields,numHeaderEntries);
+        }
       }
       else
       {
-        rowMap.put(headerEntry.getValue(), null);
+	       rowMap.put(headerEntry.getValue(), "");
+	       numEmptyFields = numEmptyFields + 1;
+	       LOGGER.trace("Empty field found. Current count empty fields is: {}. Header count is: {}. ",numEmptyFields,numHeaderEntries);
       }
+    }
+    if (numEmptyFields == numHeaderEntries)
+    {
+    	LOGGER.trace("Row {} is empty, but not null. Probably some value is hidden in some fields",(rowNum.intValue())+1);
+    	return null;
     }
 
     // break if row map only contains nulls

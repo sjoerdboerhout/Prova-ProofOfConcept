@@ -27,7 +27,7 @@ public abstract class TestAction
   public abstract void execute() throws Exception;
   public abstract boolean isValid() throws Exception;
   
-  protected Integer actionId;
+  protected String actionId;
   
   /**
    * Constructor
@@ -62,7 +62,7 @@ public abstract class TestAction
    * 
    * @param newActionId
    */
-  public void setId(Integer newActionId)
+  public void setId(String newActionId)
   {
     this.actionId = newActionId;
   }
@@ -71,7 +71,7 @@ public abstract class TestAction
    * Get the actions unique Id
    * @return
    */
-  public Integer getId()
+  public String getId()
   {
     return this.actionId;
   }
