@@ -14,11 +14,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.logging.Level;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 /**
@@ -82,7 +78,7 @@ public class Jdbc implements DbOutputPlugin
   public Properties doProcessDbResponse() throws Exception
   {
     Properties sqlProperties = new Properties();
-    LOGGER.debug("Executing and processing query in output plugin Jdbc.");
+    LOGGER.debug("Processing query in output plugin Jdbc with prefix '{}'.", currentPrefix);
 
     if (!isValid())
     {
@@ -97,6 +93,10 @@ public class Jdbc implements DbOutputPlugin
 
       if (getQueryType() == StatementType.SELECT)
       {
+        for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
+          plugin.storeToTxt("" + currentQuery, currentPrefix);
+        }
+        
         statement = connection.createStatement();
         ResultSet resultSet = statement.executeQuery(currentQuery);
         ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
@@ -122,13 +122,13 @@ public class Jdbc implements DbOutputPlugin
         }
         resultSet.close();
         LOGGER.info(row + " rows returned.");
-        
-        for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
-          plugin.storeToTxt("" + currentQuery, currentPrefix);
-        }
       }
       else if (getQueryType() == StatementType.DELETE | getQueryType() == StatementType.INSERT | getQueryType() == StatementType.UPDATE)
       {
+        for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
+          plugin.storeToTxt("" + currentQuery, currentPrefix);
+        }
+        
         PreparedStatement preparedStatement = connection.prepareStatement(currentQuery);
         row = preparedStatement.executeUpdate();
         preparedStatement.close();
@@ -142,9 +142,6 @@ public class Jdbc implements DbOutputPlugin
         {
           connection.commit();
           LOGGER.debug("Statement committed");
-        }
-        for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
-          plugin.storeToTxt("" + currentQuery, currentPrefix);
         }
       }
       else
@@ -230,12 +227,12 @@ public class Jdbc implements DbOutputPlugin
     {
       if (testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0)
       {
-        LOGGER.info("Test unsuccesful!");
+        LOGGER.info("Test unsuccessful!");
         return false;
       }
       else
       {
-        LOGGER.info("Test succesful!");
+        LOGGER.info("Test successful!");
         return true;
       }
     }
@@ -245,15 +242,15 @@ public class Jdbc implements DbOutputPlugin
       String propertyValue = testRunner.getPropertyValue(property).trim();
       if (propertyValue.equalsIgnoreCase(test.trim()))
       {
-        LOGGER.info("Test succesful!");
+        LOGGER.info("Test successful!");
         return true;
       }
-      LOGGER.info("Test unsuccesful!");
+      LOGGER.info("Test unsuccessful!");
       return false;
     }
     else
     {
-      LOGGER.info("Test unsuccesful!");
+      LOGGER.info("Test unsuccessful!");
       return false;
     }
 
