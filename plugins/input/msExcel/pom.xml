@@ -86,13 +86,6 @@
       <artifactId>commons-lang</artifactId>
       <version>${commons.lang.version}</version>
     </dependency>
-    
-    <dependency>
-        <groupId>com.oracle</groupId>
-        <artifactId>ojdbc6</artifactId>
-        <version>11.2.0</version>
-    </dependency>
-
   </dependencies>
 	
   <build>
