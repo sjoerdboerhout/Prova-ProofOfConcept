@@ -61,8 +61,14 @@ public class SimpleReport implements ReportingPlugin
     	// setting parent folder if outputdirectory is set for the first time in the testrun
     	if (outputDirectory.equals(""))
     	{
-    		DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyyMMdd_hhmmss");
-    		outputDirectory = testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR)+ "\\" + "Testrun_" + outputDir + "_" + LocalDateTime.now().format(sdf).toString();
+        	LOGGER.debug("Setting up Outputdirectory: "+ outputDir);
+    		DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    		outputDirectory = testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR) + 
+    				          File.separator + 
+    				          "Testrun_" + 
+    				          outputDir + 
+    				          "_" + 
+    				          LocalDateTime.now().format(sdf).toString();
     		parentDirectory = outputDirectory;
     		LOGGER.debug("Parentdirectory set to: " + parentDirectory);
     		LOGGER.debug("(IF) Outputdirectory set to: " + outputDirectory);
@@ -85,7 +91,7 @@ public class SimpleReport implements ReportingPlugin
   @Override
   public void setUp(String fileName) throws Exception
   {
-	  LOGGER.debug("Set up output directory");
+	  LOGGER.debug("Set up output directory for TS: " + fileName);
 	  try
 	  {
 		  setOutputDir(fileName);
