@@ -252,7 +252,7 @@ public class Prova implements Runnable, TestRunner
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP).toLowerCase() + "." +
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP);
 
-      soapOutputPlugin = pluginLoader.getInstanceOf("nl.dictu.prova.plugins.output.webservice.apacheSoap.ApacheSoap", SoapOutputPlugin.class);
+      soapOutputPlugin = pluginLoader.getInstanceOf(pluginName, SoapOutputPlugin.class);
       
       if(soapOutputPlugin != null)
         soapOutputPlugin.init(this);
@@ -264,7 +264,7 @@ public class Prova implements Runnable, TestRunner
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB).toLowerCase() + "." +
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB);
 
-      dbOutputPlugin = pluginLoader.getInstanceOf("nl.dictu.prova.plugins.output.db.jdbc.Jdbc", DbOutputPlugin.class);
+      dbOutputPlugin = pluginLoader.getInstanceOf(pluginName, DbOutputPlugin.class);
       
       if(dbOutputPlugin != null)
         dbOutputPlugin.init(this);
