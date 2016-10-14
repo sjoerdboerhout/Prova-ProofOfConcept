@@ -322,6 +322,13 @@ public class Prova implements Runnable, TestRunner
       // Search for test scripts and read the headers
       inputPlugin.setUp();
       
+
+      LOGGER.debug("Number of report plugins to setUp: " + getReportingPlugins().size());
+      for(ReportingPlugin reportPlugin : getReportingPlugins())
+      {
+      	reportPlugin.setUp(this.getPropertyValue(Config.PROVA_PROJECT));
+      }
+      
       // TODO: Build structure of test suites and test cases
       
       // TODO: Run one time setup script(s)
