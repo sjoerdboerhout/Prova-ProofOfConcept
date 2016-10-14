@@ -109,10 +109,17 @@ public class Selenium implements WebOutputPlugin
       
       if(browserType.equalsIgnoreCase("FireFox"))
       {
+        String fireFoxPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_GECKO);
+          
+        //LOGGER.trace("Try to load webdriver 'Gecko' ({})", fireFoxPath);
+        LOGGER.trace("Try to load webdriver 'Gecko'");
+        System.setProperty("webdriver.gecko.driver", fireFoxPath);
+    	  
         if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE))
         {
           ProfilesIni profile = new ProfilesIni();
           FirefoxProfile ffProfile = profile.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+          
           LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
           webdriver = new FirefoxDriver(ffProfile);
         }
@@ -198,7 +205,10 @@ public class Selenium implements WebOutputPlugin
     catch(Exception eX)
     {
       LOGGER.trace(eX);
-      webdriver.close();
+      
+      if( webdriver != null)
+    	  webdriver.close();
+      
       throw eX;
     }
   }
