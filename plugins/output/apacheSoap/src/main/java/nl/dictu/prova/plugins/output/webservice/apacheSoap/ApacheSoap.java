@@ -299,11 +299,34 @@ public class ApacheSoap implements SoapOutputPlugin
       String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 1);
       
       LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
-      if (!testRunner.hasPropertyValue(keyword))
+      
+      Boolean failOnNoTestdataKeywords = false;
+      
+      try
       {
-        throw new Exception("No value found for property " + keyword);
+        matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
+
+        try
+        {
+          failOnNoTestdataKeywords = Boolean.parseBoolean(this.testRunner.getPropertyValue(Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD));
+        }
+        catch(Exception ex)
+        {
+          LOGGER.error("Error parsing property '{}', please check your property file.", Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD);
+        }
       }
-      matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
+      catch(Exception ex)
+      {
+        if(failOnNoTestdataKeywords)
+        {
+          throw new Exception("Keyword '" + keyword + "' in '" + currentPrefix + "' not defined with a value.");
+        }
+        else
+        {
+          matcher.appendReplacement(entryBuffer, keyword);
+          LOGGER.error("Keyword '" + keyword + "' in '" + currentPrefix + "' not defined with a value.");
+        }
+      }
     }
     matcher.appendTail(entryBuffer);
 

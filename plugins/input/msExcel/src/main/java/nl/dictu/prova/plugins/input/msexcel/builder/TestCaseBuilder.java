@@ -190,6 +190,9 @@ public class TestCaseBuilder
               case "labels":
                 // Ignore
                 break;
+              case "profile":
+                readSelectedProfile(this.workbook, sheet, rowNum);
+                break;
               case "setup":
               case "test":
               case "teardown":
@@ -220,7 +223,6 @@ public class TestCaseBuilder
     Map<String, String> rowMap = null;
     TestAction testAction = null;
     List<TestAction> testActions = new ArrayList<>();
-    CellReader cellReader = new CellReader();
     String type = null;
     ActionFactory actionFactory = null;
 
@@ -358,10 +360,10 @@ public class TestCaseBuilder
         if (rowMap.containsKey("password"))
         {
           LOGGER.trace("Password found. Processing.");
-          if (cellReader.isKey(rowMap.get("password")))
+          if (CellReader.isKey(rowMap.get("password")))
           {
             LOGGER.trace("Password value is a key, retrieving property value.");
-            String password = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("password")));
+            String password = this.testRunner.getPropertyValue(CellReader.getKeyName(rowMap.get("password")));
             if (password != null)
             {
               testAction.setAttribute("prova.properties.password", password);
@@ -381,10 +383,10 @@ public class TestCaseBuilder
         if (rowMap.containsKey("user"))
         {
           LOGGER.trace("User found. Processing.");
-          if (cellReader.isKey(rowMap.get("user")))
+          if (CellReader.isKey(rowMap.get("user")))
           {
             LOGGER.trace("User value is a key, retrieving property value.");
-            String user = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get("user")));
+            String user = this.testRunner.getPropertyValue(CellReader.getKeyName(rowMap.get("user")));
             if (user != null)
             {
               testAction.setAttribute("prova.properties.user", user);
@@ -417,10 +419,10 @@ public class TestCaseBuilder
         {
           String addressOrUrl = rowMap.containsKey("address") ? "address" : "url";
           LOGGER.trace(addressOrUrl + " found. Processing.");
-          if (cellReader.isKey(rowMap.get(addressOrUrl)))
+          if (CellReader.isKey(rowMap.get(addressOrUrl)))
           {
             LOGGER.trace("Address or URL value is a key, retrieving property value.");
-            String addressOrUrlPropertyValue = this.testRunner.getPropertyValue(cellReader.getKeyName(rowMap.get(addressOrUrl)));
+            String addressOrUrlPropertyValue = this.testRunner.getPropertyValue(CellReader.getKeyName(rowMap.get(addressOrUrl)));
             if (addressOrUrlPropertyValue != null)
             {
               testAction.setAttribute("prova.properties." + addressOrUrl, addressOrUrlPropertyValue);
@@ -471,14 +473,17 @@ public class TestCaseBuilder
         case "labels":
           // TODO process label
           break;
+        case "profile":
+          readSelectedProfile(this.workbook, sheet, rowNum);
+          break;
         case "setup":
-          readTestActionsFromReference(testCase, rowMap).forEach(testCase::addSetUpAction);
+          readTestActionsFromReference(testCase, rowMap, "setup").forEach(testCase::addSetUpAction);
           break;
         case "test":
-          readTestActionsFromReference(testCase, rowMap).forEach(testCase::addTestAction);
+          readTestActionsFromReference(testCase, rowMap, "test").forEach(testCase::addTestAction);
           break;
         case "teardown":
-          readTestActionsFromReference(testCase, rowMap).forEach(testCase::addTearDownAction);
+          readTestActionsFromReference(testCase, rowMap, "teardown").forEach(testCase::addTearDownAction);
           break;
       }
     }
@@ -491,23 +496,23 @@ public class TestCaseBuilder
    * @return
    * @throws Exception
    */
-  private List<TestAction> readTestActionsFromReference(TestCase testCase, Map<String, String> rowMap) throws Exception
+  private List<TestAction> readTestActionsFromReference(TestCase testCase, Map<String, String> rowMap, String type) throws Exception
   {
     Sheet nextSheet;
 
     if (rowMap.get("package").isEmpty())
     {
-      LOGGER.debug("Find sheet {} in same workbook", rowMap.get("test"));
-      nextSheet = workbook.getSheet(rowMap.get("test"));
+      LOGGER.debug("Find sheet {} in same workbook", rowMap.get(type));
+      nextSheet = workbook.getSheet(rowMap.get(type));
 
       if (nextSheet == null)
       {
-        throw new Exception("Sheet " + rowMap.get("test") + " not found in workbook " + flowWorkbookPath);
+        throw new Exception("Sheet " + rowMap.get(type) + " not found in workbook " + flowWorkbookPath);
       }
     }
     else
     {
-      LOGGER.debug("Find sheet {} in package {}", rowMap.get("test"), rowMap.get("package"));
+      LOGGER.debug("Find sheet {} in package {}", rowMap.get(type), rowMap.get("package"));
       String nextPath = getWorkbookFromPackage(rowMap.get("package"));
 
       if (!new File(nextPath).exists())
@@ -515,19 +520,30 @@ public class TestCaseBuilder
         throw new Exception("Workbook '" + nextPath + "' not found");
       }
 
-      nextSheet = new XSSFWorkbook(nextPath).getSheet(rowMap.get("test"));
+      nextSheet = new XSSFWorkbook(nextPath).getSheet(rowMap.get(type));
 
       if (nextSheet == null)
       {
-        throw new Exception("Sheet " + rowMap.get("test") + " not found in workbook " + nextPath);
+        throw new Exception("Sheet " + rowMap.get(type) + " not found in workbook " + nextPath);
       }
     }
 
     //In case the sheet is of type 'SOAP' or 'DB', (optional) testdata is collected and used for iteration over the sheet.
     if (new SheetPrefixValidator(nextSheet).validate("SOAP") || new SheetPrefixValidator(nextSheet).validate("DB"))
     {
+      String specificSheet = null;
+      
+      //If the TestdataSheet column exists and is filled in, the sheet to be used
+      if(rowMap.containsKey("testdatasheet"))
+      {
+        if(!(rowMap.get("testdatasheet").isEmpty()))
+        {
+          specificSheet = rowMap.get("testdatasheet");  
+        }
+      }
+      
       List<TestAction> testActions = new ArrayList<>();
-      ArrayList<List<Properties>> testData = getSoapDbTestdata(testCase, nextSheet);
+      ArrayList<List<Properties>> testData = getSoapDbTestdata(testCase, nextSheet, specificSheet);
       if (testData.size() > 0)
       {
         LOGGER.info(testData.size() + " sets of testdata found for sheet '" + nextSheet.getSheetName() + "'");
@@ -586,8 +602,6 @@ public class TestCaseBuilder
               case "query":
               case "queryproperties":
               case "execute":
-                parseSoapDbTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
-                break;
               case "message":
               case "soapproperties":
               case "send":
@@ -663,7 +677,28 @@ public class TestCaseBuilder
                 }
                 else
                 {
-                  throw new Exception("Keyword '" + keyword + "' in sheet '" + sheet.getSheetName() + "' not defined with a value.");
+                  if(this.testRunner.hasPropertyValue(Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD))
+                  {
+                    Boolean failOnNoTestdataKeywords = false;
+                    
+                    try
+                    {
+                      failOnNoTestdataKeywords = Boolean.parseBoolean(this.testRunner.getPropertyValue(Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD));
+                    }
+                    catch(Exception ex)
+                    {
+                      LOGGER.error("Error parsing property '{}', please check your property file.", Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD);
+                    }
+                    
+                    if(failOnNoTestdataKeywords)
+                    {
+                      throw new Exception("Keyword '" + keyword + "' in sheet '" + sheet.getSheetName() + "' not defined with a value.");
+                    }
+                    else
+                    {
+                      LOGGER.error("Keyword '" + keyword + "' in sheet '" + sheet.getSheetName() + "' not defined with a value.");
+                    }
+                  }                  
                 }
               }
 
@@ -675,7 +710,22 @@ public class TestCaseBuilder
           testActions.add(testAction);
           break;
         case "tc":
-          readTestActionsFromReference(testCase, rowMap).forEach(testActions::add);
+          if(rowMap.containsKey("test"))
+          {
+            readTestActionsFromReference(testCase, rowMap, "test").forEach(testActions::add);
+          } 
+          else if(rowMap.containsKey("setup"))
+          {
+            readTestActionsFromReference(testCase, rowMap, "setup").forEach(testActions::add);
+          }
+          else if(rowMap.containsKey("teardown"))
+          {
+            readTestActionsFromReference(testCase, rowMap, "teardown").forEach(testActions::add);
+          }
+          else
+          {
+            LOGGER.error("No test, setup or teardown column found in section!");
+          }
           break;
       }
     }
@@ -757,14 +807,12 @@ public class TestCaseBuilder
         {
           rowMap.put(headerEntry.getValue(), "");
           numEmptyFields = numEmptyFields + 1;
-          LOGGER.trace("Empty field found. Current count empty fields is: {}. Header count is: {}. ",numEmptyFields,numHeaderEntries);
         }
       }
       else
       {
 	       rowMap.put(headerEntry.getValue(), "");
 	       numEmptyFields = numEmptyFields + 1;
-	       LOGGER.trace("Empty field found. Current count empty fields is: {}. Header count is: {}. ",numEmptyFields,numHeaderEntries);
       }
     }
     if (numEmptyFields == numHeaderEntries)
@@ -917,6 +965,7 @@ public class TestCaseBuilder
     while (matcher.find())
     {
       String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 1);
+      
       if (keyword.equalsIgnoreCase("SKIPCELL"))
       {
         LOGGER.debug("Skipping cell with keyword " + keyword);
@@ -941,9 +990,15 @@ public class TestCaseBuilder
     return entryBuffer.toString();
   }
 
-  private ArrayList<List<Properties>> getSoapDbTestdata(TestCase testCase, Sheet sheet) throws Exception
+  private ArrayList<List<Properties>> getSoapDbTestdata(TestCase testCase, Sheet sheet, String specificSheet) throws Exception
   {
     ArrayList<List<Properties>> testData = new ArrayList<>();
+    String selectedSheet = sheet.getSheetName();
+    
+    if(specificSheet != null)
+    {
+      selectedSheet = specificSheet;
+    }
 
     dataWorkbookPath = getFlowPathFromTCID(testCase.getId()).substring(0, getFlowPathFromTCID(testCase.getId()).lastIndexOf(File.separator));
 
@@ -963,17 +1018,85 @@ public class TestCaseBuilder
       if (new File(dataWorkbookPath).isFile())
       {
         LOGGER.debug("Reading SOAP/DB testdata sheet: '" + dataWorkbookPath + "'");
-        testData = new TestDataBuilder(testRunner).buildTestDataAndTests(dataWorkbookPath, sheet.getSheetName());
+        testData = new TestDataBuilder(testRunner).buildTestDataAndTests(dataWorkbookPath, selectedSheet);
         if (testData.isEmpty())
         {
-          LOGGER.debug("No testdata returned for path " + dataWorkbookPath + " and sheetname " + sheet.getSheetName());
+          LOGGER.debug("No testdata returned for path " + dataWorkbookPath + " and sheetname " + selectedSheet);
         }
       }
       else
       {
-        LOGGER.debug("No testdata file found for path " + dataWorkbookPath + " and sheetname " + sheet.getSheetName());
+        LOGGER.debug("No testdata file found for path " + dataWorkbookPath + " and sheetname " + selectedSheet);
       }
     }
     return testData;
+  }
+
+  private void readSelectedProfile(Workbook workbook, Sheet sheet, MutableInt rowNum) throws Exception
+  {
+    //First read the selected profile from the testcase sheet
+    
+    Row profileRow = sheet.getRow(rowNum.intValue());
+    Cell profile = profileRow.getCell(1);
+    LOGGER.info("Selected profile is '{}'", profile.getStringCellValue());
+    
+    Sheet provaProfiles = workbook.getSheet("Prova_Profiles");
+    
+    if(provaProfiles == null)
+    {
+      throw new Exception("Sheet Prova_Profiles not available, please check testcase '" + sheet.getSheetName() + "' workbook.");
+    }
+    else
+    {
+      LOGGER.debug("Collecting profile properties from Prova_Properties sheet");
+      Map<Integer, String> headers = readSectionHeaderRow(provaProfiles, new MutableInt(-1));
+      Properties selectedProfileProperties = null;
+      
+      //Read all the profile properties from specified column
+      for (Entry column : headers.entrySet())
+      {
+        if(column.getValue().toString().equalsIgnoreCase(profile.getStringCellValue()))
+        {
+          int start = provaProfiles.getRow(1).getCell(0) == null ? 1 : 2;
+          selectedProfileProperties = new TestDataBuilder(testRunner).readColumn(provaProfiles, (Integer) column.getKey(), start, provaProfiles.getLastRowNum(), new WorkbookReader(workbook));          
+        }
+      }
+      if (selectedProfileProperties == null)
+      {
+        throw new Exception("Profile " + profile.getStringCellValue() + " not found.");
+      }
+      else
+      {
+        if (!selectedProfileProperties.isEmpty())
+        {
+          for(Entry prop : selectedProfileProperties.entrySet())
+          {
+            String value = null;
+            
+            if(flowWorkbookReader.isKey((String) prop.getValue()))
+            {
+              value = flowWorkbookReader.getKeyName((String) prop.getValue());
+            }
+            else
+            {
+              value = (String) prop.getValue();
+            }
+            
+            //Store all the profile properties in the central properties object after looking for possible property value
+            if(value == null) continue;
+            
+            if(this.testRunner.hasPropertyValue(value))
+            {
+              value = this.testRunner.getPropertyValue(value);
+            }
+            this.testRunner.setPropertyValue((String) prop.getKey(), value);
+          }
+        }
+        else
+        {
+          LOGGER.error("0 properties return from Prova_Profiles sheet, please check your file.");
+        }
+      }
+    }
   }
 }

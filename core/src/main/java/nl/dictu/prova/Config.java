@@ -28,6 +28,8 @@ public class Config
   public final static String PROVA_ENV                                  = "prova.env";                                  // String,    Defines the environment (OTAP) to use
   public final static String PROVA_ENV_PFX                              = "prova.env";                                  // String[],  Environment prefix 
   
+  public final static String PROVA_FLOW_FAILON_NOTESTDATAKEYWORD        = "prova.flow.failon.notestdatakeyword";        // String,    Switch for failing on finding a testdata keyword (not properties file keyword)
+  
   public final static String PROVA_LOG_FILENAME                         = "prova.log.filename";                         // String,    Name of the Prova log file 
   public final static String PROVA_LOG_LEVEL                            = "prova.log.level";                            // String,    Log level for Prova 
   public final static String PROVA_LOG_DIR_ROOT                         = "prova.log.dir.root";                         // String,    Dir for writing log file

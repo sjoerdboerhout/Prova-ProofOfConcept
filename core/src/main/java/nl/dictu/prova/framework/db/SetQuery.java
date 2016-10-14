@@ -54,6 +54,10 @@ class SetQuery extends TestAction
     {
       return false;
     }
+    if (query.length() == 0)
+    {
+      return false;
+    }
     return true;
   }
 

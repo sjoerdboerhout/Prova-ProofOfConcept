@@ -146,7 +146,7 @@ public class Jdbc implements DbOutputPlugin
       }
       else
       {
-        throw new Exception("The provided query '" + currentQuery.substring(0, 30) + "...' is not supported! See documentation.");
+        throw new Exception("The provided query '" + currentQuery.substring(0, currentQuery.length() < 120 ? currentQuery.length() : 120) + "...' is not supported! See documentation.");
       }
     }
     catch (SQLException e)

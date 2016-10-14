@@ -23,7 +23,6 @@ import java.util.Properties;
 import java.util.Map.Entry;
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
-import org.apache.poi.ss.formula.functions.Column;
 
 /**
  * @author Hielke de Haan
@@ -33,19 +32,15 @@ public class TestDataBuilder
 {
   private final static Logger LOGGER = LogManager.getLogger();
   private WorkbookReader workbookReader;
-  private CellReader cellReader;
+  
   private TestRunner testRunner;
   private String dateFormat = null;
   
-  public TestDataBuilder()
-  {
-    cellReader = new CellReader();
-  }
+  public TestDataBuilder(){}
   
   public TestDataBuilder(TestRunner testRunner)
   {
       this.testRunner = testRunner;
-      cellReader = new CellReader();
       
       try
       {
@@ -135,20 +130,21 @@ public class TestDataBuilder
             //one is created.
             while(i < sheet.getLastRowNum())
             {
+              LOGGER.trace("Reading testdata sheet row {} of total {}", i, sheet.getLastRowNum());
               if(dataset == null)
               {
                 dataset = new ArrayList<>();
-                dataset.add(0, readHorizontalColumn(sheet, i));
+                dataset.add(0, readHorizontalColumn(sheet, i, workbookReader));
               } 
               else if (dataset.size() == 1)
               {
-                dataset.add(1, readHorizontalColumn(sheet, i));
+                dataset.add(1, readHorizontalColumn(sheet, i, workbookReader));
               } 
               else if (dataset.size() == 2)
               {
                 testDatasets.add(dataset);
                 dataset = new ArrayList<>();
-                dataset.add(0, readHorizontalColumn(sheet, i));
+                dataset.add(0, readHorizontalColumn(sheet, i, workbookReader));
               }
               else
               {
@@ -180,17 +176,17 @@ public class TestDataBuilder
           if(dataset == null)
           {
             dataset = new ArrayList<>();
-            dataset.add(0, readColumn(sheet, i, 2, sheet.getLastRowNum()));
+            dataset.add(0, readColumn(sheet, i, 2, sheet.getLastRowNum(), workbookReader));
           } 
           else if (dataset.size() == 1)
           {
-            dataset.add(1, readColumn(sheet, i, 2, sheet.getLastRowNum()));
+            dataset.add(1, readColumn(sheet, i, 2, sheet.getLastRowNum(), workbookReader));
           } 
           else if (dataset.size() == 2)
           {
             testDatasets.add(dataset);
             dataset = new ArrayList<>();
-            dataset.add(0, readColumn(sheet, i, 2, sheet.getLastRowNum()));
+            dataset.add(0, readColumn(sheet, i, 2, sheet.getLastRowNum(), workbookReader));
           }
           else
           {
@@ -202,10 +198,9 @@ public class TestDataBuilder
       return testDatasets;
   }
   
-  public Properties readHorizontalColumn(Sheet sheet, Integer selectedRow) throws Exception{
+  public Properties readHorizontalColumn(Sheet sheet, Integer selectedRow, WorkbookReader workbookReader) throws Exception{
     
     Properties rowData = new Properties();
-    Integer userRow = selectedRow++;
     
     Map<Integer, String> headers = readHeaderRow(sheet.getRow(0));
     //Remove first header "Keywords"
@@ -229,16 +224,16 @@ public class TestDataBuilder
           if (cell != null)
           {
             String value = workbookReader.evaluateCellContent(cell, dateFormat);
-            if(!cellReader.isKey(value))
+            if(!CellReader.isKey(value))
             {
               if(value.length() > 0)
               {
-                LOGGER.trace("Found value '{}' for key '{}' in {} row '{}'", value, key, rowType, userRow);
+                LOGGER.trace("Found value '{}' for key '{}' in {} 0 based row '{}'", value, key, rowType, selectedRow);
                 rowData.put(key, value);
               }
               else
               {
-                LOGGER.trace("Found no value for key '{}' in {} row '{}'", key, rowType, userRow);
+                LOGGER.trace("Found no value for key '{}' in {} 0 based row '{}'", key, rowType, selectedRow);
               }
             }
             //Value is a tag, searching value.
@@ -252,12 +247,12 @@ public class TestDataBuilder
                 value = testRunner.getPropertyValue(value);
                 if(value.length() > 0)
                 {
-                  LOGGER.trace("Found property value '{}' for key '{}' in {} row '{}'", value, key, rowType, userRow);
+                  LOGGER.trace("Found property value '{}' for key '{}' in {} 0 based row '{}'", value, key, rowType, selectedRow);
                   rowData.put(key, value);
                 }
                 else
                 {
-                  LOGGER.trace("Found no property value for key '{}' in {} row '{}'", key, rowType, userRow);
+                  LOGGER.trace("Found no property value for key '{}' in {} 0 based row '{}'", key, rowType, selectedRow);
                 }
               }
               else
@@ -269,12 +264,12 @@ public class TestDataBuilder
         } 
         else
         {
-        LOGGER.trace("Row {} is empty; skipping row", userRow);
+          LOGGER.trace("Row {} is empty; skipping row", selectedRow);
         }
       }
       else
       {
-        LOGGER.debug("Row {} is empty; skipping row", userRow);
+        LOGGER.debug("Row {} is empty; skipping row", selectedRow);
       }
       if((Integer) header.getKey() == headers.size() - 1)
       {
@@ -286,7 +281,7 @@ public class TestDataBuilder
     return rowData;
   }    
   
-  public Properties readColumn(Sheet sheet, Integer column, Integer start, Integer end) throws Exception{
+  public Properties readColumn(Sheet sheet, Integer column, Integer start, Integer end, WorkbookReader workbookReader) throws Exception{
     
     Properties columnData = new Properties();
     String columnType = column % 2 == 0 ? "tests" : "data";
@@ -306,7 +301,7 @@ public class TestDataBuilder
           if (cell != null)
           {
             String value = workbookReader.evaluateCellContent(cell, dateFormat);
-            if(!cellReader.isKey(value))
+            if(!CellReader.isKey(value))
             {
               if(value.length() > 0)
               {
@@ -545,7 +540,7 @@ public class TestDataBuilder
           
           for(Entry<String,String> entry : map.entrySet())
           {
-            if(cellReader.isKey(entry.getValue())){
+            if(CellReader.isKey(entry.getValue())){
               String value = entry.getValue().substring(1, entry.getValue().length() - 1);
                 if(testRunner == null){
                     LOGGER.error("testRunner is null, property " + entry.getValue() + " not stored.");
