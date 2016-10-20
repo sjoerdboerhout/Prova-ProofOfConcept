@@ -511,29 +511,42 @@ public class Selenium implements WebOutputPlugin
   
   
   @Override
-  public void doSwitchScreen() throws Exception {
+  public void doSwitchScreen(String name) throws Exception {
+    boolean useName = false;
+    if(name != null)
+    {
+      useName = true;
+      LOGGER.debug("Using parameter '{}' as screen name to switch to.");
+    }
 	  try
 	  {
-		  Set<String> windowHandles = webdriver.getWindowHandles();
-		  String currentHandle = webdriver.getWindowHandle();
-		  
-		  if(windowHandles.isEmpty()){
-			  LOGGER.debug("No window handles available.");
-			  throw new Exception("No window handles available.");
-		  }
-		  
-		  if(windowHandles.size() == 1){
-			  LOGGER.debug("No second screen available to switch to.");
-			  throw new Exception("No second screen available to switch to.");
-		  }
-		  
-		  for(String handle : windowHandles){
-			  if(!currentHandle.equals(handle)){
-				  LOGGER.trace("Switching to screen: " + handle);
-				  webdriver.switchTo().window(handle);
-				  break;
-			  }
-		  }
+      if(useName)
+      {
+        webdriver.switchTo().window(name);
+      }
+      else
+      {
+        Set<String> windowHandles = webdriver.getWindowHandles();
+        String currentHandle = webdriver.getWindowHandle();
+
+        if(windowHandles.isEmpty()){
+          LOGGER.debug("No window handles available.");
+          throw new Exception("No window handles available.");
+        }
+
+        if(windowHandles.size() == 1){
+          LOGGER.debug("No second screen available to switch to.");
+          throw new Exception("No second screen available to switch to.");
+        }
+
+        for(String handle : windowHandles){
+          if(!currentHandle.equals(handle)){
+            LOGGER.trace("Switching to screen: " + handle);
+            webdriver.switchTo().window(handle);
+            break;
+          }
+        }
+      }
 	  }
 	  catch(NoSuchWindowException eX)
 	  {

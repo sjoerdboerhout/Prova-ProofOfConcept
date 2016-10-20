@@ -10,6 +10,8 @@ import nl.dictu.prova.framework.TestAction;
  * @since 0.0.1
  */
 public class SwitchScreen extends TestAction {
+  
+  private String name = null;
 
 	public SwitchScreen() {
 		super();
@@ -26,7 +28,12 @@ public class SwitchScreen extends TestAction {
 	 */
 	@Override
 	public void setAttribute(String key, String value) throws Exception {
-		LOGGER.trace("setAttribute not implemented");
+		switch(key.toUpperCase())
+    {
+      case ATTR_PARAMETER: name = value;
+      break;
+      default: LOGGER.warn("Only 'PARAMETER' is a valid attribute for SwitchScreen.");
+    }
 	}
 
 	@Override
@@ -36,7 +43,7 @@ public class SwitchScreen extends TestAction {
 		if (!isValid())
 			throw new Exception("Action is not validated!");
 
-		testRunner.getWebActionPlugin().doSwitchScreen();
+		testRunner.getWebActionPlugin().doSwitchScreen(name);
 	}
 
 	@Override

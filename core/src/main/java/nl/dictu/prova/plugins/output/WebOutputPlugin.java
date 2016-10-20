@@ -19,7 +19,7 @@ public interface WebOutputPlugin extends OutputPlugin {
 	
 	public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception;
 
-	public void doSwitchScreen() throws Exception;
+	public void doSwitchScreen(String name) throws Exception;
 
 	public void doValidateElement(String xPath, Boolean exists, double timeOut) throws Exception;
 

@@ -154,7 +154,7 @@ public class ScriptPrinter implements WebOutputPlugin
     }
 
     @Override
-    public void doSwitchScreen() throws Exception {
+    public void doSwitchScreen(String name) throws Exception {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
