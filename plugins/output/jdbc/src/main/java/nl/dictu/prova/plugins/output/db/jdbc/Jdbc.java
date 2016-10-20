@@ -15,6 +15,9 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import nl.dictu.prova.Config;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 /**
@@ -83,6 +86,19 @@ public class Jdbc implements DbOutputPlugin
     if (!isValid())
     {
       throw new Exception("Properties not properly set!");
+    }
+    
+    while(containsKeywords(currentQuery))
+    {
+      LOGGER.trace("Found keyword in SOAP message, replacing it with corresponding value.");
+      String editedString = replaceKeywords(currentQuery);
+      if(editedString == null){
+        break;
+      }
+      else
+      {
+        currentQuery = editedString;
+      }
     }
 
     try
@@ -216,6 +232,64 @@ public class Jdbc implements DbOutputPlugin
       return false;
     }
     return true;
+  }
+  
+  private Boolean containsKeywords(String entry) throws Exception
+  {
+    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
+    Matcher matcher = pattern.matcher(entry);
+
+    while (matcher.find())
+    {
+      return true;
+    }
+    return false;
+  }
+  
+  private String replaceKeywords(String entry) throws Exception
+  {
+    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
+    Matcher matcher = pattern.matcher(entry);
+    StringBuffer entryBuffer = new StringBuffer("");
+
+    while (matcher.find())
+    {
+      String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 1);
+      
+      LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
+      
+      Boolean failOnNoTestdataKeywords = false;
+      
+      try
+      {
+        matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
+
+        try
+        {
+          failOnNoTestdataKeywords = Boolean.parseBoolean(this.testRunner.getPropertyValue(Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD));
+        }
+        catch(Exception ex)
+        {
+          LOGGER.error("Error parsing property '{}', please check your property file.", Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD);
+        }
+      }
+      catch(Exception ex)
+      {
+        if(failOnNoTestdataKeywords)
+        {
+          throw new Exception("Keyword '" + keyword + "' in '" + currentPrefix + "' not defined with a value.");
+        }
+        else
+        {
+          matcher.appendReplacement(entryBuffer, keyword);
+          LOGGER.error("Keyword '" + keyword + "' in '" + currentPrefix + "' not defined with a value.");
+          return null;
+        }
+      }
+    }
+    matcher.appendTail(entryBuffer);
+
+    return entryBuffer.toString();
   }
 
   @Override

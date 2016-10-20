@@ -546,6 +546,7 @@ public class TestCaseBuilder
       ArrayList<List<Properties>> testData = getSoapDbTestdata(testCase, nextSheet, specificSheet);
       if (testData.size() > 0)
       {
+        //If multiple sets of testdata are defined, the 'template' of the soap message or db query is ran with each set of testdata.
         LOGGER.info(testData.size() + " sets of testdata found for sheet '" + nextSheet.getSheetName() + "'");
         for (List<Properties> dataSet : testData)
         {

@@ -32,6 +32,12 @@ prova.plugins.in                          = MsExcel
 prova.plugins.out.web.package             = nl.dictu.prova.plugins.output.web.
 prova.plugins.out.web                     = Selenium
 
+prova.plugins.out.webservice              = ApacheSoap
+prova.plugins.out.webservice.package      = nl.dictu.prova.plugins.output.soap.
+
+prova.plugins.out.db                      = Jdbc
+prova.plugins.out.db.package              = nl.dictu.prova.plugins.output.db.
+
 prova.plugins.out.web.locator.pfx         = prova.plugins.out.web.locator
 prova.plugins.out.web.browser.type        = FireFox
 prova.plugins.out.web.maxretries          = 3

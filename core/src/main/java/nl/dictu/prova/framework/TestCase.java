@@ -322,6 +322,11 @@ public class TestCase
       {
         for(TestAction testAction : testActions)
         {
+          LOGGER.error(testAction.toString());
+        }
+        
+        for(TestAction testAction : testActions)
+        {
           LOGGER.trace("Execute test action: {}", () -> testAction.toString());
           try
           {

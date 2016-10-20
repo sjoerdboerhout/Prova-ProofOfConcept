@@ -121,7 +121,14 @@ public class ApacheSoap implements SoapOutputPlugin
     while(containsKeywords(currentMessage))
     {
       LOGGER.trace("Found keyword in SOAP message, replacing it with corresponding value.");
-      currentMessage = replaceKeywords(currentMessage);
+      String editedString = replaceKeywords(currentMessage);
+      if(editedString == null){
+        break;
+      }
+      else
+      {
+        currentMessage = editedString;
+      }
     }
     requestMessageEntity = new StringEntity(currentMessage);
     requestMessageEntity.setContentType("text/xml;charset=UTF-8");
