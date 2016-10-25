@@ -280,7 +280,7 @@ public class Selenium implements WebOutputPlugin
         
         if(++count > maxRetries)
         { 
-          this.doCaptureScreen("doClick");
+          //this.doCaptureScreen("doClick");
           throw eX;
         }
       }
