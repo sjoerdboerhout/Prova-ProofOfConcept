@@ -299,15 +299,18 @@ public class Jdbc implements DbOutputPlugin
 
     if (test.equalsIgnoreCase("{null}"))
     {
-      if (testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0)
+      if (testRunner.hasPropertyValue(property))
       {
-        LOGGER.info("Test unsuccessful!");
-        return false;
-      }
-      else
-      {
-        LOGGER.info("Test successful!");
-        return true;
+        if(testRunner.getPropertyValue(property).trim().length() > 0)
+        {
+          LOGGER.info("Test unsuccessful!");
+          return false;
+        }
+        else
+        {
+          LOGGER.info("Test successful!");
+          return true;
+        }
       }
     }
 

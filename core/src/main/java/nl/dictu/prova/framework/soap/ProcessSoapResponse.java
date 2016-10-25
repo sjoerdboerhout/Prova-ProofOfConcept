@@ -38,5 +38,15 @@ public class ProcessSoapResponse extends TestAction {
         if (testRunner == null) return false;
         return true;
     }
+    
+    /**
+     * Return a string representation of the objects content
+     *
+     * @return
+     */
+    @Override
+    public String toString() {
+        return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
+    }
 
 }

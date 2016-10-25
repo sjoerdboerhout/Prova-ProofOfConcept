@@ -1,7 +1,5 @@
 package nl.dictu.prova.plugins.input.msexcel.reader;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.ss.format.CellDateFormatter;
@@ -10,7 +8,6 @@ import org.apache.poi.ss.util.CellReference;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang.time.DateUtils;
 
 /**
  * Contains methods for evaluating the contents of a spreadsheet cell.

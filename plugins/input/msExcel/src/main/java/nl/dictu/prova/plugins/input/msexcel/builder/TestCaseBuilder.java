@@ -245,7 +245,9 @@ public class TestCaseBuilder
       LOGGER.debug("Adding " + dataset.get(0).size() + " properties from testdata.");
       for (Entry entry : dataset.get(0).entrySet())
       {
-        testRunner.setPropertyValue((String) entry.getKey(), (String) entry.getValue());
+        String key = (String) entry.getKey();
+        String val = (String) entry.getValue();
+        testRunner.setPropertyValue(key.trim(), val.trim());
       }
     }
     else
@@ -301,14 +303,15 @@ public class TestCaseBuilder
         {
           if (entry != null & entry.length() > 0)
           {
+            LOGGER.trace("Processing cell value : '{}'", entry);
             String processedCellValue = replaceKeywords(entry);
-            if (processedCellValue.trim().equalsIgnoreCase("skipcell"))
-            {
-              continue;
-            }
             messageOrQuery += processedCellValue + " ";
           }
         }
+      }
+      if(containsKeywords(messageOrQuery))
+      {
+        messageOrQuery = replaceKeywords(messageOrQuery);
       }
       testAction.setAttribute("QUERY", messageOrQuery);
       messageOrQuery = "";
@@ -789,7 +792,7 @@ public class TestCaseBuilder
       return null;
     }
 
-    Map<String, String> rowMap = new HashMap<>();
+    Map<String, String> rowMap = new LinkedHashMap<>();
     Set<Map.Entry<Integer, String>> headerEntries = headers.entrySet();
     int numHeaderEntries = headerEntries.size();
     int numEmptyFields = 0;
@@ -956,6 +959,18 @@ public class TestCaseBuilder
       LOGGER.trace("> " + key + " => " + props.getProperty(key));
     }
   }
+  
+  private Boolean containsKeywords(String entry) throws Exception
+  {
+    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
+    Matcher matcher = pattern.matcher(entry);
+
+    while (matcher.find())
+    {
+      return true;
+    }
+    return false;
+  }
 
   private String replaceKeywords(String entry) throws Exception
   {
@@ -970,7 +985,7 @@ public class TestCaseBuilder
       if (keyword.equalsIgnoreCase("SKIPCELL"))
       {
         LOGGER.debug("Skipping cell with keyword " + keyword);
-        return "skipcell";
+        return "";
       }
 
       LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
@@ -982,7 +997,7 @@ public class TestCaseBuilder
       if (testRunner.getPropertyValue(keyword).equalsIgnoreCase("{SKIPCELL}"))
       {
         LOGGER.debug("Skipping cell with keyword '{" + keyword + "}'");
-        return "skipcell";
+        return "";
       }
       matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
     }

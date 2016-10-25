@@ -37,8 +37,8 @@ public class TestDataBuilder
   
   private TestRunner testRunner;
   private String dateFormat = null;
-  private final String DATA = "Data";
-  private final String TEST = "Test";
+  private final String DATA = "DATA";
+  private final String TEST = "TEST";
   
   public TestDataBuilder(){}
   
@@ -107,6 +107,7 @@ public class TestDataBuilder
           break;
         }
       }
+      
       if(sheet == null)
       {
         LOGGER.error("No sheet was found with sheetname " + sheetname.trim());
@@ -120,6 +121,8 @@ public class TestDataBuilder
     Boolean horizontalColumns = false;
     //getPreparedHeaderCollection gets headercollection regardless of horizontalcolumns or not
     SortedMap<Integer, String> headers = getPreparedHeaderCollection(sheet);
+    List<Properties> dataset = new ArrayList<>();
+    
     //Optional horizontal testdata template reader
     if(testRunner.hasPropertyValue("prova.plugins.in.horizontalcolumns"))
     {
@@ -135,26 +138,47 @@ public class TestDataBuilder
     //When dataset is properly filled (has a data and 
     for(Entry header : headers.entrySet())
     {
-      List<Properties> dataset = new ArrayList<>();
+      String headertext = (String) header.getValue();
+      
       //Read column and add it to dataset at set position (0 = data, 1 = test)
-      if(header.getValue().toString().equalsIgnoreCase(TEST))
+      if(headertext.equalsIgnoreCase(TEST))
       {
-        dataset.add(1, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
+        LOGGER.trace("Processing Test column no. {}", header.getKey());
+        if(dataset.size() == 1)
+        {
+          dataset.add(1, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
+        }
+        else
+        {
+          LOGGER.warn("No data column added yet, skipping current column.");
+          continue;
+        }
         
         if(dataset.size() == 2)
         {
+          LOGGER.trace("Adding a dataset to testdatasets.");
           testDatasets.add(dataset);
           dataset = new ArrayList<>();
         }
         else
         {
-          LOGGER.error("The dataset for column number {} is incomplete.", header.getKey());
+          LOGGER.warn("The dataset for column number {} is incomplete.", header.getKey());
           dataset = new ArrayList<>();
         }
       }
-      else
+      else if(headertext.equalsIgnoreCase(DATA))
       {
-        dataset.add(0, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
+        if(dataset.size() == 0)
+        {
+          LOGGER.trace("Processing Data column no. {}", header.getKey());
+          dataset.add(0, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
+        }
+        else
+        {
+          LOGGER.trace("dataset not empty, creating new one and processing Data column no. {}", header.getKey());
+          dataset = new ArrayList<>();
+          dataset.add(0, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
+        }
       }
     }
     return testDatasets;
@@ -170,22 +194,25 @@ public class TestDataBuilder
     {
       Row selectedColumn = sheet.getRow(column);
       Row keyRow = sheet.getRow(0);
-      keyRow.removeCell(keyRow.getCell(0));
       
       for(Cell cell : keyRow)
       {
-        String key = cell.getStringCellValue();
+        if(cell.getColumnIndex() == 0) continue;
+        
+        String key = workbookReader.evaluateCellContent(cell);
         if(key != null)
         {
           if(key.length() > 0)
           {
-            String value = selectedColumn.getCell(cell.getColumnIndex()).getStringCellValue();
-            if(value != null)
+            String value = keywordCheckAndFetch(workbookReader.evaluateCellContent(selectedColumn.getCell(cell.getColumnIndex())));
+            
+            if(value.length() > 0)
             {
-              if(value.length() > 0)
-              {
-                columnData.put(key, value); 
-              }
+              columnData.put(key, value); 
+            }
+            else
+            {
+              LOGGER.warn("Value for keyword '{}' has no length or is null, please check your data!", key);
             }
           }
         }
@@ -196,28 +223,46 @@ public class TestDataBuilder
     {
       SortedMap<Integer, String> keyColumn = readFirstColumnKeys(sheet);
       
-      for(Entry keycell : keyColumn.entrySet())
+      for(Entry keyname : keyColumn.entrySet())
       {
-        Row currentRow = sheet.getRow((int) keycell.getKey());
-        String key = keycell.getValue().toString();
-        String value = currentRow.getCell(column).toString();
-        if(key != null)
+        Row currentRow = sheet.getRow((int) keyname.getKey());
+        String key = (String) keyname.getValue();
+        Cell valuecell = currentRow.getCell(column);
+        
+        String value = keywordCheckAndFetch(workbookReader.evaluateCellContent(valuecell));
+
+        if(value.length() > 0)
         {
-          if(key.length() > 0)
-          {
-            if(value != null)
-            {
-              if(value.length() > 0)
-              {
-                columnData.put(key, value);
-              }
-            }
-          }
+          columnData.put(key, value);
         }  
+        else
+        {
+          LOGGER.warn("Value for keyword '{}' has no length or is null, please check your data!", key);
+        }
       }
     }
     
+    LOGGER.trace("Returning {} properties from column {}", columnData.size(), column);
+    
     return columnData;
+  }
+  
+  private String keywordCheckAndFetch(String input)
+  {
+    if(input == null) return "";
+    String processedInput = input;
+    try
+    {
+      if(CellReader.isKey(input))
+      {
+        if(testRunner.hasPropertyValue(input.substring(1, (input.length() -1))))
+        {
+          processedInput = testRunner.getPropertyValue(input.substring(1, input.length() - 1));
+        }
+      }
+    }
+    catch(Exception ex){}
+    return processedInput;
   }
   
   
@@ -231,6 +276,8 @@ public class TestDataBuilder
         horizontalColumns = true;
       }
     }
+    
+    LOGGER.trace("Gathering a prepared headercollection for sheet '{}'", sheet.getSheetName());
     
     //Regular vertical testdata template reader
     Iterator<Row> rowIterator = sheet.rowIterator();
@@ -254,30 +301,49 @@ public class TestDataBuilder
         
         for(Entry header : headers.entrySet())
         {
-          if(header.getValue().toString().substring(0, 3).equalsIgnoreCase(TEST))
+          String headertext = (String) header.getValue();
+          String lastHeader = null;
+          
+          if(!columns.isEmpty()) lastHeader = columns.get(columns.lastKey());
+          
+          if(headertext.toUpperCase().startsWith(TEST))
           {
             //Check if last one was a Data column
-            if(columns.get(columns.lastKey()).toString().substring(0, 3).equalsIgnoreCase(DATA))
+            if(lastHeader != null)
             {
-              columns.put((Integer) header.getKey(), (String) header.getValue());
+              if(lastHeader.toUpperCase().startsWith(DATA))
+              {
+                columns.put((Integer) header.getKey(), (String) header.getValue());
+              }
+              else
+              {
+                LOGGER.warn("Last column was not of type 'Data', skipping set.");
+                continue;
+              }
             }
             else
             {
-              LOGGER.error("Last column was not of type 'Data', skipping set.");
-              continue;
+              columns.put((Integer) header.getKey(), (String) header.getValue());
             }
           } 
-          else if(header.getValue().toString().substring(0, 3).equalsIgnoreCase(DATA))
+          else if(headertext.toUpperCase().startsWith(DATA))
           {
             //Check if last one was a Data column
-            if(columns.get(columns.lastKey()).toString().substring(0, 3).equalsIgnoreCase(TEST))
+            if(lastHeader != null)
             {
-              columns.put((Integer) header.getKey(), (String) header.getValue());
+              if(lastHeader.toUpperCase().startsWith(TEST))
+              {
+                columns.put((Integer) header.getKey(), (String) header.getValue());
+              }
+              else
+              {
+                LOGGER.warn("Last column was not of type 'Test', skipping set.");
+                continue;
+              }
             }
             else
             {
-              LOGGER.error("Last column was not of type 'Data', skipping set.");
-              continue;
+              columns.put((Integer) header.getKey(), (String) header.getValue());
             }
           }
         }
@@ -536,6 +602,7 @@ public class TestDataBuilder
 
   private SortedMap<Integer, String> readRow(Row row) throws Exception
   {
+    LOGGER.trace("Gathering the keys from row '{}' for sheet '{}'", row.getRowNum(), row.getSheet().getSheetName());
     SortedMap<Integer, String> keys = new TreeMap<>();
     for (Cell cell : row)
     {
@@ -553,6 +620,8 @@ public class TestDataBuilder
   
   private SortedMap<Integer, String> readFirstColumnKeys(Sheet sheet) throws Exception
   {
+    LOGGER.trace("Gathering the keys from first column for sheet '{}'", sheet.getSheetName());
+    
     SortedMap<Integer, String> headers = new TreeMap<>();
     
     //Starts at 1 because first row is keycell horizontal column (names of properties)
