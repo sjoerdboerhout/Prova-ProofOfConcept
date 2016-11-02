@@ -51,6 +51,7 @@ public class Selenium implements WebOutputPlugin
   private WebDriver  webdriver = null;
   private Integer    maxRetries = 1;
   private long	     maxTimeOut = 1000; // milliseconds
+  private String     currentWindow = "";
   
   
   @Override
@@ -453,7 +454,7 @@ public class Selenium implements WebOutputPlugin
   public void doSetText(String xPath, String text, Boolean replace) throws Exception
   {
     LOGGER.debug(">> Set '{}' with text '{}'", xPath, text);
-    
+    LOGGER.debug("Current Window Title = "+webdriver.getTitle());
     int count = 0;
     
     while(true)
@@ -513,17 +514,64 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doSwitchScreen(String name) throws Exception {
     boolean useName = false;
+    boolean switched = false;
+    //If doSwitchScreen is called for the first time, the initial window handle is saved
+    if (currentWindow.equals(""))
+    	{
+    		LOGGER.debug("switchScreen is called for the first time, so saving the window handle.");
+    		currentWindow = webdriver.getWindowHandle();
+    	}
+    //If title is passed to the function, switch to the window with that given title
     if(name != null)
     {
-      useName = true;
-      LOGGER.debug("Using parameter '{}' as screen name to switch to.");
+      if (!name.equals(""))
+      {
+    	useName = true;
+        LOGGER.debug("Using parameter '{}' as screen name to switch to.");
+      }
     }
 	  try
 	  {
       if(useName)
       {
-        webdriver.switchTo().window(name);
+    	  //Switch to the stored handle which has been initial set
+    	  if (name.toLowerCase().equals("default"))
+    	  {
+    		  LOGGER.debug("Switching back to default");
+    		  try
+    		  {
+    			  webdriver.switchTo().window(currentWindow);
+    		  }
+    		  catch(Exception e)
+    		  {
+    			  webdriver.switchTo().defaultContent();
+    		  }
+    	  }
+    	  //switch tot the window with the given title
+    	  else
+    	  {
+    		  //currentWindow = webdriver.getWindowHandle(); 
+              Set<String> availableWindows = webdriver.getWindowHandles(); 
+              if (!availableWindows.isEmpty()) { 
+                      for (String windowId : availableWindows) { 
+                              if (webdriver.switchTo().window(windowId).getTitle().startsWith(name)) { 
+                            	  	LOGGER.debug("Window " + name + " found and webdriver switched to it");
+                            	  	switched = true;
+                              } else { 
+                            	  webdriver.switchTo().window(currentWindow);
+                            	  LOGGER.debug("Window " + name + " not found (yet)");
+                              } 
+                      }
+                      
+              }
+              //Handled all windows and failed to switch to the given window.
+              if (!switched)
+              {
+            	  throw new Exception("Switch to " + name + "failed");
+              }
+    	  }
       }
+      //Switch to the first available window
       else
       {
         Set<String> windowHandles = webdriver.getWindowHandles();
