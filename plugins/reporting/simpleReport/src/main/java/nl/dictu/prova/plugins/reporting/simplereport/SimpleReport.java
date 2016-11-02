@@ -31,9 +31,12 @@ public class SimpleReport implements ReportingPlugin
   private PrintWriter pwTestsuite;
   private PrintWriter pwSummary;
   private TestRunner testRunner;
-  private String outputDirectory = "";
-  private String parentDirectory = "";
-  private String fileName;
+  
+  private String testRoot;
+  private String reportRoot;
+  private String currTestSuiteDir;
+  private String currTestCaseFile;
+  //private String fileName;
   private Long startTime;
   private Long startTimeTestsuite;
   private Boolean summaryCreated = false;
@@ -53,89 +56,121 @@ public class SimpleReport implements ReportingPlugin
   }
 
   @Override
-  public void setOutputDir(String outputDir) throws Exception
+  public void setUp(String projectName) throws Exception
   {
-    try
-    {
-    	LOGGER.debug("Setting up Outputdirectory. Current value: "+ outputDirectory);
-    	// setting parent folder if outputdirectory is set for the first time in the testrun
-    	if (outputDirectory.equals(""))
-    	{
-    		DateTimeFormatter sdf = DateTimeFormatter.ofPattern("yyyyMMdd_hhmmss");
-    		outputDirectory = testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR)+ "\\" + "Testrun_" + outputDir + "_" + LocalDateTime.now().format(sdf).toString();
-    		parentDirectory = outputDirectory;
-    		LOGGER.debug("Parentdirectory set to: " + parentDirectory);
-    		LOGGER.debug("(IF) Outputdirectory set to: " + outputDirectory);
-    	}
-    	// append after parentfolder
-    	else
-    	{
-    		outputDirectory = parentDirectory + "\\" + outputDir;
-    		LOGGER.debug("(ELSE) Outputdirectory set to: " + outputDirectory);
-    	}
-    }
-    catch(Exception Ex)
-    {
-    	LOGGER.debug("Failed to determine output directory" + Ex);
-    	throw Ex;
-    }
-    
-  }
-
-  @Override
-  public void setUp(String fileName) throws Exception
-  {
-	  LOGGER.debug("Set up output directory");
 	  try
 	  {
-		  setOutputDir(fileName);
+		  LOGGER.debug("SimpleReport: setUp for project '" + projectName + "'");
+		  
+		  // Save the test root to strip that part from the test suite/case names.
+		  this.testRoot = testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT);
+		  
+		  /*
+		   * - Check if property 'prova.plugins.reporting.dir' is an existing dir.
+		   * - if not: Try to create it as a sub-dir in the Prova root dir.
+		   */
+		  String dirName = testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR);
+		  File dir = new File(dirName);
+		  
+		  // Check if configured path is an absolute and existing path
+		  if(checkValidReportDir(dir))
+		  {
+			  LOGGER.debug("Set up output directory for reporting to '" + dir.getAbsolutePath() + "'");
+		  }
+		  else
+		  {
+			  dirName = testRunner.getPropertyValue(Config.PROVA_DIR) +
+					  	File.separator +
+					  	testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR);
+			  
+			  dir = new File(dirName);
+			  
+			  // Try if the configured path is a sub-directoy of the Prova root path
+			  if(checkValidReportDir(dir))
+			  {
+				  LOGGER.debug("Set up output directory for reporting to '" + dir.getAbsolutePath() + "'");
+			  }
+			  else
+			  {
+				  // Dir doesn't exists. Create it!
+				  dir.mkdirs();
+				  LOGGER.debug("Created output directory '" + dir.getAbsolutePath() + "' for reporting to.");
+			  }
+		  }
+
+		  // Create a directory for this testrun
+		  reportRoot =  dir.getAbsolutePath() +
+				  		File.separator +
+				  		(projectName.length() > 0 ? (projectName + File.separator) : "") +
+				  		LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy")).toString() +
+              File.separator +
+              LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-MMM")).toString() +
+              File.separator +
+              LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd")).toString() +
+              File.separator +
+              LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH-mm-ss")).toString();
+		  
+		  new File(reportRoot).mkdirs();
+		  
+		  
+		  // Create the start of the summary file
+		  pwSummary = createPW(reportRoot + File.separator + "Testrun_Summary.html");
+    	  pwSummary.println("<!DOCTYPE html>");
+    	  pwSummary.println("<html>");
+    	  pwSummary.println("<head>");
+    	  pwSummary.println("<style> table, td { 	border: 1px solid black;	border-collapse: collapse;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
+		  							+ "th {	text-align: left;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
+		  							+ "tr:nth-child(odd) {	background: #CBCDCD;}"
+		  							+ "p {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
+		  							+ "br {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
+		  							+ "h1 {	font-family: Verdana, Helvetica, sans-serif;	font-size: 30px;}</style>");
+    	  pwSummary.println("<title>Prova Testreport</title>");
+    	  pwSummary.println("</head>");
+    	  pwSummary.println("<body>");	 
+    	  pwSummary.println("<h1>Testrun Summary</h1>");
+		  startTimeSummary = System.currentTimeMillis();
+		  pwSummary.println("<br><b>Starttime: </b>" + LocalDateTime.now() +"</br>");
+		  pwSummary.println("<table>			<tr>				<th>Testcase</th><th>Error</th><th>Details</th></tr>");
+		  summaryCreated = true;
 	  }
 	  catch(Exception eX)
 	  {
+		  LOGGER.debug("Setup SimpleReport has failed: " + eX);
 		  throw eX;
 	  }
+  }
+  
+  private boolean checkValidReportDir(File testDir)
+  {
 	  try
 	  {
-		  LOGGER.trace("Check if report folder exists");
-		  File dir = new File(outputDirectory);
-		  // Check if dir exists, if note create it
-		  if (!dir.isDirectory())
-		  {
-			  LOGGER.trace("Creating report folder: '" + outputDirectory + "'");
-			  dir.mkdirs();
-		  }
-		  // Create summary report if not yet created
-		  if (!summaryCreated)
-		  {
-	    	  pwSummary = createPW(outputDirectory+"/Testrun_Summary.html");
-	    	  pwSummary.println("<!DOCTYPE html>");
-	    	  pwSummary.println("<html>");
-	    	  pwSummary.println("<head>");
-	    	  pwSummary.println("<style> table, td { 	border: 1px solid black;	border-collapse: collapse;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
-			  							+ "th {	text-align: left;	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
-			  							+ "tr:nth-child(odd) {	background: #CBCDCD;}"
-			  							+ "p {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
-			  							+ "br {	font-family: Verdana, Helvetica, sans-serif;	font-size: 15px;}"
-			  							+ "h1 {	font-family: Verdana, Helvetica, sans-serif;	font-size: 30px;}</style>");
-	    	  pwSummary.println("<title>Prova Testreport</title>");
-	    	  pwSummary.println("</head>");
-	    	  pwSummary.println("<body>");	 
-	    	  pwSummary.println("<h1>Testrun Summary</h1>");
-			  startTimeSummary = System.currentTimeMillis();
-			  pwSummary.println("<br><b>Starttime: </b>" + LocalDateTime.now() +"</br>");
-			  pwSummary.println("<table>			<tr>				<th>Testcase</th><th>Error</th><th>Details</th></tr>");
-			  summaryCreated = true;
-		  }
-		   
-	  }
-	  
+		  LOGGER.trace("Check if '" + testDir.getAbsolutePath() + "' is a valid Reporting dir");
 		  
+		  if(!testDir.exists()) 
+		  {
+			  LOGGER.warn("Reporting dir '" + testDir.getAbsolutePath() + "' doesn't exists.");
+			  return false;
+		  }
+		  
+		  if(!testDir.isDirectory()) 
+		  {
+			  LOGGER.warn("Reporting dir '" + testDir.getAbsolutePath() + "' is not a directory.");
+			  return false;
+		  }
+		  
+		  if(!testDir.canWrite())
+		  {
+			  LOGGER.warn("Reporting dir '" + testDir.getAbsolutePath() + "' is not writable.");
+			  return false;
+		  }  
+		
+		  LOGGER.trace("'" + testDir.getAbsolutePath() + "' is a valid Reporting dir!");
+		  return true;
+	  }
 	  catch(Exception eX)
 	  {
-		  LOGGER.debug("Setup has failed; " + eX);
+		  return false;
 	  }
-	  
-	  
   }
 
   @Override
@@ -143,11 +178,80 @@ public class SimpleReport implements ReportingPlugin
   {
 	  try
 	  {
-		  //LOGGER.debug("Start SimpleReport Setup");
-		  //this.setUp(testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1));
+	    // /Users/sjoerd/Workspaces/Prova-1.0/_Prova/projects/demo/NS/NS.xlsm/WEB_NS-001//NS_WEB_NS-001.xlsx/WEB_AVI_001/TEST 01
+	    String testCaseFilename = "";
+      String testCaseSheetname = "";
+      String testCaseDataSetFileName = "";
+      String testCaseDataSetSheetName = "";
+      String testCaseDataSetColumnName = "";
+      String tmp;
+      int iIndex;
+      boolean hasDataFile = false;
+      
+		  LOGGER.debug("SimpleReport: Start new Test Case: '{}'", testCase.getId());
+		  
+		  //LOGGER.fatal("TestRoot: {}", testRoot);
+      LOGGER.fatal("currTestSuiteDir: {}", currTestSuiteDir);
+      
+      //currTestCaseFile = currTestSuiteDir;
+      iIndex = testCase.getId().lastIndexOf(File.separator + File.separator);
+      if( iIndex > 0)  
+      {
+        tmp = testCase.getId().substring(0, testCase.getId().lastIndexOf(File.separator + File.separator));
+        hasDataFile = true;
+      }
+      else
+      {
+        tmp = testCase.getId();
+      }
+      
+      iIndex = tmp.lastIndexOf(File.separator);
+      
+      testCaseSheetname = tmp.substring(iIndex + File.separator.length());
+      
+      tmp = tmp.substring(0, iIndex);
+      // TODO: Change 5 with length of file extension test scripts!
+      testCaseFilename = tmp.substring(tmp.lastIndexOf(File.separator) + File.separator.length(), tmp.length() - 5);
+      
+      // Find dataset if available
+      if(hasDataFile)  
+      {
+        tmp = testCase.getId().substring(testCase.getId().lastIndexOf(File.separator + File.separator) + (File.separator.length() *2));
+        testCaseDataSetFileName = tmp.substring(0, tmp.indexOf(".xlsx"));
+        
+        tmp = tmp.substring(tmp.indexOf(File.separator) + File.separator.length());
+        
+        testCaseDataSetSheetName = tmp.substring(0, tmp.indexOf(File.separator));
+        testCaseDataSetColumnName = tmp.substring(tmp.indexOf(File.separator) + File.separator.length());
+      }
+      
+      LOGGER.trace("testCaseFilename: {}", testCaseFilename);
+      LOGGER.trace("testCaseSheetname: {}", testCaseSheetname);
+      LOGGER.trace("testCaseDataSetFileName: {}", testCaseDataSetFileName);
+      LOGGER.trace("testCaseDataSetSheetName: {}", testCaseDataSetSheetName);
+      LOGGER.trace("testCaseDataSetColumnName: {}", testCaseDataSetColumnName);
+      
+      currTestCaseFile = currTestSuiteDir + 
+                         File.separator +
+                         testCaseFilename +                        
+                         File.separator +
+                         testCaseSheetname +
+                         (testCaseDataSetFileName.length() > 0 ? File.separator : "") +
+                         testCaseDataSetFileName + 
+                         (testCaseDataSetSheetName.length() > 0 ? File.separator : "") +
+                         testCaseDataSetSheetName +
+                         (testCaseDataSetColumnName.length() > 0 ? File.separator : "") +
+                         testCaseDataSetColumnName +
+                         ".html";
+          
+      LOGGER.trace("Log file name for test case: '{}'", currTestCaseFile);
+      
+      tmp = currTestCaseFile.substring(0, currTestCaseFile.lastIndexOf(File.separator));
+      LOGGER.trace("Create directory for test case: '{}'", tmp);
+      new File(tmp).mkdirs();
+		  
 		  LOGGER.debug("Write begin testcase (r)");
-		  fileName = outputDirectory+"/"+ testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1) + ".html";
-		  File file =new File(fileName);
+		  File file = new File(currTestCaseFile);
     	  if(!file.exists())
     	  {
     		  LOGGER.trace("Creating file: '" + file + "'");
@@ -156,7 +260,7 @@ public class SimpleReport implements ReportingPlugin
     	  FileWriter fw = new FileWriter(file,true);
     	  BufferedWriter bw = new BufferedWriter(fw);
     	  //pwTestcase = new PrintWriter(bw);*/
-    	  pwTestcase = createPW(fileName);
+    	  pwTestcase = createPW(currTestCaseFile);
     	  pwTestcase.println("<!DOCTYPE html>");
     	  pwTestcase.println("<html>");
     	  pwTestcase.println("<head>");
@@ -179,6 +283,7 @@ public class SimpleReport implements ReportingPlugin
 	  catch(IOException eX)
 	  {
 		  LOGGER.debug("Write file has failed; " + eX);
+		  throw eX;
 	  }
   }
 
@@ -197,7 +302,7 @@ public class SimpleReport implements ReportingPlugin
           }
           catch(Exception eX)
           {
-                LOGGER.error("Exception in logging testAction!");
+                LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
                 pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">Unknown action id</td></tr>");
           }
   }
@@ -213,23 +318,27 @@ public class SimpleReport implements ReportingPlugin
 	  {
 		  countPassedTestcases = countPassedTestcases + 1;
 		  pwTestcase.println("<br><b>Status testcase: <font color=\"green\">" + testCase.getStatus()+"</b></font></br>" );
+		  
+		  // TODO: Creat a relative link to the file name instead of an absolute link!
 		  pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"lightgreen\">"+testCase.getStatus()+"</td><td style=\"width:1200px\">"
 				  				+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</td><td style=\"width:200px\">" 
-				  				+ "<a href=\""+ fileName
+				  				+ "<a href=\""+ currTestCaseFile
 				  				+ "\">Resultaat testgeval</a></td></tr>");
 	  }
 	  else
 	  {
 		  countFailedTestcases = countFailedTestcases + 1;
 		  pwTestcase.println("<br><b>Status testcase: <font color=\"red\">" + testCase.getStatus()+"</b></font></br>" );
+		  // TODO: Creat a relative link to the file name instead of an absolute link!
 		  pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"+testCase.getStatus()+"</td><td style=\"width:1200px\">"
 	  				+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</td><td style=\"width:200px\">" 
-	  				+ "<a href=\""+fileName
+	  				+ "<a href=\""+currTestCaseFile
 	  				+ "\">Resultaat testgeval</a></td></tr>");
+		  // TODO: Creat a relative link to the file name instead of an absolute link!
 		  pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)
 				    +"</td><td style=\"width:1200px\">"
 	  				+testCase.getSummary()+"</td><td style=\"width:200px\">" 
-	  				+ "<a href=\""+fileName
+	  				+ "<a href=\""+currTestCaseFile
 	  				+ "\">Resultaat testgeval</a></td></tr>");
 	  }
 	  pwTestcase.println("<br><b>Summary: </b>" + testCase.getSummary()+"</br>");
@@ -283,11 +392,29 @@ public class SimpleReport implements ReportingPlugin
   public void logStartTestSuite(TestSuite testSuite) throws Exception
   {
 	// Create report testsuite
-	setUp(testSuite.getId().substring(testSuite.getId().lastIndexOf("\\")+1));
-    LOGGER.debug("Write begin testsuite");
-	if (testSuite.numberOfTestCases(false) > 0)
+	LOGGER.debug("logStartTestSuite - TestRoot: " + testRoot);
+	
+	String testSuiteSubDir = testSuite.getId().substring(testSuite.getId().lastIndexOf("\\")+1);
+	  
+	testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot + File.separator, "");
+	LOGGER.debug("logStartTestSuite - Test Suite sub dir: " + testSuiteSubDir);
+	
+	if(testSuiteSubDir.length() > 0)
 	{
-		  pwTestsuite = createPW(outputDirectory+"/"+ testSuite.getId().substring(testSuite.getId().lastIndexOf("\\")+1) + "_overall_result.html");
+		currTestSuiteDir = reportRoot + File.separator + testSuiteSubDir;
+	  LOGGER.debug("Write begin testsuite ({})", currTestSuiteDir);
+	  //new File(currTestSuiteDir).mkdirs();
+	  
+	  if (testSuite.numberOfTestCases(false) > 0)
+		{
+		  new File(reportRoot + File.separator + testSuiteSubDir).mkdirs();
+			
+		  pwTestsuite = createPW(	reportRoot +
+				  				 	File.separator +
+				  				 	testSuiteSubDir +
+				  				 	File.separator +
+				  				 	testSuiteSubDir +
+				  					"_overall_result.html");
 		  pwTestsuite.println("<!DOCTYPE html>");
 		  pwTestsuite.println("<html>");
 		  pwTestsuite.println("<head>");
@@ -304,7 +431,8 @@ public class SimpleReport implements ReportingPlugin
 		  startTimeTestsuite = System.currentTimeMillis();
 		  pwTestsuite.println("<br><b>Starttime: </b>" + LocalDateTime.now() +"</br>");
 		  pwTestsuite.println("<table>			<tr>				<th>Result</th><th>Testcase</th><th>Details</th></tr>");
-	}	  
+		}	  
+	}
   }
 
   @Override
@@ -342,10 +470,10 @@ public class SimpleReport implements ReportingPlugin
   {
     try
     {
-      File folder = new File(outputDirectory + File.separator + "txt" + File.separator);
+      File folder = new File(reportRoot + File.separator + "txt" + File.separator);
       folder.mkdir();
       
-      String file = outputDirectory + File.separator + "txt" + File.separator + name + ".txt";
+      String file = reportRoot + File.separator + "txt" + File.separator + name + ".txt";
       PrintWriter printWriter = createPW(file);
       printWriter.println(text);
       printWriter.flush();

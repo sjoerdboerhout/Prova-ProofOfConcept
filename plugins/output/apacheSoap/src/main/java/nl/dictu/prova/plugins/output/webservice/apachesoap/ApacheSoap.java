@@ -1,8 +1,7 @@
-package nl.dictu.prova.plugins.output.webservice.apacheSoap;
+package nl.dictu.prova.plugins.output.webservice.apachesoap;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.ArrayList;
 import nl.dictu.prova.Config;
@@ -17,7 +16,6 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import nl.dictu.prova.framework.TestStatus;
-import static nl.dictu.prova.plugins.output.webservice.apacheSoap.ApacheSoap.LOGGER;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;

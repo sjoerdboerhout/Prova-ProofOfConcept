@@ -28,8 +28,8 @@
 
     <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
 		
-    <selenium-java.version>2.53.0</selenium-java.version>
-    <selenium-server.version>2.53.0</selenium-server.version>
+    <selenium-java.version>2.53.1</selenium-java.version>
+    <selenium-server.version>2.53.1</selenium-server.version>
     <phantomjsdriver.version>1.2.0</phantomjsdriver.version>
   </properties>
 

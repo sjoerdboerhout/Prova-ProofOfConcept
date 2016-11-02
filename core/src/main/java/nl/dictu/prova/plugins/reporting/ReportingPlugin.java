@@ -16,9 +16,7 @@ public interface ReportingPlugin
 {
   public void init(TestRunner testRunner) throws Exception;
   
-  public void setOutputDir(String outputDir) throws Exception;
-  
-  public void setUp(String fileName) throws Exception;
+  public void setUp(String projectName) throws Exception;
   
   public void logStartTestSuite(TestSuite testSuite) throws Exception; 
   public void logEndTestSuite(TestSuite testSuite) throws Exception; 

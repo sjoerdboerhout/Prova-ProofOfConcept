@@ -252,7 +252,7 @@ public class Prova implements Runnable, TestRunner
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP).toLowerCase() + "." +
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SOAP);
 
-      soapOutputPlugin = pluginLoader.getInstanceOf("nl.dictu.prova.plugins.output.webservice.apacheSoap.ApacheSoap", SoapOutputPlugin.class);
+      soapOutputPlugin = pluginLoader.getInstanceOf(pluginName, SoapOutputPlugin.class);
       
       if(soapOutputPlugin != null)
         soapOutputPlugin.init(this);
@@ -264,7 +264,7 @@ public class Prova implements Runnable, TestRunner
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB).toLowerCase() + "." +
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB);
 
-      dbOutputPlugin = pluginLoader.getInstanceOf("nl.dictu.prova.plugins.output.db.jdbc.Jdbc", DbOutputPlugin.class);
+      dbOutputPlugin = pluginLoader.getInstanceOf(pluginName, DbOutputPlugin.class);
       
       if(dbOutputPlugin != null)
         dbOutputPlugin.init(this);
@@ -321,6 +321,13 @@ public class Prova implements Runnable, TestRunner
       
       // Search for test scripts and read the headers
       inputPlugin.setUp();
+      
+
+      LOGGER.debug("Number of report plugins to setUp: " + getReportingPlugins().size());
+      for(ReportingPlugin reportPlugin : getReportingPlugins())
+      {
+      	reportPlugin.setUp(this.getPropertyValue(Config.PROVA_PROJECT));
+      }
       
       // TODO: Build structure of test suites and test cases
       

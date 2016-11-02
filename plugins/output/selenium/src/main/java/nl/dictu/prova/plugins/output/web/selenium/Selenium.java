@@ -109,10 +109,17 @@ public class Selenium implements WebOutputPlugin
       
       if(browserType.equalsIgnoreCase("FireFox"))
       {
+        String fireFoxPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_GECKO);
+          
+        //LOGGER.trace("Try to load webdriver 'Gecko' ({})", fireFoxPath);
+        LOGGER.trace("Try to load webdriver 'Gecko'");
+        System.setProperty("webdriver.gecko.driver", fireFoxPath);
+    	  
         if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE))
         {
           ProfilesIni profile = new ProfilesIni();
           FirefoxProfile ffProfile = profile.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+          
           LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
           webdriver = new FirefoxDriver(ffProfile);
         }
@@ -198,7 +205,10 @@ public class Selenium implements WebOutputPlugin
     catch(Exception eX)
     {
       LOGGER.trace(eX);
-      webdriver.close();
+      
+      if( webdriver != null)
+    	  webdriver.close();
+      
       throw eX;
     }
   }
@@ -270,7 +280,7 @@ public class Selenium implements WebOutputPlugin
         
         if(++count > maxRetries)
         { 
-          this.doCaptureScreen("doClick");
+          //this.doCaptureScreen("doClick");
           throw eX;
         }
       }
@@ -501,20 +511,26 @@ public class Selenium implements WebOutputPlugin
   
   
   @Override
-  public void doSwitchScreen() throws Exception {
+  public void doSwitchScreen() throws Exception 
+  {
+    boolean failOnError = Boolean.parseBoolean(testRunner.getPropertyValue(
+                          Config.PROVA_PLUGINS_OUT_WEB_BROWSER_FAILSWTCHSCR));
+    
 	  try
 	  {
 		  Set<String> windowHandles = webdriver.getWindowHandles();
 		  String currentHandle = webdriver.getWindowHandle();
 		  
-		  if(windowHandles.isEmpty()){
+		  if(windowHandles.isEmpty())
+		  {
 			  LOGGER.debug("No window handles available.");
-			  throw new Exception("No window handles available.");
+			  throw new NoSuchWindowException("No window handles available.");
 		  }
 		  
-		  if(windowHandles.size() == 1){
+		  if(windowHandles.size() == 1)
+		  {
 			  LOGGER.debug("No second screen available to switch to.");
-			  throw new Exception("No second screen available to switch to.");
+			  throw new NoSuchWindowException("No second screen available to switch to.");
 		  }
 		  
 		  for(String handle : windowHandles){
@@ -527,14 +543,13 @@ public class Selenium implements WebOutputPlugin
 	  }
 	  catch(NoSuchWindowException eX)
 	  {
-		  LOGGER.debug("Exception while switching screens: No such window!");
-		  eX.printStackTrace();
-		  throw eX;
+		  LOGGER.debug("Exception while switching screens: No such window! (fail: {}", failOnError);
+		  
+		  if(failOnError) throw eX;
 	  }
 	  catch(Exception eX)
 	  {
 		  LOGGER.debug("Exception while switching screens");
-		  eX.printStackTrace();
 		  throw eX;
 	  }
   }

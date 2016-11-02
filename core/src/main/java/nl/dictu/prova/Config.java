@@ -42,7 +42,9 @@ public class Config
   public final static String PROVA_PLUGINS_OUT_SOAP_LOCATOR_PFX         = "prova.plugins.out.soap.locator";             // String,    Prefix for locators 
   public final static String PROVA_PLUGINS_OUT_DB_LOCATOR_PFX           = "prova.plugins.out.db.locator";               // String,    Prefix for locators
   
+  public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_FAILSWTCHSCR = "prova.plugins.out.web.browser.failswitchscreen";
   public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_CHROME  = "prova.plugins.out.web.browser.path.chrome";  // String,    Browser executable location 
+  public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_GECKO   = "prova.plugins.out.web.browser.path.gecko";   // String,    Browser executable location 
   public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_IE      = "prova.plugins.out.web.browser.path.ie";      // String,    Browser executable location 
   public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_TYPE         = "prova.plugins.out.web.browser.type";         // String,    Browser for executing tests 
   public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE      = "prova.plugins.out.web.browser.profile";      // String,    Name for a browser profile to load 
