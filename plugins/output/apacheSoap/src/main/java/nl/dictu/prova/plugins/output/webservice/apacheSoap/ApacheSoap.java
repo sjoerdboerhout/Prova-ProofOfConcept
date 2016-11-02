@@ -228,8 +228,6 @@ public class ApacheSoap implements SoapOutputPlugin
   @Override
   public void doSetMessage(String message) throws Exception
   {
-    //http://svn.apache.org/repos/asf/httpcomponents/oac.hc3x/trunk/src/examples/PostSOAP.java
-
     //Message
     if (message != null)
     {

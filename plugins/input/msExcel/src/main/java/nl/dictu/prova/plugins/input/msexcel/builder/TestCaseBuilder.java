@@ -217,7 +217,7 @@ public class TestCaseBuilder
    * @param tagname
    * @throws Exception
    */
-  private List<TestAction> parseSoapDbTemplate(Sheet sheet, MutableInt rowNum, String tagName, List<Properties> dataset) throws Exception
+  private List<TestAction> parseSoapDbTemplate(Sheet sheet, MutableInt rowNum, String tagName, List<Properties> dataset, String specifiedPrefix) throws Exception
   {
     Map<Integer, String> headers = null;
     Map<String, String> rowMap = null;
@@ -328,10 +328,19 @@ public class TestCaseBuilder
         //global properties with most recent incrementation (e.g. "SOAP_message10_")
 
         //PREFIX
-        if (rowMap.containsKey("prefix"))
+        if (rowMap.containsKey("prefix") | specifiedPrefix != null)
         {
           LOGGER.trace("Prefix found. Processing.");
-          prefix = rowMap.get("prefix");
+          
+          if(specifiedPrefix != null) 
+          {
+            prefix = specifiedPrefix;
+          }
+          else
+          {
+            prefix = rowMap.get("prefix");
+          }
+          
           Boolean prefixFound = true;
           Integer counter = 1;
 
@@ -553,19 +562,19 @@ public class TestCaseBuilder
         LOGGER.info(testData.size() + " sets of testdata found for sheet '" + nextSheet.getSheetName() + "'");
         for (List<Properties> dataSet : testData)
         {
-          testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet));
+          testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet, specificSheet));
         }
         return testActions;
       }
       else
       {
         LOGGER.info("No testdata found for sheet '" + nextSheet.getSheetName() + "', processing once.");
-        testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, null));
+        testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, null, null));
       }
     }
 
     // TODO READ keywords for reference sheet!
-    return readTestActionsFromSheet(testCase, nextSheet, null);
+    return readTestActionsFromSheet(testCase, nextSheet, null, null);
   }
 
   /**
@@ -575,7 +584,7 @@ public class TestCaseBuilder
    * @return
    * @throws Exception
    */
-  private List<TestAction> readTestActionsFromSheet(TestCase testCase, Sheet sheet, List<Properties> dataSet) throws Exception
+  private List<TestAction> readTestActionsFromSheet(TestCase testCase, Sheet sheet, List<Properties> dataSet, String specifiedPrefix) throws Exception
   {
     List<TestAction> testActions = new ArrayList<>();
     MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
@@ -609,7 +618,7 @@ public class TestCaseBuilder
               case "message":
               case "soapproperties":
               case "send":
-                parseSoapDbTemplate(sheet, rowNum, tagName, dataSet).forEach(testCase::addTestAction);
+                parseSoapDbTemplate(sheet, rowNum, tagName, dataSet, specifiedPrefix).forEach(testCase::addTestAction);
                 break;
             }
           }

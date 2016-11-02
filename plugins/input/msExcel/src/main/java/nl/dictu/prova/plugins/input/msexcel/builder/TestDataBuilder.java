@@ -204,7 +204,9 @@ public class TestDataBuilder
         {
           if(key.length() > 0)
           {
-            String value = keywordCheckAndFetch(workbookReader.evaluateCellContent(selectedColumn.getCell(cell.getColumnIndex())));
+            Cell valuecell = selectedColumn.getCell(cell.getColumnIndex());
+            String value = "";
+            if(valuecell != null) value = keywordCheckAndFetch(workbookReader.evaluateCellContent(valuecell));
             
             if(value.length() > 0)
             {
@@ -228,8 +230,8 @@ public class TestDataBuilder
         Row currentRow = sheet.getRow((int) keyname.getKey());
         String key = (String) keyname.getValue();
         Cell valuecell = currentRow.getCell(column);
-        
-        String value = keywordCheckAndFetch(workbookReader.evaluateCellContent(valuecell));
+        String value = "";
+        if(valuecell != null) value = keywordCheckAndFetch(workbookReader.evaluateCellContent(valuecell));
 
         if(value.length() > 0)
         {
