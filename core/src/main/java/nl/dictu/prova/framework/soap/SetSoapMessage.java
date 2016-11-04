@@ -6,7 +6,6 @@ public class SetSoapMessage extends TestAction {
     
         private final String ATTR_MESSAGE = "QUERY";
         private String message = null;
-        private StringBuilder messageBuilder = new StringBuilder();
 
 	@Override
 	public void setAttribute(String key, String value) throws Exception {
@@ -39,6 +38,7 @@ public class SetSoapMessage extends TestAction {
   @Override
   public String toString()
   {
-    return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + message.substring(0, message.length() < 120 ? message.length() : 120) + "'");
+    int length = message.length() < 120 ? message.length() : 120;
+    return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + message.substring(0, length) + "'");
   }
 }

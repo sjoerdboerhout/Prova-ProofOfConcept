@@ -43,7 +43,11 @@ public class Jdbc implements DbOutputPlugin
   private String currentPassword = null;
   private String currentPrefix = null;
   private String currentQuery = null;
+  private String currentResult = null;
+  private Integer currentRetries = null;
+  private Integer currentWaittime = null;
   private Boolean currentRollback = true;
+  private Boolean exceptionOnTest = null;
   private Integer row = 0;
 
   @Override
@@ -57,6 +61,15 @@ public class Jdbc implements DbOutputPlugin
   {
     LOGGER.debug("Init: output plugin Jdbc!");
     this.testRunner = testRunner;
+  }
+
+  @Override
+  public void doSetDbPollProperties(Integer retries, Integer waittime, String result)
+  {
+    LOGGER.debug("Setting poll properties in output plugin Jdbc.");
+    this.currentRetries = retries;
+    this.currentWaittime = waittime;
+    this.currentResult = result;
   }
 
   @Override
@@ -103,8 +116,6 @@ public class Jdbc implements DbOutputPlugin
 
     try
     {
-      DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-      connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
       row = 0;
 
       if (getQueryType() == StatementType.SELECT)
@@ -113,10 +124,11 @@ public class Jdbc implements DbOutputPlugin
           plugin.storeToTxt("" + currentQuery, currentPrefix);
         }
         
-        statement = connection.createStatement();
-        ResultSet resultSet = statement.executeQuery(currentQuery);
+        ResultSet resultSet = executeSelectQuery();
         ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
 
+        LOGGER.debug("Query executed. Processing data...");
+        
         while (resultSet.next())
         {
           for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
@@ -175,6 +187,60 @@ public class Jdbc implements DbOutputPlugin
       e.printStackTrace();
     }
     return sqlProperties;
+  }
+
+  @Override
+  public void doPollForDbResult() throws Exception
+  {
+    if (getQueryType() == StatementType.SELECT)
+    {        
+      for(int i = 1; i <= currentRetries; i++)
+      {
+        ResultSet resultSet = executeSelectQuery();
+        resultSet.next();
+      
+        String result = resultSet.getString(1);
+
+        if (result == null)
+        {
+          LOGGER.debug("No result available yet on retry " + i);
+        }
+        else if(result.trim().equalsIgnoreCase(currentResult))
+        {
+          LOGGER.debug("Result '{}' is equal to desired result '{}'", result, currentResult);
+          break;          
+        }
+        else
+        {
+          LOGGER.debug("Result '{}' is not equal to desired result '{}'", result, currentResult);
+        }
+        
+        if(i == currentRetries) resultSet.close();
+      }      
+    }
+  }
+  
+  private ResultSet executeSelectQuery()
+  {
+    try
+    {
+      LOGGER.trace("Executing select query.");
+      DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+      connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
+      
+      statement = connection.createStatement();
+      return statement.executeQuery(currentQuery);
+    }
+    catch (SQLException e)
+    {
+      LOGGER.error("SQLException occured! : " + e.getMessage());
+    }
+    catch (Exception e)
+    {
+      LOGGER.error("Exception occured! : " + e.getMessage());
+      e.printStackTrace();
+    }
+    return null;
   }
 
   public enum StatementType
@@ -296,6 +362,14 @@ public class Jdbc implements DbOutputPlugin
   public boolean doTest(String property, String test) throws Exception
   {
     LOGGER.trace("Executing test for property '" + property + "' with validation '" + test + "'");
+    
+    if(exceptionOnTest == null)
+    {
+      if(testRunner.hasPropertyValue(Config.PROVA_FLOW_FAILON_TESTFAIL))
+      {
+        exceptionOnTest = Config.PROVA_FLOW_FAILON_TESTFAIL.equalsIgnoreCase("true");
+      }
+    }
 
     if (test.equalsIgnoreCase("{null}"))
     {
@@ -303,8 +377,15 @@ public class Jdbc implements DbOutputPlugin
       {
         if(testRunner.getPropertyValue(property).trim().length() > 0)
         {
-          LOGGER.info("Test unsuccessful!");
-          return false;
+          if(exceptionOnTest)
+          {
+            throw new Exception("Test unsuccessful! Property is not null.");
+          }
+          else
+          {
+            LOGGER.info("Test unsuccessful! Property is not null.");
+            return false;
+          }
         }
         else
         {
@@ -314,21 +395,35 @@ public class Jdbc implements DbOutputPlugin
       }
     }
 
-    if (testRunner.hasPropertyValue(property) | testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0)
+    if (testRunner.hasPropertyValue(property) & testRunner.getPropertyValue(property) != null & testRunner.getPropertyValue(property).trim().length() > 0)
     {
       String propertyValue = testRunner.getPropertyValue(property).trim();
       if (propertyValue.equalsIgnoreCase(test.trim()))
       {
         LOGGER.info("Test successful!");
-        return true;
+        return true; 
       }
-      LOGGER.info("Test unsuccessful!");
-      return false;
+      if(exceptionOnTest)
+      {
+        throw new Exception("Test unsuccessful!  Value is '" + propertyValue + "' instead of '" + test.trim() + "'");
+      }
+      else
+      {
+        LOGGER.info("Test unsuccessful!  Value is '{}' instead of '{}'", propertyValue, test.trim());
+        return false;
+      }
     }
     else
     {
-      LOGGER.info("Test unsuccessful!");
-      return false;
+      if(exceptionOnTest)
+      {
+        throw new Exception("Test unsuccessful! Property doesn't exist.");
+      }
+      else
+      {
+        LOGGER.info("Test unsuccessful! Property doesn't exist.");
+        return false;
+      }
     }
 
   }

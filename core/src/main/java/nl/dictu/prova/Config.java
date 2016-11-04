@@ -29,6 +29,7 @@ public class Config
   public final static String PROVA_ENV_PFX                              = "prova.env";                                  // String[],  Environment prefix 
   
   public final static String PROVA_FLOW_FAILON_NOTESTDATAKEYWORD        = "prova.flow.failon.notestdatakeyword";        // String,    Switch for failing on finding a testdata keyword (not properties file keyword)
+  public final static String PROVA_FLOW_FAILON_TESTFAIL                 = "prova.flow.failon.testfail";                 // String,    Switch for failing on failed tests.
   
   public final static String PROVA_LOG_FILENAME                         = "prova.log.filename";                         // String,    Name of the Prova log file 
   public final static String PROVA_LOG_LEVEL                            = "prova.log.level";                            // String,    Log level for Prova 

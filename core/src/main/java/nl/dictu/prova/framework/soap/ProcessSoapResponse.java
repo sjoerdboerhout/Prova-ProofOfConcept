@@ -46,7 +46,7 @@ public class ProcessSoapResponse extends TestAction {
      */
     @Override
     public String toString() {
-        return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
+        return ("'" + this.getClass().getSimpleName().toUpperCase() + "' with prefix '" + currentPrefix + "'");
     }
 
 }

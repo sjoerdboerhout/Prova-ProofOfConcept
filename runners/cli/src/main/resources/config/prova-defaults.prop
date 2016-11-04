@@ -13,6 +13,9 @@ prova.conf.file.ext                             = prop
 
 prova.env                                       = s
 
+prova.flow.failon.notestdatakeyword             = false
+prova.flow.failon.testfail                      = false
+
 prova.results.file                              = 
 
 prova.tests.filters                             =
@@ -39,7 +42,7 @@ prova.plugins.out.web.browser.path.chrome       = bin/plugins/output/chromedrive
 prova.plugins.out.web.browser.path.ie           = bin/plugins/output/IEDriverServer-32bit.exe
 prova.plugins.out.web.browser.path.gecko        = bin/plugins/output/geckodriver.exe
 
-prova.plugins.out.soap.package                  = nl.dictu.prova.plugins.output.webservice.
+prova.plugins.out.soap.package                  = nl.dictu.prova.plugins.output.soap.
 prova.plugins.out.soap                          = ApacheSoap
 
 prova.plugins.out.db.package                    = nl.dictu.prova.plugins.output.db.
