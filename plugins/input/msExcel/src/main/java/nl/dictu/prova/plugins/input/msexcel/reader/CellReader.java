@@ -2,10 +2,12 @@ package nl.dictu.prova.plugins.input.msexcel.reader;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.format.CellDateFormatter;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellReference;
 
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,7 +76,7 @@ public class CellReader
         
       case Cell.CELL_TYPE_NUMERIC:
         if (DateUtil.isCellDateFormatted(cell))
-          result = getDateString(cell);
+          result = getDateString(cell, cell.getNumericCellValue());
         else
           result = getNumericString(cell);
         break;
@@ -123,7 +125,7 @@ public class CellReader
           
         case Cell.CELL_TYPE_NUMERIC:
           if (DateUtil.isCellDateFormatted(cell))
-            return getDateString(cell);
+            return getDateString(cell, cellValue);
           else
             return getNumericString(cellValue);
           
@@ -254,40 +256,44 @@ public class CellReader
    * @param cell Cell containing the date value
    * @return String value of the date cell value
    */
-  private String getDateString(Cell cell)
-  {
-    //If dateFormat argument is supplied, date will be formatted according to the supplied style.
-    //Otherwise, dateformatting will be subtracted from the cell. 
-//    if(dateFormat != null)
-//    {
-//      LOGGER.trace("getDateString: '{}' with SimpleDateFormat-format '{}'", () -> cell, () -> dateFormat);
-//      
-//      Date date = cell.getDateCellValue();
-//      
-//      SimpleDateFormat formatter = new SimpleDateFormat();
-//      formatter.applyPattern(dateFormat);
-//      
-//      return formatter.format(date);
-//    }
+  private String getDateString(Cell cell, double cellNumberValue)
+  {    
+    String dateFmt = cell.getCellStyle().getDataFormatString();
     
-    LOGGER.trace("getDateString: '{}'", () -> cell);
-    
-    String dateFormatString = cell.getCellStyle().getDataFormatString();
+    LOGGER.trace("1: getDateString: '{}', Format: '{}'", cellNumberValue, dateFmt);
 
-    // TODO POI should respect the format set in Excel...  
+    // TODO POI should respect the format set in Excel... 
+    // Unfortunately POI doesn't respect the - and uses / instead.
     // Because we use - more than / this hack is implemented.
-    dateFormatString = dateFormatString.replaceAll("/", "-");
+    dateFmt = dateFmt.replaceAll("/", "-");
+    
+    LOGGER.trace("2: getDateString: '{}', Format: '{}'", cellNumberValue, dateFmt);
+    
+    Date date = HSSFDateUtil.getJavaDate(cellNumberValue);
     
     if(dateFormat != null)
     {
-      LOGGER.trace("Format date '{}' manually with '{}'", () -> cell, () -> dateFormat);
+      LOGGER.trace("Format date '{}' with '{}'", () -> cellNumberValue, () -> dateFormat);
       
-      return new CellDateFormatter(dateFormat).format(cell.getDateCellValue());
+      return new CellDateFormatter(dateFormat).format(date);
     }
+    else
+    {    
+      LOGGER.trace("Format date '{}' with '{}'", cellNumberValue, dateFmt);
     
-    LOGGER.trace("Format date '{}' with '{}'", cell.getDateCellValue(), dateFormatString);
-    
-    return new CellDateFormatter(dateFormatString).format(cell.getDateCellValue());
+      return new CellDateFormatter(dateFmt).format(date);
+    }
+  }
+
+  /**
+   * Returns the string value of the date cell value
+   *
+   * @param cell Cell containing the date value
+   * @return String value of the date cell value
+   */
+  private String getDateString(Cell cell, CellValue parsedValue)
+  {    
+    return getDateString(cell, parsedValue.getNumberValue());
   }
 
   /**
