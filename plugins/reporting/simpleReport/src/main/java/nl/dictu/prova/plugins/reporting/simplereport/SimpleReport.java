@@ -395,8 +395,9 @@ public class SimpleReport implements ReportingPlugin
 	LOGGER.debug("logStartTestSuite - TestRoot: " + testRoot);
 	LOGGER.debug("TestsuiteID = " + testSuite.getId());
 	String testSuiteSubDir = testSuite.getId().substring(testSuite.getId().lastIndexOf("\\")+1);
+	
 	//LOGGER.debug("Testsuite sub dir = " + testSuiteSubDir);  
-	//testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot + File.separator, "");
+	testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot + File.separator, "");
 	LOGGER.debug("logStartTestSuite - Test Suite sub dir: " + testSuiteSubDir);
 	
 	if(testSuiteSubDir.length() > 0)
