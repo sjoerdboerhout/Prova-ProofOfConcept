@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -339,6 +341,24 @@ public class Prova implements Runnable, TestRunner
       throw eX;
     } 
   }
+  
+  
+  /**
+   * Returns a boolean on whether the input contains any keywords.
+   */
+  public Boolean containsKeywords(String entry) throws Exception
+  {
+    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
+    Matcher matcher = pattern.matcher(entry);
+
+    while (matcher.find())
+    {
+      return true;
+    }
+    return false;
+  }
+  
+  
     
   /**
    *  Execute all prepared tests
@@ -703,6 +723,40 @@ public class Prova implements Runnable, TestRunner
     properties.setProperty(key, value);
   }
   
+  
+  public String replaceKeywords(String entry) throws Exception
+  {
+    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
+    Matcher matcher = pattern.matcher(entry);
+    StringBuffer entryBuffer = new StringBuffer("");
+
+    while (matcher.find())
+    {
+      String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 1);
+      
+      if (keyword.equalsIgnoreCase("SKIPCELL"))
+      {
+        LOGGER.debug("Skipping cell with keyword " + keyword);
+        return "";
+      }
+
+      LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
+      if (!this.hasPropertyValue(keyword))
+      {
+        LOGGER.trace("No value found for property " + keyword + ", assuming it will be available at execute time.");
+        continue;
+      }
+      if (this.getPropertyValue(keyword).equalsIgnoreCase("{SKIPCELL}"))
+      {
+        LOGGER.debug("Skipping cell with keyword '{" + keyword + "}'");
+        return "";
+      }
+      matcher.appendReplacement(entryBuffer, this.getPropertyValue(keyword));
+    }
+    matcher.appendTail(entryBuffer);
+
+    return entryBuffer.toString();
+  } 
 
   
   /**

@@ -111,6 +111,11 @@ public class Click extends TestAction
     if(!isValid())
       throw new Exception("Action is not validated!");
     
+    if(testRunner.containsKeywords(xPath.getValue()))
+    {
+      xPath.setValue(testRunner.replaceKeywords(xPath.getValue()));
+    }
+    
     testRunner.getWebActionPlugin().doClick(xPath.getValue(), rightClick.getValue(), waitUntilPageLoaded.getValue());
   }
 

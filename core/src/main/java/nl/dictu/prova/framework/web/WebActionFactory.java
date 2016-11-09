@@ -25,6 +25,7 @@ public class WebActionFactory implements ActionFactory
   public final static String ACTION_SENDKEYS        = "SENDKEYS";
   public final static String ACTION_SETTEXT         = "SETTEXT";
   public final static String ACTION_SLEEP           = "SLEEP";
+  public final static String ACTION_STORETEXT       = "STORETEXT";
   public final static String ACTION_SWITCHFRAME     = "SWITCHFRAME";
   public final static String ACTION_SWITCHSCREEN    = "SWITCHSCREEN";
   public final static String ACTION_VALIDATEELEMENT = "VALIDATEELEMENT";
@@ -53,6 +54,7 @@ public class WebActionFactory implements ActionFactory
       case ACTION_SENDKEYS:        return new SendKeys();
       case ACTION_SETTEXT:         return new SetText();
       case ACTION_SLEEP:           return new Sleep();
+      case ACTION_STORETEXT:       return new StoreText();
       case ACTION_SWITCHFRAME:     return new SwitchFrame();
       case ACTION_SWITCHSCREEN:	   return new SwitchScreen();
       case ACTION_VALIDATEELEMENT: return new ValidateElement();
