@@ -31,13 +31,13 @@ public class ShellActionFactoryTest
   {
     try
     {
-      TestAction testAction = ShellActionFactory.getAction("Execute");
+      TestAction testAction = new ShellActionFactory().getAction("Execute");
       assertTrue(testAction instanceof Execute);
       
-      testAction = ShellActionFactory.getAction("execute");
+      testAction = new ShellActionFactory().getAction("execute");
       assertTrue(testAction instanceof Execute);
       
-      testAction = ShellActionFactory.getAction("EXECUTE");
+      testAction = new ShellActionFactory().getAction("EXECUTE");
       assertTrue(testAction instanceof Execute);
     }
     catch (Exception eX)

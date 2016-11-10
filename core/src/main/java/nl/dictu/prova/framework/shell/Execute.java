@@ -43,12 +43,13 @@ public class Execute extends TestAction
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
-    switch(value.toUpperCase())
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
+    switch(key.toUpperCase())
     {
-      case ATTR_PARAMETER: 
       case ATTR_COMMAND:  
         command.setValue(value);
-      break;
+        break;
     }
   }
   
@@ -75,8 +76,7 @@ public class Execute extends TestAction
     if(!isValid())
       throw super.getLastValidationException();
     
-    // TODO Implement function
-    System.out.println("Execute command '" + command + "' on the Shell");
+    this.testRunner.getShellActionPlugin().doExecute(command.getValue());
   }
 
 
@@ -88,6 +88,6 @@ public class Execute extends TestAction
   @Override
   public String toString()
   {
-    return(this.getClass().getName() + ": Execute command '" + command + "' on the Shell");
+    return(this.getClass().getName() + ": Execute command '" + command.getValue() + "' on the Shell");
   }
 }

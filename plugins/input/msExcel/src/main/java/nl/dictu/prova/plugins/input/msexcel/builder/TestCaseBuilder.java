@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 import nl.dictu.prova.framework.soap.SoapActionFactory;
 import nl.dictu.prova.framework.ActionFactory;
 import nl.dictu.prova.framework.db.DbActionFactory;
+import nl.dictu.prova.framework.shell.ShellActionFactory;
 import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 
 /**
@@ -147,6 +148,8 @@ public class TestCaseBuilder
   private void parseSheet(TestCase testCase, Sheet sheet) throws Exception
   {
     MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
+    
+    LOGGER.trace("Parsing sheet '{}'", sheet.getSheetName());
 
     while (rowNum.intValue() < sheet.getLastRowNum())
     {
@@ -477,6 +480,8 @@ public class TestCaseBuilder
   {
     Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
     Map<String, String> rowMap;
+    
+    LOGGER.trace("Parsing testcase section on sheet '{}'", sheet.getSheetName());
 
     while ((rowMap = readRow(sheet, rowNum, headers)) != null)
     {
@@ -619,6 +624,9 @@ public class TestCaseBuilder
               case "soapproperties":
               case "send":
                 parseSoapDbTemplate(sheet, rowNum, tagName, dataSet, specifiedPrefix).forEach(testCase::addTestAction);
+                break;
+              case "command":
+                testActions.add(parseShellTemplate(sheet, rowNum, tagName));
                 break;
             }
           }
@@ -1123,5 +1131,50 @@ public class TestCaseBuilder
         }
       }
     }
+  }
+
+  private TestAction parseShellTemplate(Sheet sheet, MutableInt rowNum, String tagName) throws Exception
+  {
+    ActionFactory actionFactory = new ShellActionFactory();
+    TestAction testAction = null;
+    Map<Integer, String> headers;
+    Map<String, String> rowMap = null;
+    String command = null;
+    
+    if(tagName.equalsIgnoreCase("command"))
+    {
+      LOGGER.info("Parsing shell template with sheet " + sheet.getSheetName());
+      
+      testAction = actionFactory.getAction("EXECUTE");
+      headers = readSectionHeaderRow(sheet, rowNum);
+      command = "";
+
+      while ((rowMap = readRow(sheet, rowNum, headers)) != null)
+      {
+        if (rowMap.isEmpty())
+        {
+          LOGGER.debug("End of command block reached at row " + rowNum);
+          break;
+        }
+        for (String entry : rowMap.values())
+        {
+          if (entry != null & entry.length() > 0)
+          {
+            LOGGER.trace("Processing cell value : '{}'", entry);
+            String processedCellValue = replaceKeywords(entry);
+            command += processedCellValue + " ";
+          }
+        }
+      }
+      if(containsKeywords(command))
+      {
+        command = replaceKeywords(command);
+      }
+      LOGGER.trace("Retrieved the following command: '{}'", command);
+      testAction.setAttribute("COMMAND", command);
+      testAction.setTestRunner(testRunner);
+      
+    }
+    return testAction;
   }
 }
