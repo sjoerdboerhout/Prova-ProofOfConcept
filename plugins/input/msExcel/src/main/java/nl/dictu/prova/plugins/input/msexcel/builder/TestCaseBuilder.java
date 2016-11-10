@@ -333,7 +333,7 @@ public class TestCaseBuilder
         {
           LOGGER.trace("Prefix found. Processing.");
           
-          if(specifiedPrefix != null) 
+          if(specifiedPrefix != null)  
           {
             prefix = specifiedPrefix;
           }
@@ -1118,14 +1118,14 @@ public class TestCaseBuilder
           if (entry != null & entry.length() > 0)
           {
             LOGGER.trace("Processing cell value : '{}'", entry);
-            String processedCellValue = replaceKeywords(entry);
+            String processedCellValue = testRunner.replaceKeywords(entry);
             command += processedCellValue + " ";
           }
         }
       }
-      if(containsKeywords(command))
+      if(testRunner.containsKeywords(command))
       {
-        command = replaceKeywords(command);
+        command = testRunner.replaceKeywords(command);
       }
       LOGGER.trace("Retrieved the following command: '{}'", command);
       testAction.setAttribute("COMMAND", command);
