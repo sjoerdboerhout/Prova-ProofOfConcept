@@ -261,7 +261,7 @@ public class Prova implements Runnable, TestRunner
       else
         throw new Exception("Could not load webservice output plugin '" + pluginName + "'");
       
-      LOGGER.debug("Load and initialize output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB));
+      LOGGER.debug("Load and initialize DB output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB));
       pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB_PACKAGE) +
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB).toLowerCase() + "." +
                    properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_DB);
@@ -270,6 +270,18 @@ public class Prova implements Runnable, TestRunner
       
       if(dbOutputPlugin != null)
         dbOutputPlugin.init(this);
+      else
+        throw new Exception("Could not load db output plugin '" + pluginName + "'");
+      
+      LOGGER.debug("Load and initialize SHELL output plug-in '{}'", () -> properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SHELL));
+      pluginName = properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SHELL_PACKAGE) +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SHELL).toLowerCase() + "." +
+                   properties.getProperty(Config.PROVA_PLUGINS_OUTPUT_SHELL);
+
+      shellOutputPlugin = pluginLoader.getInstanceOf(pluginName, ShellOutputPlugin.class);
+      
+      if(shellOutputPlugin != null)
+        shellOutputPlugin.init(this);
       else
         throw new Exception("Could not load db output plugin '" + pluginName + "'");
 
@@ -508,8 +520,8 @@ public class Prova implements Runnable, TestRunner
     }
     catch(Exception eX)
     {
-      LOGGER.debug("SCHAAP");
       LOGGER.error(eX);
+      eX.printStackTrace();
     }
   }
   

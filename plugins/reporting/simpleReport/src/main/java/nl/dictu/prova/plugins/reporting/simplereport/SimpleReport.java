@@ -397,10 +397,15 @@ public class SimpleReport implements ReportingPlugin
 	String testSuiteSubDir = testSuite.getId().substring(testSuite.getId().lastIndexOf(File.separator)+1);
 	
 	//LOGGER.debug("Testsuite sub dir = " + testSuiteSubDir);  
-	if(testSuiteSubDir.substring(testSuiteSubDir.length() - 1) == File.separator)
-	  testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot + File.separator, "");
-	else
-	  testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot, "");
+  //LOGGER.debug("testroot = " + testRoot);
+  try
+  {
+    if(testSuiteSubDir.substring(testSuiteSubDir.length() - 1) == File.separator)
+      testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot + File.separator, "");
+    else
+      testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot, "");
+  }
+  catch(Exception ex) {}
 	
 	LOGGER.debug("logStartTestSuite - Test Suite sub dir: " + testSuiteSubDir);
 	
