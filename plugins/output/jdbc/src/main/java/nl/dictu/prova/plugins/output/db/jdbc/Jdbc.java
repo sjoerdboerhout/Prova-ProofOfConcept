@@ -157,10 +157,14 @@ public class Jdbc implements DbOutputPlugin
           plugin.storeToTxt("" + currentQuery, currentPrefix);
         }
         
-        PreparedStatement preparedStatement = connection.prepareStatement(currentQuery);
-        row = preparedStatement.executeUpdate();
-        preparedStatement.close();
+        DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+        connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
+        
+        try (PreparedStatement preparedStatement = connection.prepareStatement(currentQuery)) {
+          row = preparedStatement.executeUpdate();
+        }
         LOGGER.info(row + " rows affected.");
+        
         if (currentRollback)
         {
           connection.rollback();

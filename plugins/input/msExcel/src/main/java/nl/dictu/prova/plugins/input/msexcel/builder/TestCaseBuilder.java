@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import nl.dictu.prova.framework.soap.SoapActionFactory;
 import nl.dictu.prova.framework.ActionFactory;
 import nl.dictu.prova.framework.db.DbActionFactory;
@@ -304,14 +302,14 @@ public class TestCaseBuilder
           if (entry != null & entry.length() > 0)
           {
             LOGGER.trace("Processing cell value : '{}'", entry);
-            String processedCellValue = replaceKeywords(entry);
+            String processedCellValue = testRunner.replaceKeywords(entry);
             messageOrQuery += processedCellValue + " ";
           }
         }
       }
-      if(containsKeywords(messageOrQuery))
+      if(testRunner.containsKeywords(messageOrQuery))
       {
-        messageOrQuery = replaceKeywords(messageOrQuery);
+        messageOrQuery = testRunner.replaceKeywords(messageOrQuery);
       }
       testAction.setAttribute("QUERY", messageOrQuery);
       messageOrQuery = "";
@@ -688,6 +686,10 @@ public class TestCaseBuilder
                   LOGGER.trace("Substitute key '{}'. Keyword '{}' with value '{}'", key, keyword, testDataKeywords.getProperty(keyword));
                   keyword = testDataKeywords.getProperty(keyword);
                 }
+                else if (testRunner.hasPropertyValue(keyword))
+                {
+                  keyword = testRunner.getPropertyValue(keyword);
+                }
                 else
                 {
                   if(this.testRunner.hasPropertyValue(Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD))
@@ -710,6 +712,7 @@ public class TestCaseBuilder
                     else
                     {
                       LOGGER.error("Keyword '" + keyword + "' in sheet '" + sheet.getSheetName() + "' not defined with a value.");
+                      keyword = rowMap.get(key);
                     }
                   }                  
                 }
@@ -967,52 +970,6 @@ public class TestCaseBuilder
     {
       LOGGER.trace("> " + key + " => " + props.getProperty(key));
     }
-  }
-  
-  private Boolean containsKeywords(String entry) throws Exception
-  {
-    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
-    Matcher matcher = pattern.matcher(entry);
-
-    while (matcher.find())
-    {
-      return true;
-    }
-    return false;
-  }
-
-  private String replaceKeywords(String entry) throws Exception
-  {
-    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
-    Matcher matcher = pattern.matcher(entry);
-    StringBuffer entryBuffer = new StringBuffer("");
-
-    while (matcher.find())
-    {
-      String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 1);
-      
-      if (keyword.equalsIgnoreCase("SKIPCELL"))
-      {
-        LOGGER.debug("Skipping cell with keyword " + keyword);
-        return "";
-      }
-
-      LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
-      if (!testRunner.hasPropertyValue(keyword))
-      {
-        LOGGER.trace("No value found for property " + keyword + ", assuming it will be available at execute time.");
-        continue;
-      }
-      if (testRunner.getPropertyValue(keyword).equalsIgnoreCase("{SKIPCELL}"))
-      {
-        LOGGER.debug("Skipping cell with keyword '{" + keyword + "}'");
-        return "";
-      }
-      matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
-    }
-    matcher.appendTail(entryBuffer);
-
-    return entryBuffer.toString();
   }
 
   private ArrayList<List<Properties>> getSoapDbTestdata(TestCase testCase, Sheet sheet, String specificSheet) throws Exception
