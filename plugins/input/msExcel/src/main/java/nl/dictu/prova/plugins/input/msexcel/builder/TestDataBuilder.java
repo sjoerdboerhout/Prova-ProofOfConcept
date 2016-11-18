@@ -132,7 +132,7 @@ public class TestDataBuilder
       }
     }
       
-    LOGGER.trace("TestData Builder for SOAP & DB: '{}'", sheet.getSheetName());
+    LOGGER.trace("Processing columns for sheet : '{}'", sheet.getSheetName());
 
     //Loop through all prepared columns and add all of its value to dataset.
     //When dataset is properly filled (has a data and 
@@ -143,7 +143,7 @@ public class TestDataBuilder
       //Read column and add it to dataset at set position (0 = data, 1 = test)
       if(headertext.equalsIgnoreCase(TEST))
       {
-        LOGGER.trace("Processing Test column no. {}", header.getKey());
+        LOGGER.trace("Processing Test column no. {} with header {}", header.getKey(), header.getValue());
         if(dataset.size() == 1)
         {
           dataset.add(1, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
@@ -170,7 +170,7 @@ public class TestDataBuilder
       {
         if(dataset.size() == 0)
         {
-          LOGGER.trace("Processing Data column no. {}", header.getKey());
+          LOGGER.trace("Processing Data column no. {} with header {}", header.getKey(), header.getValue());
           dataset.add(0, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
         }
         else
@@ -320,7 +320,6 @@ public class TestDataBuilder
               else
               {
                 LOGGER.warn("Last column was not of type 'Data', skipping set.");
-                continue;
               }
             }
             else
@@ -340,7 +339,6 @@ public class TestDataBuilder
               else
               {
                 LOGGER.warn("Last column was not of type 'Test', skipping set.");
-                continue;
               }
             }
             else
@@ -631,6 +629,13 @@ public class TestDataBuilder
     while(rowIterator.hasNext())
     {
       Row currentRow = rowIterator.next();
+      
+      //Skip first row
+      if(currentRow.getRowNum() == 0) 
+      {
+        continue;
+      }
+      
       Cell headercell = currentRow.getCell(0);
       if(headercell != null)
       {

@@ -340,11 +340,14 @@ public class TestCase
           catch(Exception eX)
           {
         	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
-              {
-              	LOGGER.debug("Report: log action");
-              	reportPlugin.logAction(testAction, "NOK");
-              }
-        	  throw eX;
+            {
+              LOGGER.debug("Report: log action");
+              reportPlugin.logAction(testAction, "NOK");
+            }
+            if(this.testRunner.getPropertyValue("prova.flow.failon.actionfail").equalsIgnoreCase("true"))
+            {
+              throw eX;
+            }
           }
           try
           {

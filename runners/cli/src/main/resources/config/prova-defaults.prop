@@ -15,6 +15,7 @@ prova.env                                       = s
 
 prova.flow.failon.notestdatakeyword             = false
 prova.flow.failon.testfail                      = false
+prova.flow.failon.actionfail                    = true
 
 prova.results.file                              = 
 

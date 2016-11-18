@@ -444,6 +444,9 @@ public class Prova implements Runnable, TestRunner
             if(soapOutputPlugin != null)
               soapOutputPlugin.setUp(entry.getValue());
             
+            if(dbOutputPlugin != null)
+              dbOutputPlugin.setUp(entry.getValue());
+            
             if(shellOutputPlugin != null)
               shellOutputPlugin.setUp(entry.getValue());
             
