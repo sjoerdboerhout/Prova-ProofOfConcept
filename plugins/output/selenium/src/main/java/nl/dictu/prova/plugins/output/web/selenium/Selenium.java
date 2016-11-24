@@ -281,7 +281,7 @@ public class Selenium implements WebOutputPlugin
         
         if(++count > maxRetries)
         { 
-          this.doCaptureScreen("doClick");
+          //this.doCaptureScreen("doClick");
           throw eX;
         }
       }
@@ -512,8 +512,11 @@ public class Selenium implements WebOutputPlugin
   
   
   @Override
+
   public void doSwitchScreen(String name) throws Exception {
-    boolean useName = false;
+	boolean failOnError = Boolean.parseBoolean(testRunner.getPropertyValue(
+              Config.PROVA_PLUGINS_OUT_WEB_BROWSER_FAILSWTCHSCR));
+	boolean useName = false;
     boolean switched = false;
     //If doSwitchScreen is called for the first time, the initial window handle is saved
     if (currentWindow.equals(""))
@@ -532,83 +535,82 @@ public class Selenium implements WebOutputPlugin
     }
 	  try
 	  {
-      if(useName)
-      {
-    	  //Switch to the stored handle which has been initial set
-    	  if (name.toLowerCase().equals("default"))
-    	  {
-    		  LOGGER.debug("Switching back to default");
-    		  try
-    		  {
-    			  webdriver.switchTo().window(currentWindow);
-    		  }
-    		  catch(Exception e)
-    		  {
-    			  webdriver.switchTo().defaultContent();
-    		  }
-    	  }
-    	  //switch tot the window with the given title
-    	  else
-    	  {
-    		  //currentWindow = webdriver.getWindowHandle(); 
-              Set<String> availableWindows = webdriver.getWindowHandles(); 
-              if (!availableWindows.isEmpty()) { 
-                      for (String windowId : availableWindows) { 
-                              if (webdriver.switchTo().window(windowId).getTitle().startsWith(name)) { 
-                            	  	LOGGER.debug("Window " + name + " found and webdriver switched to it");
-                            	  	switched = true;
-                              } else { 
-                            	  webdriver.switchTo().window(currentWindow);
-                            	  LOGGER.debug("Window " + name + " not found (yet)");
-                              } 
-                      }
-                      
-              }
-              //Handled all windows and failed to switch to the given window.
-              if (!switched)
-              {
-            	  throw new Exception("Switch to " + name + "failed");
-              }
-    	  }
+	      if(useName)
+	      {
+	    	  //Switch to the stored handle which has been initial set
+	    	  if (name.toLowerCase().equals("default"))
+	    	  {
+	    		  LOGGER.debug("Switching back to default");
+	    		  try
+	    		  {
+	    			  webdriver.switchTo().window(currentWindow);
+	    		  }
+	    		  catch(Exception e)
+	    		  {
+	    			  webdriver.switchTo().defaultContent();
+	    		  }
+	    	  }
+	    	  //switch tot the window with the given title
+	    	  else
+	    	  {
+	    		  //currentWindow = webdriver.getWindowHandle(); 
+	              Set<String> availableWindows = webdriver.getWindowHandles(); 
+	              if (!availableWindows.isEmpty()) { 
+	                      for (String windowId : availableWindows) { 
+	                              if (webdriver.switchTo().window(windowId).getTitle().startsWith(name)) { 
+	                            	  	LOGGER.debug("Window " + name + " found and webdriver switched to it");
+	                            	  	switched = true;
+	                              } else { 
+	                            	  webdriver.switchTo().window(currentWindow);
+	                            	  LOGGER.debug("Window " + name + " not found (yet)");
+	                              } 
+	                      }
+	                      
+	              }
+	              //Handled all windows and failed to switch to the given window.
+	              if (!switched)
+	              {
+	            	  throw new Exception("Switch to " + name + "failed");
+	              }
+	    	  }
+	      }
+	      //Switch to the first available window
+	      else
+	      {
+	        Set<String> windowHandles = webdriver.getWindowHandles();
+	        String currentHandle = webdriver.getWindowHandle();
+	
+	        if(windowHandles.isEmpty()){
+	          LOGGER.debug("No window handles available.");
+	          throw new Exception("No window handles available.");
+	        }
+	
+	        if(windowHandles.size() == 1){
+	          LOGGER.debug("No second screen available to switch to.");
+	          throw new Exception("No second screen available to switch to.");
+	        }
+	
+	        for(String handle : windowHandles){
+	          if(!currentHandle.equals(handle)){
+	            LOGGER.trace("Switching to screen: " + handle);
+	            webdriver.switchTo().window(handle);
+	            break;
+	          }
+	        }
+	      }
+	      }
+	      catch(NoSuchWindowException eX)
+	  	  {
+	  		  LOGGER.debug("Exception while switching screens: No such window! (fail: {}", failOnError);
+	  		  
+	  		  if(failOnError) throw eX;
+	  	  }
+	  	  catch(Exception eX)
+	  	  {
+	  		  LOGGER.debug("Exception while switching screens");
+	  		  throw eX;
+	  	  }   
       }
-      //Switch to the first available window
-      else
-      {
-        Set<String> windowHandles = webdriver.getWindowHandles();
-        String currentHandle = webdriver.getWindowHandle();
-
-        if(windowHandles.isEmpty()){
-          LOGGER.debug("No window handles available.");
-          throw new Exception("No window handles available.");
-        }
-
-        if(windowHandles.size() == 1){
-          LOGGER.debug("No second screen available to switch to.");
-          throw new Exception("No second screen available to switch to.");
-        }
-
-        for(String handle : windowHandles){
-          if(!currentHandle.equals(handle)){
-            LOGGER.trace("Switching to screen: " + handle);
-            webdriver.switchTo().window(handle);
-            break;
-          }
-        }
-      }
-	  }
-	  catch(NoSuchWindowException eX)
-	  {
-		  LOGGER.debug("Exception while switching screens: No such window!");
-		  eX.printStackTrace();
-		  throw eX;
-	  }
-	  catch(Exception eX)
-	  {
-		  LOGGER.debug("Exception while switching screens");
-		  eX.printStackTrace();
-		  throw eX;
-	  }
-  }
 
 
   @Override

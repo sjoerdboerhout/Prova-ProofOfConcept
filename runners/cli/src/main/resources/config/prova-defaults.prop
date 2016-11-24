@@ -4,64 +4,65 @@
 # All properties that require a default value must be mentioned in this file!
 #
 ################################################################################
-prova.conf.dir                            = config
-prova.conf.file.pfx                       = prova_
-prova.conf.file.default                   = default
-prova.conf.file.test                      = -test
-prova.conf.file.user                      = 
-prova.conf.file.ext                       = prop
+prova.conf.dir                                  = config
+prova.conf.file.pfx                             = prova_
+prova.conf.file.default                         = default
+prova.conf.file.test                            = -test
+prova.conf.file.user                            = 
+prova.conf.file.ext                             = prop
 
-prova.env                                 = s
+prova.env                                       = s
 
-prova.results.file                        = 
+prova.results.file                              = 
 
-prova.tests.filters                       =
-prova.tests.root                          = projects
-prova.tests.data.dir                      = testdata
-prova.tests.execute                       = true
-prova.tests.start                         = 0
-prova.tests.delay                         = 0
-prova.timeout                             = 60000
+prova.tests.filters                             =
+prova.tests.root                                = projects
+prova.tests.data.dir                            = testdata
+prova.tests.execute                             = true
+prova.tests.start                               = 0
+prova.tests.delay                               = 0
+prova.timeout                                   = 60000
 
-prova.plugins.dir                         = bin
-prova.plugins.ext                         = jar
+prova.plugins.dir                               = bin
+prova.plugins.ext                               = jar
 
-prova.plugins.in.package                  = nl.dictu.prova.plugins.input.
-prova.plugins.in                          = MsExcel
+prova.plugins.in.package                        = nl.dictu.prova.plugins.input.
+prova.plugins.in                                = MsExcel
 
-prova.plugins.out.web.package             = nl.dictu.prova.plugins.output.web.
-prova.plugins.out.web                     = Selenium
+prova.plugins.out.web.package                   = nl.dictu.prova.plugins.output.web.
+prova.plugins.out.web                           = Selenium
 
-prova.plugins.out.web.locator.pfx         = prova.plugins.out.web.locator
-prova.plugins.out.web.browser.type        = FireFox
-prova.plugins.out.web.maxretries          = 3
-prova.plugins.out.web.browser.path.chrome = bin/plugins/output/chromedriver.exe
-prova.plugins.out.web.browser.path.ie     = bin/plugins/output/IEDriverServer-32bit.exe
-prova.plugins.out.web.browser.path.gecko  = bin/plugins/output/geckodriver.exe
+prova.plugins.out.web.locator.pfx               = prova.plugins.out.web.locator
+prova.plugins.out.web.browser.failswitchscreen  = true
+prova.plugins.out.web.browser.type              = FireFox
+prova.plugins.out.web.maxretries                = 3
+prova.plugins.out.web.browser.path.chrome       = bin/plugins/output/chromedriver.exe
+prova.plugins.out.web.browser.path.ie           = bin/plugins/output/IEDriverServer-32bit.exe
+prova.plugins.out.web.browser.path.gecko        = bin/plugins/output/geckodriver.exe
 
-prova.plugins.out.soap.package            = nl.dictu.prova.plugins.output.webservice.
-prova.plugins.out.soap                    = ApacheSoap
+prova.plugins.out.soap.package                  = nl.dictu.prova.plugins.output.webservice.
+prova.plugins.out.soap                          = ApacheSoap
 
-prova.plugins.out.db.package              = nl.dictu.prova.plugins.output.db.
-prova.plugins.out.db                      = Jdbc
+prova.plugins.out.db.package                    = nl.dictu.prova.plugins.output.db.
+prova.plugins.out.db                            = Jdbc
 
-prova.plugins.out.shell.package           = nl.dictu.prova.plugins.output.shell.
-prova.plugins.out.shell                   = ShellCommand
+prova.plugins.out.shell.package                 = nl.dictu.prova.plugins.output.shell.
+prova.plugins.out.shell                         = ShellCommand
 
-prova.plugins.reporting.package           = nl.dictu.prova.plugins.reporting.
-prova.plugins.reporting                   = SimpleReport
-prova.plugins.reporting.file              = yyyy-MM-dd_HHmmss
-prova.plugins.reporting.dir               = testresults
+prova.plugins.reporting.package                 = nl.dictu.prova.plugins.reporting.
+prova.plugins.reporting                         = SimpleReport
+prova.plugins.reporting.file                    = yyyy-MM-dd_HHmmss
+prova.plugins.reporting.dir                     = testresults
 
 ################################################################################
 #
 # LOG4J 2 properties
 #
 ################################################################################
-prova.log.level                           = info
-prova.log.dir.root                        = log
-prova.log.dir.history                     = $${date:yyyy-MM-dd}-%i
-prova.log.filename                        = Prova
-prova.log.ext.txt                         = log
-prova.log.pattern.console                 = %d{HH:mm:ss} %-5p - %msg%n
-prova.log.pattern.file                    = %d{yyyy-MM-dd HH:mm:ss,SSS} [%c:%t:%L] %-5p - %msg%n
+prova.log.level                                 = info
+prova.log.dir.root                              = log
+prova.log.dir.history                           = $${date:yyyy-MM-dd}-%i
+prova.log.filename                              = Prova
+prova.log.ext.txt                               = log
+prova.log.pattern.console                       = %d{HH:mm:ss} %-5p - %msg%n
+prova.log.pattern.file                          = %d{yyyy-MM-dd HH:mm:ss,SSS} [%c:%t:%L] %-5p - %msg%n
