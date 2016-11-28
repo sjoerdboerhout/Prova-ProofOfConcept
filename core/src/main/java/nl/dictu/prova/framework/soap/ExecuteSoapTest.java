@@ -39,6 +39,7 @@ class ExecuteSoapTest extends TestAction {
         result = "succesful";
       } else {
         result = "unsuccesful";
+        throw new Exception("Result is unsuccesful");
       }
     }
 

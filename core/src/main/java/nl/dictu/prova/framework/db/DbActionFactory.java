@@ -18,6 +18,7 @@ public class DbActionFactory implements ActionFactory
   protected final static Logger LOGGER = LogManager.getLogger();
   
   public final static String ACTION_PROCESSDBRESPONSE   = "PROCESSDBRESPONSE";
+  public final static String ACTION_POLLFORDBRESULT     = "POLLFORDBRESULT";
   public final static String ACTION_SETDBPROPERTIES     = "SETDBPROPERTIES";
   public final static String ACTION_SETQUERY            = "SETDBQUERY";
   public final static String ACTION_EXECUTEDBTEST       = "EXECUTEDBTEST";
@@ -39,6 +40,7 @@ public class DbActionFactory implements ActionFactory
       case ACTION_SETDBPROPERTIES:      return new SetDbProperties();
       case ACTION_SETQUERY:             return new SetQuery();
       case ACTION_EXECUTEDBTEST:        return new ExecuteDbTest();
+      case ACTION_POLLFORDBRESULT:      return new PollForDbResult();
     }
     
     throw new Exception("Unknown action '" + name + "' requested");

@@ -66,5 +66,15 @@ public class SetSoapProperties extends TestAction
     }
     return true;
   }
+  
+  /**
+     * Return a string representation of the objects content
+     *
+     * @return
+     */
+    @Override
+    public String toString() {
+        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': '" + url + "', '" + user + "', '" + pass + "'");
+    }
 
 }

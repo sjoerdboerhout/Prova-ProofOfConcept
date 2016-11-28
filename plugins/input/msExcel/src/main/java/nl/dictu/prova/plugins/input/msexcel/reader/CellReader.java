@@ -1,13 +1,13 @@
 package nl.dictu.prova.plugins.input.msexcel.reader;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.format.CellDateFormatter;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellReference;
 
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,7 +24,7 @@ public class CellReader
   private FormulaEvaluator formulaEvaluator;
   String dateFormat = null;
 
-  public CellReader(){}
+//  public CellReader(){}
   
   public CellReader(Workbook workbook)
   {
@@ -76,7 +76,7 @@ public class CellReader
         
       case Cell.CELL_TYPE_NUMERIC:
         if (DateUtil.isCellDateFormatted(cell))
-          result = getDateString(cell);
+          result = getDateString(cell, cell.getNumericCellValue());
         else
           result = getNumericString(cell);
         break;
@@ -125,7 +125,7 @@ public class CellReader
           
         case Cell.CELL_TYPE_NUMERIC:
           if (DateUtil.isCellDateFormatted(cell))
-            return getDateString(cell);
+            return getDateString(cell, cellValue);
           else
             return getNumericString(cellValue);
           
@@ -256,33 +256,44 @@ public class CellReader
    * @param cell Cell containing the date value
    * @return String value of the date cell value
    */
-  private String getDateString(Cell cell)
-  {
-    //If dateFormat argument is supplied, date will be formatted according to the supplied style.
-    //Otherwise, dateformatting will be subtracted from the cell. 
+  private String getDateString(Cell cell, double cellNumberValue)
+  {    
+    String dateFmt = cell.getCellStyle().getDataFormatString();
+    
+    LOGGER.trace("1: getDateString: '{}', Format: '{}'", cellNumberValue, dateFmt);
+
+    // TODO POI should respect the format set in Excel... 
+    // Unfortunately POI doesn't respect the - and uses / instead.
+    // Because we use - more than / this hack is implemented.
+    dateFmt = dateFmt.replaceAll("/", "-");
+    
+    LOGGER.trace("2: getDateString: '{}', Format: '{}'", cellNumberValue, dateFmt);
+    
+    Date date = HSSFDateUtil.getJavaDate(cellNumberValue);
+    
     if(dateFormat != null)
     {
-      LOGGER.trace("getDateString: '{}' with format '{}'", () -> cell, () -> dateFormat);
+      LOGGER.trace("Format date '{}' with '{}'", () -> cellNumberValue, () -> dateFormat);
       
-      Date date = cell.getDateCellValue();
-      
-      SimpleDateFormat formatter = new SimpleDateFormat();
-      formatter.applyPattern(dateFormat);
-      
-      return formatter.format(date);
+      return new CellDateFormatter(dateFormat).format(date);
     }
+    else
+    {    
+      LOGGER.trace("Format date '{}' with '{}'", cellNumberValue, dateFmt);
     
-    LOGGER.trace("getDateString: '{}'", () -> cell);
-    
-    String dateFormatString = cell.getCellStyle().getDataFormatString();
+      return new CellDateFormatter(dateFmt).format(date);
+    }
+  }
 
-    // TODO POI should respect the format set in Excel...  
-    // Because we use - more than / this hack is implemented.
-    dateFormatString = dateFormatString.replaceAll("/", "-");
-    
-    LOGGER.trace("Format date '{}' with '{}'", cell.getDateCellValue(), dateFormatString);
-    
-    return new CellDateFormatter(dateFormatString).format(cell.getDateCellValue());
+  /**
+   * Returns the string value of the date cell value
+   *
+   * @param cell Cell containing the date value
+   * @return String value of the date cell value
+   */
+  private String getDateString(Cell cell, CellValue parsedValue)
+  {    
+    return getDateString(cell, parsedValue.getNumberValue());
   }
 
   /**
@@ -323,7 +334,7 @@ public class CellReader
    * @param cellContent String which might contain a key value
    * @return Whether or not the string contains a key value
    */
-  public boolean isKey(String cellContent)
+  public static boolean isKey(String cellContent)
   {
     return cellContent.trim().matches("^\\{[A-Za-z0-9.]+\\}$");
   }
@@ -355,7 +366,7 @@ public class CellReader
    * @param cellContent String which might contain a tag value
    * @return Whether or not the string contains a tag value
    */
-  public boolean isTag(String cellContent)
+  public static boolean isTag(String cellContent)
   {
     return cellContent.trim().matches("^\\[[A-Za-z0-9]+\\]$");
   }
@@ -379,7 +390,7 @@ public class CellReader
    * @param cellContent String containing the tag value
    * @return Key name
    */
-  public String getKeyName(String cellContent)
+  public static String getKeyName(String cellContent)
   {
     Pattern pattern = Pattern.compile("^\\{([A-Za-z0-9.]+)\\}$");
     Matcher matcher = pattern.matcher(cellContent.toLowerCase().trim());
@@ -408,7 +419,7 @@ public class CellReader
    * @param cellContent String containing the tag value
    * @return Tag name
    */
-  public String getTagName(String cellContent)
+  public static String getTagName(String cellContent)
   {
     Pattern pattern = Pattern.compile("^\\[([A-Za-z0-9]+)\\]$");
     Matcher matcher = pattern.matcher(cellContent.toLowerCase().trim());

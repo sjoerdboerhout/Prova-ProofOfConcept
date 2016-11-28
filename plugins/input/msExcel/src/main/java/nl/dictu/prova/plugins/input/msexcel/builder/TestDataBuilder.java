@@ -21,9 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
-import org.apache.poi.ss.formula.functions.Column;
 
 /**
  * @author Hielke de Haan
@@ -33,19 +34,17 @@ public class TestDataBuilder
 {
   private final static Logger LOGGER = LogManager.getLogger();
   private WorkbookReader workbookReader;
-  private CellReader cellReader;
+  
   private TestRunner testRunner;
   private String dateFormat = null;
+  private final String DATA = "DATA";
+  private final String TEST = "TEST";
   
-  public TestDataBuilder()
-  {
-    cellReader = new CellReader();
-  }
+  public TestDataBuilder(){}
   
   public TestDataBuilder(TestRunner testRunner)
   {
       this.testRunner = testRunner;
-      cellReader = new CellReader();
       
       try
       {
@@ -95,7 +94,6 @@ public class TestDataBuilder
   {
       LOGGER.trace("Build testdata and tests for: {}", sheetname);
       ArrayList<List<Properties>> testDatasets = new ArrayList<>();
-      List<Properties> dataset = null;
       
       Workbook workbook = new XSSFWorkbook(new File(path));
       workbookReader = new WorkbookReader(workbook);
@@ -109,184 +107,345 @@ public class TestDataBuilder
           break;
         }
       }
+      
       if(sheet == null)
       {
         LOGGER.error("No sheet was found with sheetname " + sheetname.trim());
         return testDatasets;
       }
-        
-      //Optional horizontal testdata template reader
-      if(testRunner.hasPropertyValue("prova.plugins.in.horizontalcolumns"))
-      {
-        if(testRunner.getPropertyValue("prova.plugins.in.horizontalcolumns").equalsIgnoreCase("true"))
-        {
-          Iterator<Row> rowIterator = sheet.rowIterator();
-
-          if(rowIterator.hasNext())
-          {
-            Map<Integer, String> headers = readHeaderRow(rowIterator.next());
-
-            LOGGER.trace("TestData Builder for SOAP & DB: '{}'", sheet.getSheetName());
-
-            int i = 2;
-
-            //Dataset needs 1 testdata row and 1 test validation row.
-            //After size becomes 2 it is added to testDatasets and a new 
-            //one is created.
-            while(i < sheet.getLastRowNum())
-            {
-              if(dataset == null)
-              {
-                dataset = new ArrayList<>();
-                dataset.add(0, readHorizontalColumn(sheet, i));
-              } 
-              else if (dataset.size() == 1)
-              {
-                dataset.add(1, readHorizontalColumn(sheet, i));
-              } 
-              else if (dataset.size() == 2)
-              {
-                testDatasets.add(dataset);
-                dataset = new ArrayList<>();
-                dataset.add(0, readHorizontalColumn(sheet, i));
-              }
-              else
-              {
-                LOGGER.error("Invalid amount of columns for a dataset. Column number is " + i + " and dataset size is " + dataset.size());
-              }
-              i++;
-            }
-          }
-          return testDatasets;
-        }
-      }
-      
-      //Regular vertical testdata template reader
-      Iterator<Row> rowIterator = sheet.rowIterator();
-    
-      if(rowIterator.hasNext())
-      {
-        Map<Integer, String> headers = readHeaderRow(rowIterator.next());
-  
-        LOGGER.trace("TestData Builder for SOAP & DB: '{}'", sheet.getSheetName());
-  
-        int i = 1;
-          
-        //Dataset needs 1 testdata column and 1 test validation column.
-        //After size becomes 2 it is added to testDatasets and a new 
-        //one is created.
-        while(i <= headers.size())
-        {
-          if(dataset == null)
-          {
-            dataset = new ArrayList<>();
-            dataset.add(0, readColumn(sheet, i, 2, sheet.getLastRowNum()));
-          } 
-          else if (dataset.size() == 1)
-          {
-            dataset.add(1, readColumn(sheet, i, 2, sheet.getLastRowNum()));
-          } 
-          else if (dataset.size() == 2)
-          {
-            testDatasets.add(dataset);
-            dataset = new ArrayList<>();
-            dataset.add(0, readColumn(sheet, i, 2, sheet.getLastRowNum()));
-          }
-          else
-          {
-            LOGGER.error("Invalid amount of columns for a dataset. Column number is " + i + " and dataset size is " + dataset.size());
-          }
-          i++;
-        }
-      }
-      return testDatasets;
+      return processColumns(sheet, testDatasets);
   }
   
-  public Properties readHorizontalColumn(Sheet sheet, Integer selectedRow) throws Exception{
+  private ArrayList<List<Properties>> processColumns(Sheet sheet, ArrayList<List<Properties>> testDatasets) throws Exception
+  {
+    Boolean horizontalColumns = false;
+    //getPreparedHeaderCollection gets headercollection regardless of horizontalcolumns or not
+    SortedMap<Integer, String> headers = getPreparedHeaderCollection(sheet);
+    List<Properties> dataset = new ArrayList<>();
     
-    Properties rowData = new Properties();
-    Integer userRow = selectedRow++;
-    
-    Map<Integer, String> headers = readHeaderRow(sheet.getRow(0));
-    //Remove first header "Keywords"
-    headers.remove(0);
-    
-    Row row = sheet.getRow(selectedRow);
-    
-    for(Entry header : headers.entrySet())
+    //Optional horizontal testdata template reader
+    if(testRunner.hasPropertyValue("prova.plugins.in.horizontalcolumns"))
     {
-      Cell keyCell = sheet.getRow(0).getCell((Integer) header.getKey());
-      String rowType = row.getRowNum() % 2 == 0 ? "data" : "tests";
-      
-      if (keyCell != null)
+      if(testRunner.getPropertyValue("prova.plugins.in.horizontalcolumns").equalsIgnoreCase("true"))
       {
-        String key = workbookReader.evaluateCellContent(keyCell, dateFormat);
-        LOGGER.trace("Found key: '{}' on column '{}'", key, header.getKey());
-                  
-        if (!key.isEmpty())
-        {  
-          Cell cell = row.getCell((Integer) header.getKey());
-          if (cell != null)
-          {
-            String value = workbookReader.evaluateCellContent(cell, dateFormat);
-            if(!cellReader.isKey(value))
-            {
-              if(value.length() > 0)
-              {
-                LOGGER.trace("Found value '{}' for key '{}' in {} row '{}'", value, key, rowType, userRow);
-                rowData.put(key, value);
-              }
-              else
-              {
-                LOGGER.trace("Found no value for key '{}' in {} row '{}'", key, rowType, userRow);
-              }
-            }
-            //Value is a tag, searching value.
-            else
-            {
-              value = workbookReader.getTagName(value);
-
-              LOGGER.trace("Property value is a property, retrieving value from collection.");
-              if(testRunner.hasPropertyValue(value))
-              {
-                value = testRunner.getPropertyValue(value);
-                if(value.length() > 0)
-                {
-                  LOGGER.trace("Found property value '{}' for key '{}' in {} row '{}'", value, key, rowType, userRow);
-                  rowData.put(key, value);
-                }
-                else
-                {
-                  LOGGER.trace("Found no property value for key '{}' in {} row '{}'", key, rowType, userRow);
-                }
-              }
-              else
-              {
-                throw new Exception("No value available for " + rowType + " tag " + value);
-              }
-            }
-          }
-        } 
-        else
-        {
-        LOGGER.trace("Row {} is empty; skipping row", userRow);
-        }
-      }
-      else
-      {
-        LOGGER.debug("Row {} is empty; skipping row", userRow);
-      }
-      if((Integer) header.getKey() == headers.size() - 1)
-      {
-        LOGGER.trace("Finished reading horizontal column");
+        horizontalColumns = true;
       }
     }
-    String message = selectedRow % 2 == 0 ? "Added " + rowData.size() + " testvalidation properties to dataset." : "Added " + rowData.size() + " testdata properties to dataset."; 
-    LOGGER.trace(message);
-    return rowData;
-  }    
+      
+    LOGGER.trace("Processing columns for sheet : '{}'", sheet.getSheetName());
+
+    //Loop through all prepared columns and add all of its value to dataset.
+    //When dataset is properly filled (has a data and 
+    for(Entry header : headers.entrySet())
+    {
+      String headertext = (String) header.getValue();
+      
+      //Read column and add it to dataset at set position (0 = data, 1 = test)
+      if(headertext.equalsIgnoreCase(TEST))
+      {
+        LOGGER.trace("Processing Test column no. {} with header {}", header.getKey(), header.getValue());
+        if(dataset.size() == 1)
+        {
+          dataset.add(1, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
+        }
+        else
+        {
+          LOGGER.warn("No data column added yet, skipping current column.");
+          continue;
+        }
+        
+        if(dataset.size() == 2)
+        {
+          LOGGER.trace("Adding a dataset to testdatasets.");
+          testDatasets.add(dataset);
+          dataset = new ArrayList<>();
+        }
+        else
+        {
+          LOGGER.warn("The dataset for column number {} is incomplete.", header.getKey());
+          dataset = new ArrayList<>();
+        }
+      }
+      else if(headertext.equalsIgnoreCase(DATA))
+      {
+        if(dataset.size() == 0)
+        {
+          LOGGER.trace("Processing Data column no. {} with header {}", header.getKey(), header.getValue());
+          dataset.add(0, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
+        }
+        else
+        {
+          LOGGER.trace("dataset not empty, creating new one and processing Data column no. {}", header.getKey());
+          dataset = new ArrayList<>();
+          dataset.add(0, readPreparedColumn(horizontalColumns, sheet, (Integer) header.getKey(), workbookReader));
+        }
+      }
+    }
+    return testDatasets;
+  }
   
-  public Properties readColumn(Sheet sheet, Integer column, Integer start, Integer end) throws Exception{
+  
+  public Properties readPreparedColumn(boolean horizontal, Sheet sheet, Integer column, WorkbookReader workbookReader) throws Exception
+  {
+    Properties columnData = new Properties();
+    
+    // Horizontal columns
+    if(horizontal)
+    {
+      Row selectedColumn = sheet.getRow(column);
+      Row keyRow = sheet.getRow(0);
+      
+      for(Cell cell : keyRow)
+      {
+        if(cell.getColumnIndex() == 0) continue;
+        
+        String key = workbookReader.evaluateCellContent(cell);
+        if(key != null)
+        {
+          if(key.length() > 0)
+          {
+            Cell valuecell = selectedColumn.getCell(cell.getColumnIndex());
+            String value = "";
+            if(valuecell != null) value = keywordCheckAndFetch(workbookReader.evaluateCellContent(valuecell));
+            
+            if(value.length() > 0)
+            {
+              columnData.put(key, value); 
+            }
+            else
+            {
+              LOGGER.warn("Value for keyword '{}' has no length or is null, please check your data!", key);
+            }
+          }
+        }
+      }
+    }
+    //Regular columns
+    else
+    {
+      SortedMap<Integer, String> keyColumn = readFirstColumnKeys(sheet);
+      
+      for(Entry keyname : keyColumn.entrySet())
+      {
+        Row currentRow = sheet.getRow((int) keyname.getKey());
+        String key = (String) keyname.getValue();
+        Cell valuecell = currentRow.getCell(column);
+        String value = "";
+        if(valuecell != null) value = keywordCheckAndFetch(workbookReader.evaluateCellContent(valuecell));
+
+        if(value.length() > 0)
+        {
+          columnData.put(key, value);
+        }  
+        else
+        {
+          LOGGER.warn("Value for keyword '{}' has no length or is null, please check your data!", key);
+        }
+      }
+    }
+    
+    LOGGER.trace("Returning {} properties from column {}", columnData.size(), column);
+    
+    return columnData;
+  }
+  
+  private String keywordCheckAndFetch(String input)
+  {
+    if(input == null) return "";
+    String processedInput = input;
+    try
+    {
+      if(CellReader.isKey(input))
+      {
+        if(testRunner.hasPropertyValue(input.substring(1, (input.length() -1))))
+        {
+          processedInput = testRunner.getPropertyValue(input.substring(1, input.length() - 1));
+        }
+      }
+    }
+    catch(Exception ex){}
+    return processedInput;
+  }
+  
+  
+  public SortedMap<Integer, String> getPreparedHeaderCollection(Sheet sheet) throws Exception
+  {
+    Boolean horizontalColumns = false;
+    if(testRunner.hasPropertyValue("prova.plugins.in.horizontalcolumns"))
+    {
+      if(testRunner.getPropertyValue("prova.plugins.in.horizontalcolumns").equalsIgnoreCase("true"))
+      {
+        horizontalColumns = true;
+      }
+    }
+    
+    LOGGER.trace("Gathering a prepared headercollection for sheet '{}'", sheet.getSheetName());
+    
+    //Regular vertical testdata template reader
+    Iterator<Row> rowIterator = sheet.rowIterator();
+    SortedMap<Integer, String> columns = new TreeMap<>();
+    Map<Integer, String> headers = new HashMap<>();
+
+    if(rowIterator.hasNext())
+    {
+      try
+      {
+        if(horizontalColumns)
+        {
+          LOGGER.trace("Getting horizontal sheet keys");
+          headers = readFirstColumnKeys(sheet);
+        }
+        else
+        {
+          LOGGER.trace("Getting regular sheet keys");
+          headers = readRow(rowIterator.next());
+        }
+        
+        for(Entry header : headers.entrySet())
+        {
+          String headertext = (String) header.getValue();
+          String lastHeader = null;
+          
+          if(!columns.isEmpty()) lastHeader = columns.get(columns.lastKey());
+          
+          if(headertext.toUpperCase().startsWith(TEST))
+          {
+            //Check if last one was a Data column
+            if(lastHeader != null)
+            {
+              if(lastHeader.toUpperCase().startsWith(DATA))
+              {
+                columns.put((Integer) header.getKey(), (String) header.getValue());
+              }
+              else
+              {
+                LOGGER.warn("Last column was not of type 'Data', skipping set.");
+              }
+            }
+            else
+            {
+              columns.put((Integer) header.getKey(), (String) header.getValue());
+            }
+          } 
+          else if(headertext.toUpperCase().startsWith(DATA))
+          {
+            //Check if last one was a Data column
+            if(lastHeader != null)
+            {
+              if(lastHeader.toUpperCase().startsWith(TEST))
+              {
+                columns.put((Integer) header.getKey(), (String) header.getValue());
+              }
+              else
+              {
+                LOGGER.warn("Last column was not of type 'Test', skipping set.");
+              }
+            }
+            else
+            {
+              columns.put((Integer) header.getKey(), (String) header.getValue());
+            }
+          }
+        }
+      }
+      catch(Exception ex)
+      {
+        LOGGER.error("Exception while processing testdata sheet headers, sheet: '{}', message: {}", sheet.getSheetName(), ex.getMessage());
+        LOGGER.error(ex);
+      }      
+    }
+    return columns;
+  }
+    
+  
+//  public Properties readHorizontalColumn(Sheet sheet, Integer selectedRow, WorkbookReader workbookReader) throws Exception
+//  {
+//    
+//    Properties rowData = new Properties();
+//
+//    Map<Integer, String> headers = readHeaderRow(sheet.getRow(0));
+//    //Remove first header "Keywords"
+//    headers.remove(0);
+//
+//    Row row = sheet.getRow(selectedRow);
+//
+//    if (row == null)
+//    {
+//      LOGGER.trace("Row {} is null, skipping.", selectedRow);
+//      return rowData;
+//    }
+//
+//    for(Entry header : headers.entrySet())
+//    {
+//      Cell keyCell = sheet.getRow(0).getCell((Integer) header.getKey());
+//
+//      if (keyCell != null)
+//      {
+//        String key = workbookReader.evaluateCellContent(keyCell, dateFormat);
+//        LOGGER.trace("Found key: '{}' on column '{}'", key, header.getKey());
+//
+//        String rowType = selectedRow % 2 == 0 ? "data" : "tests";
+//
+//        if (!key.isEmpty())
+//        {  
+//          Cell cell = row.getCell((Integer) header.getKey());
+//          if (cell != null)
+//          {
+//            String value = workbookReader.evaluateCellContent(cell, dateFormat);
+//            if(!CellReader.isKey(value))
+//            {
+//              if(value.length() > 0)
+//              {
+//                LOGGER.trace("Found value '{}' for key '{}' in {} 0 based row '{}'", value, key, rowType, selectedRow);
+//                rowData.put(key, value);
+//              }
+//              else
+//              {
+//                LOGGER.trace("Found no value for key '{}' in {} 0 based row '{}'", key, rowType, selectedRow);
+//              }
+//            }
+//            //Value is a tag, searching value.
+//            else
+//            {
+//              value = workbookReader.getTagName(value);
+//
+//              LOGGER.trace("Property value is a property, retrieving value from collection.");
+//              if(testRunner.hasPropertyValue(value))
+//              {
+//                value = testRunner.getPropertyValue(value);
+//                if(value.length() > 0)
+//                {
+//                  LOGGER.trace("Found property value '{}' for key '{}' in {} 0 based row '{}'", value, key, rowType, selectedRow);
+//                  rowData.put(key, value);
+//                }
+//                else
+//                {
+//                  LOGGER.trace("Found no property value for key '{}' in {} 0 based row '{}'", key, rowType, selectedRow);
+//                }
+//              }
+//              else
+//              {
+//                throw new Exception("No value available for " + rowType + " tag " + value);
+//              }
+//            }
+//          }
+//        }
+//        else
+//        {
+//          LOGGER.debug("Row {} is empty; skipping row", selectedRow);
+//        }
+//        if((Integer) header.getKey() == headers.size() - 1)
+//        {
+//          LOGGER.trace("Finished reading horizontal column");
+//        }
+//      }
+//    }
+//    String message = selectedRow % 2 == 0 ? "Added " + rowData.size() + " testvalidation properties to dataset." : "Added " + rowData.size() + " testdata properties to dataset."; 
+//    LOGGER.trace(message);
+//    return rowData;
+//  }    
+//  
+  public Properties readColumn(Sheet sheet, Integer column, Integer start, Integer end, WorkbookReader workbookReader) throws Exception{
     
     Properties columnData = new Properties();
     String columnType = column % 2 == 0 ? "tests" : "data";
@@ -306,7 +465,7 @@ public class TestDataBuilder
           if (cell != null)
           {
             String value = workbookReader.evaluateCellContent(cell, dateFormat);
-            if(!cellReader.isKey(value))
+            if(!CellReader.isKey(value))
             {
               if(value.length() > 0)
               {
@@ -382,7 +541,7 @@ public class TestDataBuilder
     if (rowIterator.hasNext())
     {
       // read headers
-      Map<Integer, String> headers = readHeaderRow(rowIterator.next());
+      Map<Integer, String> headers = readRow(rowIterator.next());
 
       // initialize submaps in testData map for eacht header
       for (int colNum = 1; colNum < headers.size(); colNum++)
@@ -441,18 +600,50 @@ public class TestDataBuilder
     return testData;
   }
 
-  private Map<Integer, String> readHeaderRow(Row row) throws Exception
+  private SortedMap<Integer, String> readRow(Row row) throws Exception
   {
-    Map<Integer, String> headers = new HashMap<>();
+    LOGGER.trace("Gathering the keys from row '{}' for sheet '{}'", row.getRowNum(), row.getSheet().getSheetName());
+    SortedMap<Integer, String> keys = new TreeMap<>();
     for (Cell cell : row)
     {
-      String cellContent = workbookReader.evaluateCellContent(cell, dateFormat);
-      if (!cellContent.isEmpty())
-        headers.put(cell.getColumnIndex(), cellContent);
+      if (cell != null)
+      {
+        String cellContent = workbookReader.evaluateCellContent(cell, dateFormat);
+        if (!cellContent.isEmpty())
+          keys.put(cell.getColumnIndex(), cellContent);
+      }
     }
 
-    if (headers.size() < 2)
-      throw new Exception("No data columns found");
+    LOGGER.trace("Read row {}", keys);
+    return keys;
+  }
+  
+  private SortedMap<Integer, String> readFirstColumnKeys(Sheet sheet) throws Exception
+  {
+    LOGGER.trace("Gathering the keys from first column for sheet '{}'", sheet.getSheetName());
+    
+    SortedMap<Integer, String> headers = new TreeMap<>();
+    
+    //Starts at 1 because first row is keycell horizontal column (names of properties)
+    Iterator<Row> rowIterator = sheet.rowIterator();
+    while(rowIterator.hasNext())
+    {
+      Row currentRow = rowIterator.next();
+      
+      //Skip first row
+      if(currentRow.getRowNum() == 0) 
+      {
+        continue;
+      }
+      
+      Cell headercell = currentRow.getCell(0);
+      if(headercell != null)
+      {
+        String cellContent = workbookReader.evaluateCellContent(headercell, dateFormat);
+        if (!cellContent.isEmpty())
+          headers.put(currentRow.getRowNum(), cellContent);
+      }
+    }
 
     LOGGER.trace("Read headers {}", headers);
     return headers;
@@ -487,7 +678,7 @@ public class TestDataBuilder
         if (rowIterator.hasNext())
         {
           // read headers ("Keywords", DataSet1, ...)
-          Map<Integer, String> headers = readHeaderRow(rowIterator.next());
+          Map<Integer, String> headers = readRow(rowIterator.next());
           
           for(Map.Entry<Integer, String> entry : headers.entrySet())
           {
@@ -545,7 +736,7 @@ public class TestDataBuilder
           
           for(Entry<String,String> entry : map.entrySet())
           {
-            if(cellReader.isKey(entry.getValue())){
+            if(CellReader.isKey(entry.getValue())){
               String value = entry.getValue().substring(1, entry.getValue().length() - 1);
                 if(testRunner == null){
                     LOGGER.error("testRunner is null, property " + entry.getValue() + " not stored.");
@@ -577,6 +768,38 @@ public class TestDataBuilder
     
     return properties;
   }
+//
+//  /**
+//   * testDataVerifier is a method that takes the testdata supplied from buildTestDataAndTests,
+//   * which is a method specifically for SOAP & DB testdatasheets, and verifies for content in
+//   * either the testdata or testvalidations Properties object. Incase of no content, it is removed.
+//   * @param testDatasets
+//   * @return 
+//   */
+//  private ArrayList<List<Properties>> testDataVerifier(ArrayList<List<Properties>> testDatasets)
+//  {
+//    Properties testdata;
+//    Properties testvalidations;
+//    ArrayList<List<Properties>> toBeDeletedDatasets = new ArrayList<>();
+//    for(List<Properties> dataset : testDatasets)
+//    {
+//      testdata = dataset.get(0);
+//      testvalidations = dataset.get(1);
+//      if(testdata.size() == 0 & testvalidations.size() == 0)
+//      {
+//        toBeDeletedDatasets.add(dataset);
+//      }
+//    }
+//    //ConcurrentModificationException occurs if dataset is removed while looping over testDatasets.
+//    while(toBeDeletedDatasets.iterator().hasNext())
+//    {
+//      List<Properties> deleteDataset = toBeDeletedDatasets.iterator().next();
+//      testDatasets.remove(deleteDataset);
+//      toBeDeletedDatasets.remove(deleteDataset);
+//      LOGGER.trace("Removing empty dataset, please check your testdatasheet for empty columns.");
+//    }
+//    return testDatasets;
+//  }
 
 }
 

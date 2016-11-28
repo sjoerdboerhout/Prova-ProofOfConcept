@@ -1,5 +1,7 @@
 package nl.dictu.prova.framework.parameters;
 
+
+
 /**
  * Contains all the common functions of the test action parameter Text.
  * 

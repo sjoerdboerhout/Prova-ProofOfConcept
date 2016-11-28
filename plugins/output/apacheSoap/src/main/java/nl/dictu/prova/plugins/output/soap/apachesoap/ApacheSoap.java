@@ -1,4 +1,4 @@
-package nl.dictu.prova.plugins.output.webservice.apachesoap;
+package nl.dictu.prova.plugins.output.soap.apachesoap;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -17,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 
@@ -46,6 +47,7 @@ public class ApacheSoap implements SoapOutputPlugin
   private URI currentUrl = null;
   private String currentPrefix = null;
   private TestCase testCase = null;
+  private Boolean exceptionOnTest;
 
   @Override
   public String getName()
@@ -102,24 +104,32 @@ public class ApacheSoap implements SoapOutputPlugin
   public void setUp(TestCase testCase) throws Exception
   {
     httpClient = HttpClientBuilder.create().build();
-    post = new HttpPost();
     this.testCase = testCase;
   }
   
   @Override
   public Properties doProcessResponse() throws Exception
   {
+    post = new HttpPost();
     //Set headers
     post.addHeader("SOAPAction", "\"\"");
     post.addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0");
     post.addHeader("Host", this.currentUrl.toString());
     post.addHeader("Authorization", "Basic " + currentAuthorization);
+    LOGGER.trace("Encoded authorization is '" + currentAuthorization + "'.");
 
     //Set soap message
     while(containsKeywords(currentMessage))
     {
       LOGGER.trace("Found keyword in SOAP message, replacing it with corresponding value.");
-      currentMessage = replaceKeywords(currentMessage);
+      String editedString = replaceKeywords(currentMessage);
+      if(editedString == null){
+        break;
+      }
+      else
+      {
+        currentMessage = editedString;
+      }
     }
     requestMessageEntity = new StringEntity(currentMessage);
     requestMessageEntity.setContentType("text/xml;charset=UTF-8");
@@ -152,7 +162,7 @@ public class ApacheSoap implements SoapOutputPlugin
       LOGGER.debug("Response body   : \n" + result);
       
       testCase.setStatus(TestStatus.FAILED);
-      
+      cleanUp();
       return new Properties();
     }
     else
@@ -167,14 +177,22 @@ public class ApacheSoap implements SoapOutputPlugin
       {
         result.append(line);
       }
+      
+      String log = "";
+      for(Header header : post.getAllHeaders())
+      {
+        log += header + ", \n";
+      }
 
       //Log the result
       for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
-        plugin.storeToTxt(currentMessage, currentPrefix + "_request");
+        log += currentMessage;
+        plugin.storeToTxt(log, currentPrefix + "_request");
         plugin.storeToTxt("" + result, currentPrefix + "_response");
       }
       LOGGER.debug("Response body   : \n" + result);
 
+      cleanUp();
       return splitSoapMessage(result.toString());
     }
   }
@@ -195,10 +213,10 @@ public class ApacheSoap implements SoapOutputPlugin
     //Authorization
     if (!user.equals("null"))
     {
-      LOGGER.trace("Encoding the authorization with user '" + user + "' and pass '" + pass + "'.");
+      LOGGER.trace("Encoding the authorization with user '" + user + "'.");
       String authorization = user + ":" + pass;
       byte[] encodedAuthorizationBytes = Base64.encode(authorization.getBytes());
-      this.currentAuthorization = new String(encodedAuthorizationBytes);
+      currentAuthorization = new String(encodedAuthorizationBytes);
     }
     else
     {
@@ -219,8 +237,6 @@ public class ApacheSoap implements SoapOutputPlugin
   @Override
   public void doSetMessage(String message) throws Exception
   {
-    //http://svn.apache.org/repos/asf/httpcomponents/oac.hc3x/trunk/src/examples/PostSOAP.java
-
     //Message
     if (message != null)
     {
@@ -232,38 +248,95 @@ public class ApacheSoap implements SoapOutputPlugin
   public boolean doTest(String property, String test) throws Exception
   {
     LOGGER.trace("Executing test for property '" + property + "' with validation '" + test + "'");
-
-    if (test.equalsIgnoreCase("{null}"))
+    
+    try
     {
-      if (testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0)
+      if(exceptionOnTest == null)
       {
-        LOGGER.info("Test unsuccesful!");
-        return false;
+        if(testRunner.hasPropertyValue(Config.PROVA_FLOW_FAILON_TESTFAIL))
+        {
+          exceptionOnTest = Config.PROVA_FLOW_FAILON_TESTFAIL.equalsIgnoreCase("true");
+        }
+      }
+
+      if (test.equalsIgnoreCase("{null}"))
+      {
+        if (testRunner.hasPropertyValue(property))
+        {
+          if(testRunner.getPropertyValue(property).trim().length() > 0)
+          {
+            if(exceptionOnTest)
+            {
+              throw new Exception("Test unsuccessful! Property is not null.");
+            }
+            else
+            {
+              LOGGER.info("Test unsuccessful! Property is not null.");
+              return false;
+            }
+          }
+          else
+          {
+            LOGGER.info("Test successful!");
+            return true;
+          }
+        }
+      }
+
+      if (testRunner.hasPropertyValue(property) & testRunner.getPropertyValue(property) != null & testRunner.getPropertyValue(property).trim().length() > 0)
+      {
+        String propertyValue = testRunner.getPropertyValue(property).trim();
+        if (propertyValue.equalsIgnoreCase(test.trim()))
+        {
+          LOGGER.info("Test successful!");
+          return true; 
+        }
+        if(exceptionOnTest)
+        {
+          throw new Exception("Test unsuccessful!  Value is '" + propertyValue + "' instead of '" + test.trim() + "'");
+        }
+        else
+        {
+          LOGGER.info("Test unsuccessful!  Value is '{}' instead of '{}'", propertyValue, test.trim());
+          return false;
+        }
       }
       else
       {
-        LOGGER.info("Test succesful!");
-        return true;
+        if(exceptionOnTest)
+        {
+          throw new Exception("Test unsuccessful! Property doesn't exist.");
+        }
+        else
+        {
+          LOGGER.info("Test unsuccessful! Property doesn't exist.");
+          return false;
+        }
       }
     }
-
-    if (testRunner.hasPropertyValue(property) | testRunner.getPropertyValue(property) != null | testRunner.getPropertyValue(property).trim().length() > 0)
+    catch(Exception eX)
     {
-      String propertyValue = testRunner.getPropertyValue(property).trim();
-      if (propertyValue.equalsIgnoreCase(test.trim()))
+      if(exceptionOnTest == null)
       {
-        LOGGER.info("Test succesful!");
-        return true;
+        if(testRunner.hasPropertyValue(Config.PROVA_FLOW_FAILON_TESTFAIL))
+        {
+          if(testRunner.getPropertyValue(Config.PROVA_FLOW_FAILON_TESTFAIL).trim().equalsIgnoreCase("true"))
+          {
+            throw new Exception("Failed to run test! Exception occured." + eX.getMessage());
+          }
+        }
       }
-      LOGGER.info("Test unsuccesful!");
-      return false;
-    }
-    else
-    {
-      LOGGER.info("Test unsuccesful!");
-      return false;
+      
+    LOGGER.info("Test unsuccesful! Exception occured." + eX.getMessage());  
+    return false;
     }
   }
+
+  @Override
+  public String doGetCurrentPrefix() throws Exception
+  {
+    return currentPrefix;
+  }  
 
   public void cleanUp()
   {
@@ -297,20 +370,38 @@ public class ApacheSoap implements SoapOutputPlugin
       String keyword = matcher.group(0).substring(1, matcher.group(0).length() - 1);
       
       LOGGER.trace("Found keyword " + matcher.group(0) + " in supplied string.");
-      if (!testRunner.hasPropertyValue(keyword))
+      
+      Boolean failOnNoTestdataKeywords = false;
+      
+      try
       {
-        throw new Exception("No value found for property " + keyword);
+        matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
+
+        try
+        {
+          failOnNoTestdataKeywords = Boolean.parseBoolean(this.testRunner.getPropertyValue(Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD));
+        }
+        catch(Exception ex)
+        {
+          LOGGER.error("Error parsing property '{}', please check your property file.", Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD);
+        }
       }
-      matcher.appendReplacement(entryBuffer, testRunner.getPropertyValue(keyword));
+      catch(Exception ex)
+      {
+        if(failOnNoTestdataKeywords)
+        {
+          throw new Exception("Keyword '" + keyword + "' in '" + currentPrefix + "' not defined with a value.");
+        }
+        else
+        {
+          matcher.appendReplacement(entryBuffer, keyword);
+          LOGGER.error("Keyword '" + keyword + "' in '" + currentPrefix + "' not defined with a value.");
+        }
+      }
     }
     matcher.appendTail(entryBuffer);
 
     return entryBuffer.toString();
-  }
-
-  public String doGetCurrentPrefix()
-  {
-    return this.currentPrefix;
   }
   
   public Properties splitSoapMessage(String message)

@@ -9,13 +9,14 @@ import nl.dictu.prova.framework.TestAction;
 
 /**
  *
- * @author cimangalienc
+ * @author Coos van der Galiën
  */
-class SetQuery extends TestAction
+public class SetDbPollProperties extends TestAction
 {
 
-  public final static String ATTR_QUERY = "QUERY";
-  private String query;
+  private Integer waittime;
+  private Integer retries;
+  private String result;
 
   @Override
   public void setAttribute(String key, String value) throws Exception
@@ -23,12 +24,17 @@ class SetQuery extends TestAction
     LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
     switch (key)
     {
-      case (ATTR_QUERY):
-        query = value;
-        LOGGER.trace("Setting attribute query.");
+      case ("prova.properties.waittime"):
+        waittime = Integer.parseInt(value);
+        break;
+      case ("prova.properties.retries"):
+        retries = Integer.parseInt(value);
+        break;
+      case ("prova.properties.result"):
+        result = value.trim();
         break;
       default:
-        LOGGER.error("Attribute not supported!");
+        LOGGER.error("Attribute not supported.");
     }
   }
 
@@ -38,23 +44,23 @@ class SetQuery extends TestAction
     LOGGER.info("> Execute test action: {}", () -> this.getClass().getSimpleName());
     if (!isValid())
     {
-      throw new Exception("testRunner and/or query are not properly set!");
+      throw new Exception("Poll properties not set properly!");
     }
-    this.testRunner.getDbActionPlugin().doSetQuery(query);
+    this.testRunner.getDbActionPlugin().doSetDbPollProperties(waittime, retries, result);
   }
 
   @Override
   public boolean isValid() throws Exception
   {
-    if (testRunner == null)
+    if (retries == null)
     {
       return false;
     }
-    if (query == null)
+    if (waittime == null)
     {
       return false;
     }
-    if (query.length() == 0)
+    if (result == null)
     {
       return false;
     }
@@ -69,7 +75,7 @@ class SetQuery extends TestAction
   @Override
   public String toString()
   {
-    return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + query.substring(0, query.length() < 120 ? query.length() : 120) + "'");
+    return ("'" + this.getClass().getSimpleName().toUpperCase() + "': '" + retries + "', '" + waittime + "', '" + result + "'");
   }
 
 }

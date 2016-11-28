@@ -394,16 +394,26 @@ public class SimpleReport implements ReportingPlugin
 	// Create report testsuite
 	LOGGER.debug("logStartTestSuite - TestRoot: " + testRoot);
 	LOGGER.debug("TestsuiteID = " + testSuite.getId());
-	String testSuiteSubDir = testSuite.getId().substring(testSuite.getId().lastIndexOf("\\")+1);
+	String testSuiteSubDir = testSuite.getId().substring(testSuite.getId().lastIndexOf(File.separator)+1);
+	
 	//LOGGER.debug("Testsuite sub dir = " + testSuiteSubDir);  
-	//testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot + File.separator, "");
+  //LOGGER.debug("testroot = " + testRoot);
+  try
+  {
+    if(testSuiteSubDir.substring(testSuiteSubDir.length() - 1) == File.separator)
+      testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot + File.separator, "");
+    else
+      testSuiteSubDir = testSuiteSubDir.replaceAll(testRoot, "");
+  }
+  catch(Exception ex) {}
+	
 	LOGGER.debug("logStartTestSuite - Test Suite sub dir: " + testSuiteSubDir);
 	
 	if(testSuiteSubDir.length() > 0)
 	{
 		currTestSuiteDir = reportRoot + File.separator + testSuiteSubDir;
 	  LOGGER.debug("Write begin testsuite ({})", currTestSuiteDir);
-	  //new File(currTestSuiteDir).mkdirs();
+	  new File(currTestSuiteDir).mkdirs();
 	  
 	  if (testSuite.numberOfTestCases(false) > 0)
 		{

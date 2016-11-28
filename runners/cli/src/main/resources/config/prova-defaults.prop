@@ -13,6 +13,10 @@ prova.conf.file.ext                             = prop
 
 prova.env                                       = s
 
+prova.flow.failon.notestdatakeyword             = false
+prova.flow.failon.testfail                      = false
+prova.flow.failon.actionfail                    = true
+
 prova.results.file                              = 
 
 prova.tests.filters                             =
@@ -31,7 +35,6 @@ prova.plugins.in                                = MsExcel
 
 prova.plugins.out.web.package                   = nl.dictu.prova.plugins.output.web.
 prova.plugins.out.web                           = Selenium
-
 prova.plugins.out.web.locator.pfx               = prova.plugins.out.web.locator
 prova.plugins.out.web.browser.failswitchscreen  = true
 prova.plugins.out.web.browser.type              = FireFox
@@ -40,7 +43,7 @@ prova.plugins.out.web.browser.path.chrome       = bin/plugins/output/chromedrive
 prova.plugins.out.web.browser.path.ie           = bin/plugins/output/IEDriverServer-32bit.exe
 prova.plugins.out.web.browser.path.gecko        = bin/plugins/output/geckodriver.exe
 
-prova.plugins.out.soap.package                  = nl.dictu.prova.plugins.output.webservice.
+prova.plugins.out.soap.package                  = nl.dictu.prova.plugins.output.soap.
 prova.plugins.out.soap                          = ApacheSoap
 
 prova.plugins.out.db.package                    = nl.dictu.prova.plugins.output.db.

@@ -1,5 +1,7 @@
 package nl.dictu.prova.plugins.output;
 
+import nl.dictu.prova.framework.parameters.Xpath;
+
 public interface WebOutputPlugin extends OutputPlugin {
 	public void doCaptureScreen(String fileName) throws Exception;
 
@@ -16,6 +18,8 @@ public interface WebOutputPlugin extends OutputPlugin {
 	public void doSetText(String xPath, String text, Boolean replace) throws Exception;
 
 	public void doSleep(long waitTime) throws Exception;
+  
+  public void doStoreText(String xPath, String regex, String name, double timeout) throws Exception;
 	
 	public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception;
 

@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -34,6 +37,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
+import nl.dictu.prova.framework.parameters.Xpath;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
 
 /**
@@ -49,9 +53,11 @@ public class Selenium implements WebOutputPlugin
   
   private TestRunner testRunner = null;
   private WebDriver  webdriver = null;
+  private String     currentWindow = "";
   private Integer    maxRetries = 1;
   private long	     maxTimeOut = 1000; // milliseconds
-  private String     currentWindow = "";
+  private String browserType;
+  private TestCase testCase;
   
   
   @Override
@@ -102,12 +108,16 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void setUp(TestCase testCase) throws Exception
   {
+    browserType = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_TYPE);
+    this.testCase = testCase;
+    LOGGER.debug("Setup: Test Case ID '{}' with browser '{}'", () -> testCase.getId(), () -> browserType);
+  }
+  
+  
+  public void prepareWebdriver() throws Exception
+  {
     try
     {
-      String browserType = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_TYPE);
-      
-      LOGGER.debug("Setup: Test Case ID '{}' with browser '{}'", () -> testCase.getId(), () -> browserType);
-      
       if(browserType.equalsIgnoreCase("FireFox"))
       {
         String fireFoxPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_GECKO);
@@ -216,6 +226,11 @@ public class Selenium implements WebOutputPlugin
 
   public void doCaptureScreen(String fileName) throws Exception
   {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
     File scrFile = ((TakesScreenshot)webdriver).getScreenshotAs(OutputType.FILE);
     
     try 
@@ -236,6 +251,11 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doClick(String xPath, Boolean rightClick, Boolean waitUntilPageLoaded) throws Exception
   {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
     LOGGER.debug(">> Click with {} on '{}', Wait for page = {}", (rightClick ? "right" : "left"), xPath, waitUntilPageLoaded);
     
     int count = 0;
@@ -301,6 +321,18 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doNavigate(String url) 
   {	  
+    if(this.webdriver == null)
+    {
+      try
+      {
+        prepareWebdriver();
+      }
+      catch (Exception ex)
+      {
+        LOGGER.error(ex);
+      }
+    }
+    
 	  URL qualifiedUrl = null;
 	  LOGGER.debug("Checking url for malformations");
 	  
@@ -321,6 +353,11 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doSelect(String xPath, Boolean select) throws Exception
   {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
     LOGGER.debug(">> {}Select '{}'", (select ? "" : "De-"), xPath);
     
     int count = 0;
@@ -356,6 +393,11 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doSelectDropdown(String xPath, String select) throws Exception
   {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
     LOGGER.debug("> Select '{}' on {}",select , xPath);
     int count = 0;
     
@@ -407,6 +449,11 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doSendKeys(String xPath, String keys) throws Exception
   {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
     try
     {
       LOGGER.debug(">> Send key '{}' to element (doSendKeys)", keys);
@@ -453,8 +500,13 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doSetText(String xPath, String text, Boolean replace) throws Exception
   {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
     LOGGER.debug(">> Set '{}' with text '{}'", xPath, text);
-    LOGGER.debug("Current Window Title = "+webdriver.getTitle());
+    
     int count = 0;
     
     while(true)
@@ -495,6 +547,11 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doSleep(long waitTime) throws Exception
   {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
     LOGGER.debug(">> Sleep '{}' ms", waitTime);
     
     try
@@ -512,12 +569,18 @@ public class Selenium implements WebOutputPlugin
   
   
   @Override
-
-  public void doSwitchScreen(String name) throws Exception {
-	boolean failOnError = Boolean.parseBoolean(testRunner.getPropertyValue(
-              Config.PROVA_PLUGINS_OUT_WEB_BROWSER_FAILSWTCHSCR));
-	boolean useName = false;
+  public void doSwitchScreen(String name) throws Exception 
+  {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
+    boolean useName = false;
     boolean switched = false;
+    boolean failOnError = Boolean.parseBoolean(testRunner.getPropertyValue(
+                          Config.PROVA_PLUGINS_OUT_WEB_BROWSER_FAILSWTCHSCR));
+    
     //If doSwitchScreen is called for the first time, the initial window handle is saved
     if (currentWindow.equals(""))
     	{
@@ -535,82 +598,85 @@ public class Selenium implements WebOutputPlugin
     }
 	  try
 	  {
-	      if(useName)
-	      {
-	    	  //Switch to the stored handle which has been initial set
-	    	  if (name.toLowerCase().equals("default"))
-	    	  {
-	    		  LOGGER.debug("Switching back to default");
-	    		  try
-	    		  {
-	    			  webdriver.switchTo().window(currentWindow);
-	    		  }
-	    		  catch(Exception e)
-	    		  {
-	    			  webdriver.switchTo().defaultContent();
-	    		  }
-	    	  }
-	    	  //switch tot the window with the given title
-	    	  else
-	    	  {
-	    		  //currentWindow = webdriver.getWindowHandle(); 
-	              Set<String> availableWindows = webdriver.getWindowHandles(); 
-	              if (!availableWindows.isEmpty()) { 
-	                      for (String windowId : availableWindows) { 
-	                              if (webdriver.switchTo().window(windowId).getTitle().startsWith(name)) { 
-	                            	  	LOGGER.debug("Window " + name + " found and webdriver switched to it");
-	                            	  	switched = true;
-	                              } else { 
-	                            	  webdriver.switchTo().window(currentWindow);
-	                            	  LOGGER.debug("Window " + name + " not found (yet)");
-	                              } 
-	                      }
-	                      
-	              }
-	              //Handled all windows and failed to switch to the given window.
-	              if (!switched)
-	              {
-	            	  throw new Exception("Switch to " + name + "failed");
-	              }
-	    	  }
-	      }
-	      //Switch to the first available window
-	      else
-	      {
-	        Set<String> windowHandles = webdriver.getWindowHandles();
-	        String currentHandle = webdriver.getWindowHandle();
-	
-	        if(windowHandles.isEmpty()){
-	          LOGGER.debug("No window handles available.");
-	          throw new Exception("No window handles available.");
-	        }
-	
-	        if(windowHandles.size() == 1){
-	          LOGGER.debug("No second screen available to switch to.");
-	          throw new Exception("No second screen available to switch to.");
-	        }
-	
-	        for(String handle : windowHandles){
-	          if(!currentHandle.equals(handle)){
-	            LOGGER.trace("Switching to screen: " + handle);
-	            webdriver.switchTo().window(handle);
-	            break;
-	          }
-	        }
-	      }
-	      }
-	      catch(NoSuchWindowException eX)
-	  	  {
-	  		  LOGGER.debug("Exception while switching screens: No such window! (fail: {}", failOnError);
-	  		  
-	  		  if(failOnError) throw eX;
-	  	  }
-	  	  catch(Exception eX)
-	  	  {
-	  		  LOGGER.debug("Exception while switching screens");
-	  		  throw eX;
-	  	  }   
+      if(useName)
+      {
+    	  //Switch to the stored handle which has been initial set
+    	  if (name.toLowerCase().equals("default"))
+    	  {
+    		  LOGGER.debug("Switching back to default");
+    		  try
+    		  {
+    			  webdriver.switchTo().window(currentWindow);
+    		  }
+    		  catch(Exception e)
+    		  {
+    			  webdriver.switchTo().defaultContent();
+    		  }
+    	  }
+    	  //switch tot the window with the given title
+    	  else
+    	  {
+    		  //currentWindow = webdriver.getWindowHandle(); 
+          Set<String> availableWindows = webdriver.getWindowHandles(); 
+          if (!availableWindows.isEmpty()) { 
+            for (String windowId : availableWindows) 
+            { 
+              if (webdriver.switchTo().window(windowId).getTitle().startsWith(name)) 
+              { 
+                LOGGER.debug("Window " + name + " found and webdriver switched to it");
+                switched = true;
+              } 
+              else 
+              { 
+                webdriver.switchTo().window(currentWindow);
+                LOGGER.debug("Window " + name + " not found (yet)");
+              } 
+            }
+          }
+          //Handled all windows and failed to switch to the given window.
+          if (!switched)
+          {
+            throw new Exception("Switch to " + name + "failed");
+          }
+    	  }
       }
+      //Switch to the first available window
+      else
+      {
+        Set<String> windowHandles = webdriver.getWindowHandles();
+        String currentHandle = webdriver.getWindowHandle();
+
+        if(windowHandles.isEmpty()){
+          LOGGER.debug("No window handles available.");
+          throw new Exception("No window handles available.");
+        }
+
+        if(windowHandles.size() == 1){
+          LOGGER.debug("No second screen available to switch to.");
+          throw new Exception("No second screen available to switch to.");
+        }
+
+        for(String handle : windowHandles){
+          if(!currentHandle.equals(handle)){
+            LOGGER.trace("Switching to screen: " + handle);
+            webdriver.switchTo().window(handle);
+            break;
+          }
+        }
+      }
+    }
+	  catch(NoSuchWindowException eX)
+	  {
+		  LOGGER.debug("Exception while switching screens: No such window! (fail: {}", failOnError);
+		  
+		  if(failOnError) throw eX;
+	  }
+	  catch(Exception eX)
+	  {
+		  LOGGER.debug("Exception while switching screens");
+		  throw eX;
+	  }
+  }
 
 
   @Override
@@ -624,6 +690,11 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doValidateText(String xPath, String value, Boolean exists, double timeOut) throws Exception
   {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
     LOGGER.debug("> Validate '{}' with text '{}'", xPath, value);
     int iTimeOut = 0;
     try
@@ -736,8 +807,104 @@ public class Selenium implements WebOutputPlugin
   }
   
   @Override
+  public void doStoreText(String xPath, String regex, String name, double timeOut) throws Exception
+  {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
+    LOGGER.debug("> Store text '{}'", xPath);
+    int iTimeOut = 0;
+    try
+    {
+    	if (timeOut == 0)
+    	{
+    		try
+    		{
+    			LOGGER.trace("Timeout not set; setting timeout to default");
+    			timeOut = Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
+    		}
+    		catch(Exception eX)
+    		{
+    			LOGGER.debug("Setting default timeout failed: " + eX);
+    		}
+    	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
+    	iTimeOut = (int) (timeOut/1000);
+    	if(iTimeOut < 1) iTimeOut = 1;
+    	LOGGER.trace("Conversion to seconds complete, timeout is {} seconds", iTimeOut);
+    	}
+    }
+    catch(Exception eX)
+    {
+    	LOGGER.debug("Converting to seconds failed: " + eX);
+    	throw eX;
+    }
+    WebDriverWait wait = new WebDriverWait(webdriver, iTimeOut);
+    int count = 0;
+    
+    while(true)
+    {
+      try
+      {
+    	
+        WebElement element = webdriver.findElement(By.xpath(xPath));
+    	
+        if(element == null || !element.isEnabled())
+        {
+          throw new Exception("Element '" + xPath + "' not found.");
+        }
+        // Get text from element
+        String text = element.getText()+ "\r\n";
+        
+        LOGGER.debug("Found the following text in element: " + text);
+        
+        if(regex != null)
+        {
+          if(regex.trim().length() > 0)
+          {
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(text);        
+
+            if(matcher.find())
+            {
+              text = matcher.group(0);
+            }
+            else
+            {
+              LOGGER.warn("No value has been retrieved using regex, element text is stored instead.");
+            }
+
+            LOGGER.trace("The following text has been retrieved with regex: " + text);
+          }
+        }
+        
+        //Store the found text als a property under the provided name
+        this.testRunner.setPropertyValue(name, text);
+        
+        // action succeeded. Return.
+        return;
+      }
+      catch(Exception eX)
+      {
+        if(++count > maxRetries)
+        {
+          LOGGER.debug("Exception storing text");
+          
+          throw eX;
+        }
+      }
+    }   
+  }
+  
+  @Override
   public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception
   {
+    if(this.webdriver == null)
+    {
+      prepareWebdriver();
+    }
+    
     LOGGER.debug(">> Switch to frame");
     
     int count = 0;
@@ -810,6 +977,18 @@ public class Selenium implements WebOutputPlugin
   
   private WebElement findElement(String xPath)
   {
+    if(this.webdriver == null)
+    {
+      try
+      {
+        prepareWebdriver();
+      }
+      catch (Exception ex)
+      {
+        LOGGER.error(ex);
+      }
+    }
+    
     WebElement element = null;
     
     int count = 0;
