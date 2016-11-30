@@ -92,7 +92,10 @@ public class Selenium implements WebOutputPlugin
   {
     try
     {
-      webdriver.close();
+    	currentWindow = "";
+    	webdriver.close();
+    	webdriver = null;
+    	
     }
     catch(NullPointerException eX)
     {
