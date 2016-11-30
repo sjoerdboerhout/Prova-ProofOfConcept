@@ -647,7 +647,8 @@ public class TestCaseBuilder
    */
   private void parseTestActionSection(TestCase testCase, List<TestAction> testActions, Sheet sheet, MutableInt rowNum, String tagName) throws Exception
   {
-    // get header row
+    flowWorkbookReader = new WorkbookReader(sheet.getWorkbook());
+	  // get header row
     Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
     Map<String, String> rowMap;
     String keyword;
