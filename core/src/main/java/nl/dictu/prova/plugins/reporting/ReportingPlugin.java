@@ -24,7 +24,7 @@ public interface ReportingPlugin
   public void logStartTest(TestCase testCase) throws Exception;  
   public void logEndTest(TestCase testCase) throws Exception;
 
-  public void logAction(TestAction action, String status) throws Exception;  
+  public void logAction(TestAction action, String status, long time) throws Exception;  
   
   public void logMessage(String message) throws Exception;
   public void logMessage(String[] messages) throws Exception;

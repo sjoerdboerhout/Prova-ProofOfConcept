@@ -118,67 +118,71 @@ public class Jdbc implements DbOutputPlugin
     {
       row = 0;
 
-      if (getQueryType() == StatementType.SELECT)
+      switch(getQueryType())
       {
-        for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
-          plugin.storeToTxt("" + currentQuery, currentPrefix);
-        }
-        
-        ResultSet resultSet = executeSelectQuery();
-        ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-
-        LOGGER.debug("Query executed. Processing data...");
-        
-        while (resultSet.next())
-        {
-          for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
-          {
-            String name = resultSetMetaData.getColumnName(i);
-            String key = currentPrefix + "_" + name.toLowerCase() + resultSet.getRow();
-            String value = resultSet.getString(name);
-            if (key == null)
-            {
-              break;
-            }
-            if (value == null)
-            {
-              value = "null";
-            }
-            sqlProperties.put(key, value);
+        case SELECT:
+      
+          for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
+            plugin.storeToTxt("" + currentQuery, currentPrefix);
           }
-          row = resultSet.getRow();
-        }
-        resultSet.close();
-        LOGGER.info(row + " rows returned.");
-      }
-      else if (getQueryType() == StatementType.DELETE | getQueryType() == StatementType.INSERT | getQueryType() == StatementType.UPDATE)
-      {
-        for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
-          plugin.storeToTxt("" + currentQuery, currentPrefix);
-        }
-        
-        DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
-        connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
-        
-        try (PreparedStatement preparedStatement = connection.prepareStatement(currentQuery)) {
-          row = preparedStatement.executeUpdate();
-        }
-        LOGGER.info(row + " rows affected.");
-        
-        if (currentRollback)
-        {
-          connection.rollback();
-          LOGGER.debug("Statement rolled back");
-        }
-        else
-        {
-          connection.commit();
-          LOGGER.debug("Statement committed");
-        }
-      }
-      else
-      {
-        throw new Exception("The provided query '" + currentQuery.substring(0, currentQuery.length() < 120 ? currentQuery.length() : 120) + "...' is not supported! See documentation.");
+
+          ResultSet resultSet = executeSelectQuery();
+          ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
+
+          LOGGER.debug("Query executed. Processing data...");
+
+          while (resultSet.next())
+          {
+            for (int i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+            {
+              String name = resultSetMetaData.getColumnName(i);
+              String key = currentPrefix + "_" + name.toLowerCase() + resultSet.getRow();
+              String value = resultSet.getString(name);
+              if (key == null)
+              {
+                break;
+              }
+              if (value == null)
+              {
+                value = "null";
+              }
+              sqlProperties.put(key, value);
+            }
+            row = resultSet.getRow();
+          }
+          resultSet.close();
+          LOGGER.info(row + " rows returned.");
+          break;
+        case DELETE:
+        case INSERT:
+        case UPDATE:
+        case DECLARE:
+        case BEGIN:
+          for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
+            plugin.storeToTxt("" + currentQuery, currentPrefix);
+          }
+
+          DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+          connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
+
+          try (PreparedStatement preparedStatement = connection.prepareStatement(currentQuery)) {
+            row = preparedStatement.executeUpdate();
+          }
+          LOGGER.info(row + " rows affected.");
+
+          if (currentRollback)
+          {
+            connection.rollback();
+            LOGGER.debug("Statement rolled back");
+          }
+          else
+          {
+            connection.commit();
+            LOGGER.debug("Statement committed");
+          }
+          break;
+        case UNSUPPORTED:
+          throw new Exception("The provided query '" + currentQuery.substring(0, currentQuery.length() < 120 ? currentQuery.length() : 120) + "...' is not supported! See documentation.");
       }
     }
     catch (SQLException e)
@@ -249,7 +253,7 @@ public class Jdbc implements DbOutputPlugin
 
   public enum StatementType
   {
-    SELECT, DELETE, INSERT, UPDATE, UNSUPPORTED;
+    SELECT, DELETE, INSERT, UPDATE, DECLARE, BEGIN, UNSUPPORTED;
   }
 
   public StatementType getQueryType()
@@ -261,6 +265,8 @@ public class Jdbc implements DbOutputPlugin
       case "UPDATE":        return StatementType.UPDATE;
       case "DELETE":        return StatementType.DELETE;
       case "INSERT":        return StatementType.INSERT;
+      case "DECLARE":       return StatementType.DECLARE;
+      case "BEGIN":         return StatementType.BEGIN;
       default:              return StatementType.UNSUPPORTED;
     }
   }
@@ -393,7 +399,7 @@ public class Jdbc implements DbOutputPlugin
         }
         else
         {
-          LOGGER.info("Test successful!");
+          LOGGER.info("Test successful! Property is null.");
           return true;
         }
       }
@@ -404,7 +410,7 @@ public class Jdbc implements DbOutputPlugin
       String propertyValue = testRunner.getPropertyValue(property).trim();
       if (propertyValue.equalsIgnoreCase(test.trim()))
       {
-        LOGGER.info("Test successful!");
+        LOGGER.info("Test successful! Value: '{}', test: '{}'", propertyValue, test.trim());
         return true; 
       }
       if(exceptionOnTest)

@@ -271,7 +271,6 @@ public class TestCase
   {
     LOGGER.debug("Add teardown action {}", () -> tearDownAction.toString());
     tearDownActions.add(tearDownAction);
-   
   }
 
   
@@ -322,27 +321,26 @@ public class TestCase
       {
         for(TestAction testAction : testActions)
         {
-          LOGGER.error(testAction.toString());
-        }
-        
-        for(TestAction testAction : testActions)
-        {
           LOGGER.trace("Execute test action: {}", () -> testAction.toString());
           try
           {
+            long start = System.nanoTime();
         	  testAction.execute();
+            long end = System.nanoTime();
+            long executionTime = (end - start) / 1000000;
+            
         	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
-              {
-              	LOGGER.debug("Report: log action");
-              	reportPlugin.logAction(testAction, "OK");
-              }
+            {
+              LOGGER.debug("Report: logging action with status OK and executiontime {}ms", executionTime);
+              reportPlugin.logAction(testAction, "OK", executionTime);
+            }
           }
           catch(Exception eX)
           {
         	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
             {
-              LOGGER.debug("Report: log action");
-              reportPlugin.logAction(testAction, "NOK");
+              LOGGER.debug("Report: logging action with status NOK");
+              reportPlugin.logAction(testAction, "NOK", 0);
             }
             if(this.testRunner.getPropertyValue("prova.flow.failon.actionfail").equalsIgnoreCase("true"))
             {

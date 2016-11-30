@@ -276,7 +276,7 @@ public class SimpleReport implements ReportingPlugin
 		  pwTestcase.println("<h1>"+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</h1>");
 		  startTime = System.currentTimeMillis();
 		  pwTestcase.println("<br><b>Starttime: </b>" + LocalDateTime.now() +"</br>");
-		  pwTestcase.println("<table>			<tr>				<th>Result</th><th>Action</th><th>Info</th></tr>");
+		  pwTestcase.println("<table>			<tr>				<th>Result</th><th>Action</th><th>Info</th><th>Time</th></tr>");
 		  
 		  //this.shutDown();
 	  }
@@ -288,7 +288,7 @@ public class SimpleReport implements ReportingPlugin
   }
 
   @Override
-  public void logAction(TestAction action, String status) throws Exception
+  public void logAction(TestAction action, String status, long executionTime) throws Exception
   {
 	  String color = "red";
 	  if (status.equalsIgnoreCase("ok"))
@@ -298,12 +298,12 @@ public class SimpleReport implements ReportingPlugin
 
 	  try
           {
-                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()) +"</td></tr>");
+                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()) +"</td><td style=\"width:200px\">" + executionTime +"ms</td></tr>");
           }
           catch(Exception eX)
           {
                 LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
-                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">Unknown action id</td></tr>");
+                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">Unknown action id</td><td style=\"width:200px\">" + executionTime +"ms</td></tr>");
           }
   }
 
@@ -488,7 +488,6 @@ public class SimpleReport implements ReportingPlugin
       printWriter.println(text);
       printWriter.flush();
       printWriter.close();
-      //pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"lightgreen\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">Stored message/query with name " + name + " to text file at <a href=\"" + file + "\">this location</a></td></tr>");
       LOGGER.info("Stored message/query with name " + name + " to text file at '" + file + "'");
     }
     catch(Exception ex){

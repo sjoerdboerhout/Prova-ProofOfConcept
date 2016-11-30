@@ -58,10 +58,10 @@ class ExecuteDbTest extends TestAction {
      */
     @Override
     public String toString() {
-        if(result == null){
-            return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
-        }
-        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': Value of property '" + property + "' was checked with validation '" + test + "', result is '" + result + "'");
+      if(result == null){
+          return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
+      }
+      return ("'" + this.getClass().getSimpleName().toUpperCase() + "': Value of property '" + property + "' was checked with validation '" + test + "', result is '" + result + "'");
     }
     
 }
