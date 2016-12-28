@@ -48,6 +48,7 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
@@ -301,6 +302,10 @@ public class Selenium implements WebOutputPlugin
         //if(waitUntilPageLoaded)
         //  element.submit();
         //else
+        //First navigate to element to make sure the element to be clicked is on te screen
+        Actions actions = new Actions(webdriver);
+        actions.moveToElement(element).perform();
+
           element.click();
         //element.sendKeys(Keys.RETURN);
         
