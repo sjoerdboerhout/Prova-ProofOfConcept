@@ -22,12 +22,15 @@ package nl.dictu.prova.plugins.reporting.simplereport;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.text.SimpleDateFormat;
+import java.nio.channels.FileChannel;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -313,6 +316,61 @@ public class SimpleReport implements ReportingPlugin
 	  if (status.equalsIgnoreCase("ok"))
 	  {
 		  color = "lightgreen";
+		  if(this.testRunner.hasPropertyValue("SCREENSHOT_PATH")&& this.testRunner.getPropertyValue("SCREENSHOT_PATH").length()>1)
+		  {
+		  LOGGER.trace("SCREENSHOT_PATH found");
+		  try
+		  {
+			  String Path = testRunner.getPropertyValue("SCREENSHOT_PATH");
+			  File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
+			  String destinationPath = currTestCaseFile.substring(0, currTestCaseFile.lastIndexOf(File.separator)) 
+					  + File.separator + source.getName();
+			  LOGGER.debug("destinationPath: " + destinationPath);
+			  File destination = new File(destinationPath);
+			  
+;
+			  if (!destination.exists()) {
+				  copyFileUsingChannel(source,destination);
+				  
+			  }
+			  status =  "<a href=\"."+ File.separator + source.getName() + "\""
+					  + "target=\"_blank\" >" + status + "</a>";
+			  this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
+					  
+		  }
+		  catch(Exception eX)
+		  {
+			  LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
+		  }
+		  
+	 }
+	  }
+	  else
+	  {
+		  if(this.testRunner.hasPropertyValue("SCREENSHOT_PATH")&& this.testRunner.getPropertyValue("SCREENSHOT_PATH").length()>1)
+			  {
+			  LOGGER.trace("SCREENSHOT_PATH found");
+			  try
+			  {
+				  File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
+				  String destinationPath = currTestCaseFile.substring(0, currTestCaseFile.lastIndexOf(File.separator)) + File.separator + "error.png";
+				  File destination = new File(destinationPath);
+
+				  if (!destination.exists()) {
+					  source.renameTo(destination);
+				  }
+				  status =  "<a href=\"."+ File.separator + "error.png" + "\""
+						  + "target=\"_blank\" >" + status + "</a>";
+				  this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
+						  
+			  }
+			  catch(Exception eX)
+			  {
+				  LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
+			  }
+			  
+		 }
+			  	  
 	  }
 
 	  try
@@ -342,7 +400,7 @@ public class SimpleReport implements ReportingPlugin
 		  pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"lightgreen\">"+testCase.getStatus()+"</td><td style=\"width:1200px\">"
 				  				+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</td><td style=\"width:200px\">" 
 				  				+ "<a href=\""+ currTestCaseFile
-				  				+ "\">Resultaat testgeval</a></td></tr>");
+				  				+ "\">Result testcase</a></td></tr>");
 	  }
 	  else
 	  {
@@ -352,13 +410,13 @@ public class SimpleReport implements ReportingPlugin
 		  pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"+testCase.getStatus()+"</td><td style=\"width:1200px\">"
 	  				+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</td><td style=\"width:200px\">" 
 	  				+ "<a href=\""+currTestCaseFile
-	  				+ "\">Resultaat testgeval</a></td></tr>");
+	  				+ "\">Result testcase</a></td></tr>");
 		  // TODO: Creat a relative link to the file name instead of an absolute link!
 		  pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)
 				    +"</td><td style=\"width:1200px\">"
 	  				+testCase.getSummary()+"</td><td style=\"width:200px\">" 
 	  				+ "<a href=\""+currTestCaseFile
-	  				+ "\">Resultaat testgeval</a></td></tr>");
+	  				+ "\">Result testcase</a></td></tr>");
 	  }
 	  pwTestcase.println("<br><b>Summary: </b>" + testCase.getSummary()+"</br>");
 	  pwTestcase.println("</table>");
@@ -493,6 +551,18 @@ public class SimpleReport implements ReportingPlugin
 	  return new PrintWriter(bw);
 	  
   }
+  private static void copyFileUsingChannel(File source, File dest) throws IOException {
+	    FileChannel sourceChannel = null;
+	    FileChannel destChannel = null;
+	    try {
+	        sourceChannel = new FileInputStream(source).getChannel();
+	        destChannel = new FileOutputStream(dest).getChannel();
+	        destChannel.transferFrom(sourceChannel, 0, sourceChannel.size());
+	       }finally{
+	           sourceChannel.close();
+	           destChannel.close();
+	       }
+	}
 
   @Override
   public void storeToTxt(String text, String name) throws Exception

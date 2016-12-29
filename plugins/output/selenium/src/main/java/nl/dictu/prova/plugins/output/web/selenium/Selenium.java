@@ -258,11 +258,37 @@ public class Selenium implements WebOutputPlugin
     
     try 
     {
-      if(!new File(fileName).isFile())
-        fileName = testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT);
-      
-      FileUtils.copyFile(scrFile, new File(fileName + "x.png"));
-      LOGGER.debug("Placed screen shot in " + fileName + "x.png");
+    	
+    	fileName = fileName + ".png";
+    	LOGGER.debug("Pad1: " + fileName);
+    	if(!new File(fileName).isFile()&&!fileName.contains(":"))
+    	{
+    		fileName = testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR)+ File.separator + "Screenshots" + File.separator + fileName;
+    		LOGGER.debug("Pad2: " + fileName);
+    		if(!new File(fileName.substring(0, fileName.lastIndexOf(File.separator))).isFile()&&!fileName.contains(":"))
+        	{
+            		fileName = testRunner.getPropertyValue(Config.PROVA_DIR) + File.separator + fileName;
+            		LOGGER.debug("Pad3: " + fileName);
+        	}
+    	}
+    	FileUtils.copyFile(scrFile, new File(fileName));
+        LOGGER.debug("Placed screen shot in " + fileName);
+        this.testRunner.setPropertyValue("SCREENSHOT_PATH", fileName);
+        LOGGER.debug("Property set: Name=SCREENSHOT_PATH ; Value =" + fileName);
+    	/*if(!new File(fileName.substring(0, fileName.lastIndexOf(File.separator))).isDirectory()||!fileName.contains(File.separator))
+    	{
+    		fileName = testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR)+ File.separator + "Screenshots" + File.separator + fileName;
+    		LOGGER.debug("Pad2: " + fileName);
+    	}	
+    	if(!new File(fileName.substring(0, fileName.lastIndexOf(File.separator))).isDirectory())
+    	{
+        		fileName = testRunner.getPropertyValue(Config.PROVA_DIR) + File.separator + fileName;
+        		LOGGER.debug("Pad3: " + fileName);
+    	}
+      FileUtils.copyFile(scrFile, new File(fileName + ".png"));
+      LOGGER.debug("Placed screen shot in " + fileName + ".png");
+      this.testRunner.setPropertyValue("SCREENSHOT_PATH", fileName + ".png");
+      LOGGER.trace("Property set: Name=SCREENSHOT_PATH ; Value =" + fileName + ".png");*/
     } 
     catch (IOException e) 
     {
@@ -328,7 +354,7 @@ public class Selenium implements WebOutputPlugin
         
         if(++count > maxRetries)
         { 
-          //this.doCaptureScreen("doClick");
+          this.doCaptureScreen("doClick");
           throw eX;
         }
       }
@@ -467,7 +493,7 @@ public class Selenium implements WebOutputPlugin
         if(++count > maxRetries)
         {
           LOGGER.debug("Exception while selecting '{}': {} (retry count: {})", xPath, eX.getMessage(), count);
-          
+          this.doCaptureScreen("doSelectDropdown");
           throw eX;
         }
       }
@@ -519,6 +545,7 @@ public class Selenium implements WebOutputPlugin
     catch(Exception eX)
     {
       LOGGER.debug("Exception while sending keys '{}'", keys);
+      this.doCaptureScreen("doSendKeys");
       throw eX;
     }
   }
@@ -563,7 +590,7 @@ public class Selenium implements WebOutputPlugin
         {
           LOGGER.debug("Exception while setting text '{}' in '{}': {} (retry count: {})", 
                         xPath, text, eX.getMessage(), count);
-          
+          this.doCaptureScreen("doSetText");
           throw eX;
         }
       }
@@ -696,11 +723,12 @@ public class Selenium implements WebOutputPlugin
 	  {
 		  LOGGER.debug("Exception while switching screens: No such window! (fail: {}", failOnError);
 		  
-		  if(failOnError) throw eX;
+		  if(failOnError)this.doCaptureScreen("doSwitchScreen"); throw eX;
 	  }
 	  catch(Exception eX)
 	  {
 		  LOGGER.debug("Exception while switching screens");
+		  this.doCaptureScreen("doSwitchScreen");
 		  throw eX;
 	  }
   }
@@ -787,7 +815,8 @@ public class Selenium implements WebOutputPlugin
         		}
         		catch(TimeoutException e)
         		{
-        		throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
+        			this.doCaptureScreen("doValidateText");
+        			throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
         		}
         	}
         }
@@ -812,6 +841,7 @@ public class Selenium implements WebOutputPlugin
         		}
         		catch(TimeoutException e)
         		{
+        			this.doCaptureScreen("doValidateText");
         			throw new TimeoutException("The value \"" + value + "\" is not found in the text: " + text);
         		}
         	}
@@ -826,7 +856,7 @@ public class Selenium implements WebOutputPlugin
         {
           LOGGER.debug("Exception while validating text '{}' in '{}': {} (retry count: {})", 
                         value, xPath, eX.getMessage(), count);
-          
+          this.doCaptureScreen("doValidateText");
           throw eX;
         }
       }
@@ -917,7 +947,7 @@ public class Selenium implements WebOutputPlugin
         if(++count > maxRetries)
         {
           LOGGER.debug("Exception storing text");
-          
+          this.doCaptureScreen("doStoreText");
           throw eX;
         }
       }
@@ -995,7 +1025,7 @@ public class Selenium implements WebOutputPlugin
         {
           LOGGER.debug("Exception while switching to frame '{}' : {} (retry count: {})", 
                         xPath, eX.getMessage(), count);
-          
+          this.doCaptureScreen("doSwitchFrame");
           throw eX;
         }
       }
