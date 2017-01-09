@@ -801,22 +801,28 @@ public class Selenium implements WebOutputPlugin
         	try
         	{
 	        	LOGGER.trace("Check if text {} isn't present in element {}", value, xPath);
-	        	Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
-	        			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
+	        	Assert.assertFalse("The value \"" + value + "\" is found in the text: " + text,
+	        			            //wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
+	        						wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
         	}
-        	catch(TimeoutException eX)
+        	catch(AssertionError eX)
+        	
+        	//catch(TimeoutException eX)
         	{
         		//validate if value is not present in attribute @value
         		try
         		{
         			LOGGER.trace("Check if the attribute @value, in element {}, doesn't contain the text {}", xPath,value );
-        			Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
-    			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementValue(element, value))));
+        			Assert.assertFalse("The value \"" + value + "\" is found in the text: " + text,
+    			            //wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementValue(element, value))));
+        					wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
         		}
-        		catch(TimeoutException e)
+        		catch(AssertionError e)
+        		//catch(TimeoutException e)
         		{
-        			this.doCaptureScreen("doValidateText");
+        			//this.doCaptureScreen("doValidateText");
         			throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
+        			//throw e;
         		}
         	}
         }
@@ -841,7 +847,7 @@ public class Selenium implements WebOutputPlugin
         		}
         		catch(TimeoutException e)
         		{
-        			this.doCaptureScreen("doValidateText");
+        			//this.doCaptureScreen("doValidateText");
         			throw new TimeoutException("The value \"" + value + "\" is not found in the text: " + text);
         		}
         	}
