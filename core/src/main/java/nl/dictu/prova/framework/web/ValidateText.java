@@ -84,7 +84,7 @@ public class ValidateText extends TestAction
       break;
       
       case ATTR_EXISTS:
-        exists.setValue(value); 
+        if (value.length()>0) exists.setValue(value); 
       break;
       
       case ATTR_TIMEOUT:
