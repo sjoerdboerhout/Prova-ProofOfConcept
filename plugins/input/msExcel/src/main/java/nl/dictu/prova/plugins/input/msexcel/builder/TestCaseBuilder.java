@@ -1048,7 +1048,17 @@ public class TestCaseBuilder
     
     Row profileRow = sheet.getRow(rowNum.intValue());
     Cell profile = profileRow.getCell(1);
-    LOGGER.info("Selected profile is '{}'", profile.getStringCellValue());
+    String profileValue = "";
+    if (flowWorkbookReader.isKey(profile.getStringCellValue()))
+    {
+    	profileValue = flowWorkbookReader.getKeyName(profile.getStringCellValue());
+    	profileValue = this.testRunner.getPropertyValue(profileValue);	
+    }
+    else
+    {
+    	profileValue = profile.getStringCellValue();
+    }
+    LOGGER.info("Selected profile is '{}'", profileValue);
     
     Sheet provaProfiles = workbook.getSheet("Prova_Profiles");
     
@@ -1065,7 +1075,7 @@ public class TestCaseBuilder
       //Read all the profile properties from specified column
       for (Entry column : headers.entrySet())
       {
-        if(column.getValue().toString().equalsIgnoreCase(profile.getStringCellValue()))
+        if(column.getValue().toString().equalsIgnoreCase(profileValue))
         {
           int start = provaProfiles.getRow(1).getCell(0) == null ? 1 : 2;
           selectedProfileProperties = new TestDataBuilder(testRunner).readColumn(provaProfiles, (Integer) column.getKey(), start, provaProfiles.getLastRowNum(), new WorkbookReader(workbook));          
@@ -1073,7 +1083,7 @@ public class TestCaseBuilder
       }
       if (selectedProfileProperties == null)
       {
-        throw new Exception("Profile " + profile.getStringCellValue() + " not found.");
+        throw new Exception("Profile " + profileValue + " not found.");
       }
       else
       {
