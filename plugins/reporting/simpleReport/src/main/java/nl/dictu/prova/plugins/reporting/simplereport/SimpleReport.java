@@ -213,7 +213,7 @@ public class SimpleReport implements ReportingPlugin
 		  LOGGER.debug("SimpleReport: Start new Test Case: '{}'", testCase.getId());
 		  
 		  //LOGGER.fatal("TestRoot: {}", testRoot);
-      LOGGER.fatal("currTestSuiteDir: {}", currTestSuiteDir);
+      //LOGGER.fatal("currTestSuiteDir: {}", currTestSuiteDir);
       
       //currTestCaseFile = currTestSuiteDir;
       iIndex = testCase.getId().lastIndexOf(File.separator + File.separator);
