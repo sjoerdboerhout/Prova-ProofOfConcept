@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +56,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
-import nl.dictu.prova.framework.parameters.Xpath;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
 
 /**
@@ -148,7 +146,12 @@ public class Selenium implements WebOutputPlugin
         //LOGGER.trace("Try to load webdriver 'Gecko' ({})", fireFoxPath);
         LOGGER.trace("Try to load webdriver 'Gecko'");
         System.setProperty("webdriver.gecko.driver", fireFoxPath);
-    	  
+    	
+        if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO))
+        {
+        	System.setProperty("webdriver.firefox.bin", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO));
+        	LOGGER.trace("Try to load specific 'FireFox' on location '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO));
+        }
         if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE))
         {
           ProfilesIni profile = new ProfilesIni();
@@ -786,7 +789,7 @@ public class Selenium implements WebOutputPlugin
     	
     	WebElement element = webdriver.findElement(By.xpath(xPath));
     	
-        if(element == null || !element.isEnabled())
+        if(element == null) //|| !element.isEnabled())
         {
           throw new Exception("Element '" + xPath + "' not found.");
         }
@@ -801,11 +804,11 @@ public class Selenium implements WebOutputPlugin
         	try
         	{
 	        	LOGGER.trace("Check if text {} isn't present in element {}", value, xPath);
-	        	Assert.assertFalse("The value \"" + value + "\" is found in the text: " + text,
-	        			            //wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
-	        						wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
+	        	Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
+	        			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
+	        						//wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
         	}
-        	catch(AssertionError eX)
+        	catch(AssertionError | TimeoutException eX)
         	
         	//catch(TimeoutException eX)
         	{
@@ -813,11 +816,11 @@ public class Selenium implements WebOutputPlugin
         		try
         		{
         			LOGGER.trace("Check if the attribute @value, in element {}, doesn't contain the text {}", xPath,value );
-        			Assert.assertFalse("The value \"" + value + "\" is found in the text: " + text,
-    			            //wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementValue(element, value))));
-        					wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
+        			Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
+    			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementValue(element, value))));
+        					//wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
         		}
-        		catch(AssertionError e)
+        		catch(AssertionError | TimeoutException e)
         		//catch(TimeoutException e)
         		{
         			//this.doCaptureScreen("doValidateText");
@@ -836,7 +839,8 @@ public class Selenium implements WebOutputPlugin
         		Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
  			           wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
         	}
-        	catch(TimeoutException eX)
+        	catch(AssertionError | TimeoutException eX)
+        	//catch(TimeoutException eX)
         	{
         		//validate if value is present in attribute @value
         		try
@@ -845,7 +849,8 @@ public class Selenium implements WebOutputPlugin
         			Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
       			           wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
         		}
-        		catch(TimeoutException e)
+        		catch(AssertionError | TimeoutException e)
+        		//catch(TimeoutException e)
         		{
         			//this.doCaptureScreen("doValidateText");
         			throw new TimeoutException("The value \"" + value + "\" is not found in the text: " + text);

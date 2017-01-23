@@ -69,6 +69,7 @@ public class Config
   public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_IE      = "prova.plugins.out.web.browser.path.ie";      // String,    Browser executable location 
   public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_TYPE         = "prova.plugins.out.web.browser.type";         // String,    Browser for executing tests 
   public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE      = "prova.plugins.out.web.browser.profile";      // String,    Name for a browser profile to load 
+  public final static String PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO    = "prova.plugins.out.web.browser.bin.gecko";     // String,    Firefox.exe location 
   public final static String PROVA_PLUGINS_OUT_MAX_RETRIES              = "prova.plugins.out.web.maxretries";           // Integer,   Max number of retries of an action before failure 
   
   public final static String PROVA_PLUGINS_DIR                          = "prova.plugins.dir";                          // String,    Relative path to plug-ins directory
