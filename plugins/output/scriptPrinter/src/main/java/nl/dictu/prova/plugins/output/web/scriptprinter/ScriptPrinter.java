@@ -143,9 +143,9 @@ public class ScriptPrinter implements WebOutputPlugin
   }
 
   @Override
-  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception
+  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept, String username, String password) throws Exception
   {
-    LOGGER.trace("doValidateText '{}' ({}, {}, {})", () -> alert, () -> accept, () -> xPath);
+    LOGGER.trace("doValidateText '{}' ({}, {}, {})", () -> alert, () -> accept, () -> xPath, () -> username, () -> password);
 
     // TODO Implement function
     System.out.println("Swithing to frame '" + xPath

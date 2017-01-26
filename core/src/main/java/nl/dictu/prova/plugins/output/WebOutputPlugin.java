@@ -40,7 +40,7 @@ public interface WebOutputPlugin extends OutputPlugin {
   
   public void doStoreText(String xPath, String regex, String name, double timeout) throws Exception;
 	
-	public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception;
+	public void doSwitchFrame(String xPath, Boolean alert, Boolean accept, String username, String password) throws Exception;
 
 	public void doSwitchScreen(String name) throws Exception;
 

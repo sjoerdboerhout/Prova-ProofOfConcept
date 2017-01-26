@@ -812,8 +812,9 @@ public class Selenium implements WebOutputPlugin
         	
         	//catch(TimeoutException eX)
         	{
+        		throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
         		//validate if value is not present in attribute @value
-        		try
+        		/*try
         		{
         			LOGGER.trace("Check if the attribute @value, in element {}, doesn't contain the text {}", xPath,value );
         			Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
@@ -826,7 +827,7 @@ public class Selenium implements WebOutputPlugin
         			//this.doCaptureScreen("doValidateText");
         			throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
         			//throw e;
-        		}
+        		}*/
         	}
         }
         // Check if element contains the given text
@@ -966,7 +967,7 @@ public class Selenium implements WebOutputPlugin
   }
   
   @Override
-  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept) throws Exception
+  public void doSwitchFrame(String xPath, Boolean alert, Boolean accept, String username, String password) throws Exception
   {
     if(this.webdriver == null)
     {
@@ -986,6 +987,13 @@ public class Selenium implements WebOutputPlugin
         	//if 'alert' is true, we're expecting a non web message
         	LOGGER.trace("Switching to alert (doSwitchFrame)");
         	Alert popupalert = webdriver.switchTo().alert();
+        	//if username is passed, try to login
+        	if (username.length()>1)
+        	{
+        		LOGGER.trace("Switched to alert (doSwitchFrame) and trying to pass username and password");
+        		webdriver.findElement(By.id("userID")).sendKeys(username);
+        		webdriver.findElement(By.id("password")).sendKeys(password);
+        	}
         	if (accept)
         	{
         		//accepting the message by clicking 'yes' or whatever
