@@ -301,7 +301,7 @@ public class Selenium implements WebOutputPlugin
 
 
   @Override
-  public void doClick(String xPath, Boolean rightClick, Boolean waitUntilPageLoaded) throws Exception
+  public void doClick(String xPath, Boolean rightClick, Boolean waitUntilPageLoaded, Boolean continueOnNotFound) throws Exception
   {
     if(this.webdriver == null)
     {
@@ -319,7 +319,16 @@ public class Selenium implements WebOutputPlugin
         WebElement element = findElement(xPath);
         
         if(element == null)
-          throw new Exception("Element '" + xPath + "' not found.");
+          {
+        	if (continueOnNotFound) 
+        	{
+        		return;  
+        	}
+            else
+            {
+            	throw new Exception("Element '" + xPath + "' not found.");
+            }
+          }
       
         // TODO support right click
         if(rightClick) throw new Exception("Right click is not supported yet.");
@@ -461,8 +470,12 @@ public class Selenium implements WebOutputPlugin
     {
       try
       {
-        Select dropdown = new Select(findElement(xPath));
+    	WebElement element = findElement(xPath);
+    	if(element == null)
+            throw new Exception("Element '" + xPath + "' not found.");
+    	Select dropdown = new Select(element);
         
+
         LOGGER.trace("Element '" + xPath + "' found.");
       
         try
@@ -1108,13 +1121,13 @@ public class Selenium implements WebOutputPlugin
       {       
         if(++count > maxRetries)
         {
-          LOGGER.error("Exception while searching element '{}' retry count: '{}', Type: '{}' : '{}'", 
-            xPath,  
-            count, 
-            eX.getClass().getSimpleName(),
-            eX.getMessage());
-          
-          throw eX;
+          //LOGGER.error("Exception while searching element '{}' retry count: '{}', Type: '{}' : '{}'", 
+          //  xPath,  
+          //  count, 
+          //  eX.getClass().getSimpleName(),
+          //  eX.getMessage());
+          return element;
+          //throw eX;
         }
         else
         {

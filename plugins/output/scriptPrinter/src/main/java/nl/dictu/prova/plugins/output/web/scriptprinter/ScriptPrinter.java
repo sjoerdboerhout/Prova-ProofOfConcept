@@ -163,7 +163,7 @@ public class ScriptPrinter implements WebOutputPlugin
   }
 
   @Override
-  public void doClick(String string, Boolean bln, Boolean bln1) throws Exception
+  public void doClick(String string, Boolean bln, Boolean bln1, Boolean bln2) throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }

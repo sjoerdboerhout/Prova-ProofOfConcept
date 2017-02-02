@@ -37,11 +37,13 @@ public class Click extends TestAction
   public final static String ATTR_RIGHTCLICK          = "RIGHTCLICK";
   public final static String ATTR_NUMBEROFCLICKS      = "NUMBEROFCLICKS";
   public final static String ATTR_WAITUNTILPAGELOADED = "WAITUNTILPAGELOADED";
+  public final static String ATTR_CONTINUEONNOTFOUND = "CONTINUEONNOTFOUND";
   
   private Xpath  xPath;
   private Bool   rightClick;
   private Number numberOfClicks;
   private Bool   waitUntilPageLoaded;
+  private Bool   continueOnNotFound;
   
   
   /**
@@ -62,6 +64,7 @@ public class Click extends TestAction
     numberOfClicks.setMaxValue(3);
     
     waitUntilPageLoaded = new Bool(true);
+    continueOnNotFound = new Bool(false);
   }
 
   
@@ -93,9 +96,13 @@ public class Click extends TestAction
         numberOfClicks.setValue(value);
       break;
       
-      case ATTR_WAITUNTILPAGELOADED:  
+      case ATTR_CONTINUEONNOTFOUND:  
         waitUntilPageLoaded.setValue(value); 
       break;
+      
+      case ATTR_WAITUNTILPAGELOADED:  
+    	  continueOnNotFound.setValue(value); 
+        break;
     }
     
     xPath.setAttribute(key, value);
@@ -114,6 +121,7 @@ public class Click extends TestAction
     if(!rightClick.isValid())          return false;
     if(!numberOfClicks.isValid())      return false;
     if(!waitUntilPageLoaded.isValid()) return false;
+    if(!continueOnNotFound.isValid()) return false;
     
     return true;
   }
@@ -135,7 +143,7 @@ public class Click extends TestAction
       xPath.setValue(testRunner.replaceKeywords(xPath.getValue()));
     }
     
-    testRunner.getWebActionPlugin().doClick(xPath.getValue(), rightClick.getValue(), waitUntilPageLoaded.getValue());
+    testRunner.getWebActionPlugin().doClick(xPath.getValue(), rightClick.getValue(), waitUntilPageLoaded.getValue(), continueOnNotFound.getValue() );
   }
 
 
