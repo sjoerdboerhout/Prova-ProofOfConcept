@@ -96,11 +96,11 @@ public class Click extends TestAction
         numberOfClicks.setValue(value);
       break;
       
-      case ATTR_CONTINUEONNOTFOUND:  
+      case ATTR_WAITUNTILPAGELOADED:  
         waitUntilPageLoaded.setValue(value); 
       break;
       
-      case ATTR_WAITUNTILPAGELOADED:  
+      case ATTR_CONTINUEONNOTFOUND:  
     	  continueOnNotFound.setValue(value); 
         break;
     }

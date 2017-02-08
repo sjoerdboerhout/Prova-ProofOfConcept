@@ -320,8 +320,10 @@ public class Selenium implements WebOutputPlugin
         
         if(element == null)
           {
+        	LOGGER.trace("Element is NULL");
         	if (continueOnNotFound) 
         	{
+        		LOGGER.trace("Continue on not found");
         		return;  
         	}
             else
@@ -1114,7 +1116,12 @@ public class Selenium implements WebOutputPlugin
       }
       catch(TimeoutException eX)
       {
-        if(++count > maxRetries){ throw eX;}
+        if(++count > maxRetries)
+        { 
+        	LOGGER.trace("Max retry count reached... Returning null");
+        	return null;
+        	//throw eX;
+        }
         LOGGER.trace("TimeOut Exception on '{}'. Try again. ({})", xPath, count);
       }
       catch(Exception eX)
@@ -1126,6 +1133,7 @@ public class Selenium implements WebOutputPlugin
           //  count, 
           //  eX.getClass().getSimpleName(),
           //  eX.getMessage());
+          LOGGER.debug("Max retry count reached...");
           return element;
           //throw eX;
         }
