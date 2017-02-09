@@ -126,7 +126,10 @@ public class ValidateText extends TestAction
     
     if(!isValid())
       throw new Exception("Action is not validated!");
-    
+    if(testRunner.containsKeywords(text.getValue()))
+    {
+      text.setValue(testRunner.replaceKeywords(text.getValue()));
+    }
     testRunner.getWebActionPlugin().doValidateText(xPath.getValue(), text.getValue(), exists.getValue(), timeOut.getValue()); 
   }
 

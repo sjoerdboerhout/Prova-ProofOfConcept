@@ -121,6 +121,14 @@ public class SetText extends TestAction
     if(!isValid())
       throw new Exception("Action is not validated!");
     
+    if(testRunner.containsKeywords(xPath.getValue()))
+    {
+      xPath.setValue(testRunner.replaceKeywords(xPath.getValue()));
+    }
+    if(testRunner.containsKeywords(text.getValue()))
+    {
+      text.setValue(testRunner.replaceKeywords(text.getValue()));
+    }
     testRunner.getWebActionPlugin().doSetText(xPath.getValue(), text.getValue(), replace.getValue());
   }
 
