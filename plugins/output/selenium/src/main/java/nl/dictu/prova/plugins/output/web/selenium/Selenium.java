@@ -539,6 +539,10 @@ public class Selenium implements WebOutputPlugin
       keys = keys.replace("<RIGHT>", Keys.RIGHT);
       keys = keys.replace("<TAB>", Keys.TAB);
       keys = keys.replace("<UP>", Keys.UP);
+      keys = keys.replace("<CTRL>", Keys.CONTROL);
+      keys = keys.replace("<ALT>", Keys.ALT);
+      keys = keys.replace("<PAGEDOWN>", Keys.PAGE_DOWN);
+      keys = keys.replace("<PAGEUP>", Keys.PAGE_UP);
       
       //if xPath is not filled, sendKeys to the active element
       if (xPath.equalsIgnoreCase("/html/body"))
