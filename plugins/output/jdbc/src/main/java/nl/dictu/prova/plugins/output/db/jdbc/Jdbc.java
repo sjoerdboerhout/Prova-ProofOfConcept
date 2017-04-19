@@ -26,6 +26,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import oracle.jdbc.connector.OracleConnectionManager;
+import com.microsoft.sqlserver.jdbc.*;
 import java.sql.DriverManager;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -180,8 +181,9 @@ public class Jdbc implements DbOutputPlugin
           for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
             plugin.storeToTxt("" + currentQuery, currentPrefix);
           }
-
-          DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+          
+          
+          registerDriver();
           connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
 
           try (PreparedStatement preparedStatement = connection.prepareStatement(currentQuery)) {
@@ -252,7 +254,7 @@ public class Jdbc implements DbOutputPlugin
     try
     {
       LOGGER.trace("Executing select query.");
-      DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+      registerDriver();
       connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
       
       statement = connection.createStatement();
@@ -310,6 +312,20 @@ public class Jdbc implements DbOutputPlugin
   {
     LOGGER.debug("Setting up output plugin Jdbc");
     this.testCase = testCase;
+  }
+  private void registerDriver() throws Exception
+  {
+    String driver = this.testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUTPUT_DB_DRIVER);
+	LOGGER.debug("Registering JDBC driver: " + driver);
+    switch(driver.toLowerCase())
+    {
+    case("sqlserverdriver"):
+    	DriverManager.registerDriver(new com.microsoft.sqlserver.jdbc.SQLServerDriver());
+    	break;
+    case("oracledriver"):
+    	DriverManager.registerDriver(new oracle.jdbc.OracleDriver());
+    break;
+    }
   }
 
   private boolean isValid()

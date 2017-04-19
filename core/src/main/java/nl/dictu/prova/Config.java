@@ -83,6 +83,7 @@ public class Config
   public final static String PROVA_PLUGINS_OUTPUT_SOAP                  = "prova.plugins.out.soap";                     // String,    Active output plug-in for soap
   public final static String PROVA_PLUGINS_OUTPUT_DB_PACKAGE            = "prova.plugins.out.db.package";               // String,    Active output plug-in for db 
   public final static String PROVA_PLUGINS_OUTPUT_DB                    = "prova.plugins.out.db";                       // String,    Active output plug-in for db 
+  public final static String PROVA_PLUGINS_OUTPUT_DB_DRIVER             = "prova.plugins.out.db.driver";                // String,    Active output plug-in for db  
   public final static String PROVA_PLUGINS_OUTPUT_SHELL_PACKAGE         = "prova.plugins.out.shell.package";            // String,    Active output plug-in for shell 
   public final static String PROVA_PLUGINS_OUTPUT_SHELL                 = "prova.plugins.out.shell";                    // String,    Active output plug-in for shell 
   public final static String PROVA_PLUGINS_REPORTING_PACKAGE            = "prova.plugins.reporting.package";            // Boolean,   Execute or only validate 

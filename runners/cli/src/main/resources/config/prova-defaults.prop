@@ -48,6 +48,7 @@ prova.plugins.out.soap                          = ApacheSoap
 
 prova.plugins.out.db.package                    = nl.dictu.prova.plugins.output.db.
 prova.plugins.out.db                            = Jdbc
+prova.plugins.out.db.driver                     = OracleDriver
 
 prova.plugins.out.shell.package                 = nl.dictu.prova.plugins.output.shell.
 prova.plugins.out.shell                         = ShellCommand
