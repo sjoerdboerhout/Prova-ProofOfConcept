@@ -33,6 +33,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.NoSuchWindowException;
@@ -345,8 +346,16 @@ public class Selenium implements WebOutputPlugin
         //First navigate to element to make sure the element to be clicked is on te screen
         Actions actions = new Actions(webdriver);
         actions.moveToElement(element).perform();
-
-          element.click();
+        try
+        {
+        	scroll_element_into_view(element);
+        }
+        catch(Exception e)
+        {
+        	LOGGER.debug("Scrolling element into view failed");
+        }
+        
+        element.click();
         //element.sendKeys(Keys.RETURN);
         
         // TODO Add support for waitUntilPageLoaded
@@ -358,6 +367,7 @@ public class Selenium implements WebOutputPlugin
         
         return;
       }
+
       catch(Exception eX)
       {
         LOGGER.debug("Exception while clicking on element '{}' retry count: '{}', Type: '{}' : '{}'", 
@@ -1069,6 +1079,10 @@ public class Selenium implements WebOutputPlugin
       }
     }    
   }
+  private void scroll_element_into_view(WebElement element) {
+	    int Y = (element.getLocation().getY() - 200);
+	    JavascriptExecutor js = (JavascriptExecutor) webdriver;
+	    js.executeScript("javascript:window.scrollTo(0," + Y + ");");}
   
   private WebElement findElement(String xPath)
   {
@@ -1099,7 +1113,14 @@ public class Selenium implements WebOutputPlugin
         LOGGER.trace("Wait time for element: '{}'", timeOut);
         WebDriverWait wait = new WebDriverWait(webdriver,timeOut);
         //wait.until(ExpectedConditions.elementToBeClickable(element));
-        wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+        try
+        {
+        	wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+        }
+        catch(Exception ex){
+        	LOGGER.debug("Element is NOT clickable after waiting " + timeOut +" seconds. Trying to loacate element"
+        			+ "anyway, maybe it's hidden");
+        }
         LOGGER.trace("Found element is clickable. Let's try!");
 
         element = webdriver.findElement(By.xpath(xPath));
