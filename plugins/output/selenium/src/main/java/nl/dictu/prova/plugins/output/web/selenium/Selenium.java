@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +36,7 @@ import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.NoSuchWindowException;
 import org.openqa.selenium.OutputType;
@@ -50,6 +52,7 @@ import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.safari.SafariDriver;
+import org.openqa.selenium.security.UserAndPassword;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -229,10 +232,16 @@ public class Selenium implements WebOutputPlugin
         // slow down test execution.
         // webdriver.manage().timeouts().implicitlyWait(maxTimeOut, TimeUnit.MILLISECONDS);
 
-
+        webdriver.manage().timeouts().pageLoadTimeout(maxTimeOut, TimeUnit.MILLISECONDS);
         LOGGER.debug("Open URL: '{}'", url);
-        webdriver.get(url);
-
+        try
+        {
+        	webdriver.get(url);
+        }
+        catch(TimeoutException te)
+        {
+        	LOGGER.debug("URL not loaded within the set timeout, trying next step anyway");
+        }
         LOGGER.trace("Selenium is ready to start the test!");
       }
       else
@@ -412,18 +421,25 @@ public class Selenium implements WebOutputPlugin
     
 	  URL qualifiedUrl = null;
 	  LOGGER.debug("Checking url for malformations");
-	  
-	  try {
-		qualifiedUrl = new URL(url);
-                
-                LOGGER.debug("Url not malformed, navigating to " + qualifiedUrl.getPath());
-	  
-                webdriver.navigate().to(qualifiedUrl);
-	  } catch (MalformedURLException e) {
-	  	// TODO Auto-generated catch block
-	  	LOGGER.debug("Provided URL is malformed.");
-	  } 
-	  
+	  if (url.equalsIgnoreCase("closebrowser"))
+	  {
+		  webdriver.close();
+	      webdriver = null;
+	  }
+	  else
+		  {
+		  try {
+		  
+			qualifiedUrl = new URL(url);
+	                
+	                LOGGER.debug("Url not malformed, navigating to " + qualifiedUrl.getPath());
+		  
+	                webdriver.navigate().to(qualifiedUrl);
+		  } catch (MalformedURLException e) {
+		  	// TODO Auto-generated catch block
+		  	LOGGER.debug("Provided URL is malformed.");
+		  } 
+		  }
   }
 
 
@@ -1020,14 +1036,22 @@ public class Selenium implements WebOutputPlugin
         	if (username.length()>1)
         	{
         		LOGGER.trace("Switched to alert (doSwitchFrame) and trying to pass username and password");
-        		webdriver.findElement(By.id("userID")).sendKeys(username);
-        		webdriver.findElement(By.id("password")).sendKeys(password);
+        		popupalert.authenticateUsing(new UserAndPassword(username, password));
+        		//webdriver.findElement(By.id("userID")).sendKeys(username);
+        		//webdriver.findElement(By.id("password")).sendKeys(password);
         	}
         	if (accept)
         	{
         		//accepting the message by clicking 'yes' or whatever
         		LOGGER.trace("Accepting alert (doSwitchFrame)");
-        		popupalert.accept();
+        		try
+        		{
+        			popupalert.accept();
+        		}
+        		catch(NoAlertPresentException ae)
+        		{
+        			LOGGER.trace("Accepting alert failed, maybe it is closed when passing user/password? (doSwitchFrame)");
+        		}
         	}
         	else if (!accept)
         	{
