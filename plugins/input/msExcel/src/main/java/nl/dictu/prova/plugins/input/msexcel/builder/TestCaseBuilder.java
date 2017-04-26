@@ -277,7 +277,14 @@ public class TestCaseBuilder
 
     //Read and process the specified part of the SOAP/DB template based on the tagname. Each tagname 
     //is linked to a unique TestAction. Together they form the basis for sending and testing.
-    if (tagName.toLowerCase().equals("execute") | tagName.toLowerCase().equals("send"))
+    if (tagName.toLowerCase().equals("poll"))
+    {
+      TestAction execute = actionFactory.getAction("POLLFOR" + type + "RESULT");
+      execute.setTestRunner(testRunner);
+      testActions.add(execute);
+    }
+
+    else if (tagName.toLowerCase().equals("execute") | tagName.toLowerCase().equals("send"))
     {
       TestAction execute = actionFactory.getAction("PROCESS" + type + "RESPONSE");
       execute.setTestRunner(testRunner);
@@ -475,6 +482,31 @@ public class TestCaseBuilder
         }
       }
     }
+    else if (tagName.toLowerCase().equals("pollproperties"))
+    {
+      testAction = actionFactory.getAction("SET" + type + "POLLPROPERTIES");
+      headers = readSectionHeaderRow(sheet, rowNum);
+     
+
+      while ((rowMap = readRow(sheet, rowNum, headers)) != null)
+      {
+    	  if (rowMap.containsKey("retries"))
+          {
+    		  LOGGER.trace("Retries found. Processing.");
+    		  testAction = parseProperty(rowMap, "retries", testAction);
+          }
+    	  if (rowMap.containsKey("waittime"))
+          {
+    		  LOGGER.trace("Waittime found. Processing.");
+    		  testAction = parseProperty(rowMap, "waittime", testAction);
+          }
+    	  if (rowMap.containsKey("result"))
+          {
+    		  LOGGER.trace("Result found. Processing.");
+    		  testAction = parseProperty(rowMap, "result", testAction);
+          }
+      }
+    }
     if (testAction != null)
     {
       testAction.setTestRunner(testRunner);
@@ -636,7 +668,9 @@ public class TestCaseBuilder
                 break;
               case "query":
               case "queryproperties":
+              case "pollproperties":
               case "execute":
+              case "poll":
               case "message":
               case "soapproperties":
               case "send":
@@ -1163,5 +1197,37 @@ public class TestCaseBuilder
       
     }
     return testAction;
+  }
+  private TestAction parseProperty(Map<String, String> rowMap, String property, TestAction testAction)
+  {
+	  try
+	  {
+		  if (CellReader.isKey(rowMap.get(property)))
+	  
+	      {
+	        LOGGER.trace(property + " value is a key, retrieving property value.");
+	        String value = this.testRunner.getPropertyValue(CellReader.getKeyName(rowMap.get(property)));
+	        if (value != null)
+	        {
+	          testAction.setAttribute("prova.properties." + property, value);
+	        }
+	        else
+	        {
+	          LOGGER.debug("Unable to process tag");
+	        }
+	      }
+	      else
+	      {
+	        testAction.setAttribute("prova.properties." + property, rowMap.get(property));
+	      }
+		  
+	  }
+	  catch(Exception eX)
+	  {
+		  LOGGER.error("Exception while setting property "+ property +"!" + eX.getMessage());
+          eX.printStackTrace();
+	  }
+	return testAction;
+	  
   }
 }

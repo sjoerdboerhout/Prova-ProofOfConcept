@@ -84,7 +84,7 @@ public class Jdbc implements DbOutputPlugin
   }
 
   @Override
-  public void doSetDbPollProperties(Integer retries, Integer waittime, String result)
+  public void doSetDbPollProperties(Integer waittime, Integer retries, String result)
   {
     LOGGER.debug("Setting poll properties in output plugin Jdbc.");
     this.currentRetries = retries;
@@ -242,9 +242,12 @@ public class Jdbc implements DbOutputPlugin
         else
         {
           LOGGER.debug("Result '{}' is not equal to desired result '{}'", result, currentResult);
+          LOGGER.trace("Waiting for " +currentWaittime + " milliseconds");
+          Thread.sleep(currentWaittime);
         }
         
         if(i == currentRetries) resultSet.close();
+        
       }      
     }
   }

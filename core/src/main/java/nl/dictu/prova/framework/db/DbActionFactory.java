@@ -39,6 +39,7 @@ public class DbActionFactory implements ActionFactory
   public final static String ACTION_PROCESSDBRESPONSE   = "PROCESSDBRESPONSE";
   public final static String ACTION_POLLFORDBRESULT     = "POLLFORDBRESULT";
   public final static String ACTION_SETDBPROPERTIES     = "SETDBPROPERTIES";
+  public final static String ACTION_SETDBPOLLPROPERTIES = "SETDBPOLLPROPERTIES";
   public final static String ACTION_SETQUERY            = "SETDBQUERY";
   public final static String ACTION_EXECUTEDBTEST       = "EXECUTEDBTEST";
     
@@ -51,12 +52,13 @@ public class DbActionFactory implements ActionFactory
    */
   public TestAction getAction(String name) throws Exception
   {
-    LOGGER.trace("Request to produce webaction '{}'", () -> name);
+    LOGGER.trace("Request to produce dbaction '{}'", () -> name);
     
     switch(name.toUpperCase())
     {
       case ACTION_PROCESSDBRESPONSE:    return new ProcessDbResponse();
       case ACTION_SETDBPROPERTIES:      return new SetDbProperties();
+      case ACTION_SETDBPOLLPROPERTIES:  return new SetDbPollProperties();
       case ACTION_SETQUERY:             return new SetQuery();
       case ACTION_EXECUTEDBTEST:        return new ExecuteDbTest();
       case ACTION_POLLFORDBRESULT:      return new PollForDbResult();
