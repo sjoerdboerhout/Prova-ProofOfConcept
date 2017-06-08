@@ -49,6 +49,7 @@ public class WebActionFactory implements ActionFactory
   public final static String ACTION_SWITCHSCREEN    = "SWITCHSCREEN";
   public final static String ACTION_VALIDATEELEMENT = "VALIDATEELEMENT";
   public final static String ACTION_VALIDATETEXT    = "VALIDATETEXT";
+  public final static String ACTION_WAITFORELEMENT    = "WAITFORELEMENT";
   public final static String ACTION_UPLOADFILE      = "UPLOADFILE";
     
   /**
@@ -78,6 +79,7 @@ public class WebActionFactory implements ActionFactory
       case ACTION_SWITCHSCREEN:	   return new SwitchScreen();
       case ACTION_VALIDATEELEMENT: return new ValidateElement();
       case ACTION_VALIDATETEXT:    return new ValidateText();
+      case ACTION_WAITFORELEMENT:  return new WaitForElement();
       case ACTION_UPLOADFILE:      return new UploadFile();
     }
     

@@ -197,4 +197,12 @@ public class ScriptPrinter implements WebOutputPlugin
   {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
+
+@Override
+public void doWaitForElement(String xPath, String type, Boolean exists, double timeOut) throws Exception {
+	
+	    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+	  
+	
+}
 }
