@@ -556,6 +556,38 @@ public class TestCaseBuilder
   }
 
   /**
+   * Parse test actions and add the actions found to the correct action list.
+   * (Setup, action or teardown)
+   *
+   * @param testCase
+   * @param sheet
+   * @param rowNum
+   * @param tagName
+   * @throws Exception
+   */
+  private void parseIntegratedTestCaseSection(TestCase testCase, Sheet sheet, MutableInt rowNum, String tagName) throws Exception
+  {
+    Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
+    Map<String, String> rowMap;
+    
+    LOGGER.trace("Parsing integrated testcase section on sheet '{}'", sheet.getSheetName());
+
+    while ((rowMap = readRow(sheet, rowNum, headers)) != null)
+    {
+      switch (tagName)
+      {
+        case "labels":
+          // TODO process label
+          break;
+        case "integratetest":
+        case "it":
+          readTestActionsFromReference(testCase, rowMap, "test").forEach(testCase::addTestAction);
+          break;
+      }
+    }
+  }
+  
+  /**
    * Read test action from a referenced sheet in another file
    *
    * @param rowMap
@@ -678,6 +710,12 @@ public class TestCaseBuilder
                 break;
               case "command":
                 testActions.add(parseShellTemplate(sheet, rowNum, tagName));
+                break;
+              case "integratetest":
+              case "it":
+                testActions.forEach(testCase::addTestAction);
+                testActions.clear();
+            	parseIntegratedTestCaseSection(testCase, sheet, rowNum, tagName);
                 break;
             }
           }

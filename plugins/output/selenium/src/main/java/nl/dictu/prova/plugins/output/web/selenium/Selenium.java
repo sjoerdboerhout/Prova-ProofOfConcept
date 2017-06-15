@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -60,6 +62,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestCase;
+import nl.dictu.prova.framework.web.Navigate;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
 
 /**
@@ -426,6 +429,18 @@ public class Selenium implements WebOutputPlugin
 		  webdriver.close();
 	      webdriver = null;
 	  }
+	  else if (url.equalsIgnoreCase("back"))
+	  {
+		  webdriver.navigate().back();
+	  }
+	  else if (url.equalsIgnoreCase("forward"))
+	  {
+		  webdriver.navigate().forward();
+	  }
+	  else if (url.equalsIgnoreCase("refresh"))
+	  {
+		  webdriver.navigate().refresh();
+	  }
 	  else
 		  {
 		  try {
@@ -791,15 +806,44 @@ public class Selenium implements WebOutputPlugin
 
 
   @Override
-  public void doValidateText(String xPath, String value, Boolean exists, double timeOut) throws Exception
+  public void doValidateText(String xPath, String valueIn, Boolean exists, double timeOut) throws Exception
   {
     if(this.webdriver == null)
     {
       prepareWebdriver();
     }
     
-    LOGGER.debug("> Validate '{}' with text '{}'", xPath, value);
+    LOGGER.debug("> Validate '{}' with text '{}'", xPath, valueIn);
+    int iNumberChecks = 1;
     int iTimeOut = 0;
+    List<String> lChecks = null;
+    if (valueIn.contains(";"))
+	{
+    	try
+	    {
+	    	String [] checks = valueIn.split(";");
+    		lChecks = Arrays.asList(checks);
+	    	iNumberChecks = lChecks.size();
+	    	LOGGER.debug(iNumberChecks);
+	    }
+	    catch(Exception eX)
+	    {
+	    	LOGGER.debug("Converting multiple checks to list failed: " + eX);
+	    	throw eX;
+	    }
+	}
+	else 
+	{
+		try
+		{
+			lChecks = Arrays.asList(valueIn);
+		}
+		catch(Exception eX)
+		{
+			LOGGER.debug("Adding check to list failed: " + eX);
+	    	throw eX;
+		}
+	}
     try
     {
     	if (timeOut == 0)
@@ -826,98 +870,106 @@ public class Selenium implements WebOutputPlugin
     }
     WebDriverWait wait = new WebDriverWait(webdriver, iTimeOut);
     int count = 0;
-    
-    while(true)
+    String value = "";
+    Boolean bCheck = true;
+    for(String check: lChecks)
     {
-      try
-      {
-    	
-    	WebElement element = webdriver.findElement(By.xpath(xPath));
-    	
-        if(element == null) //|| !element.isEnabled())
-        {
-          throw new Exception("Element '" + xPath + "' not found.");
-        }
-        // Get text from element
-        String text = element.getText()+ "\r\n";
-        text = text + "Attribute @value: " + element.getAttribute("value");
-        //LOGGER.trace(text);
-        // If exists is false, check if text is not present in element
-        if (!exists)
-        {
-        	//validate if value is not present in text
-        	try
-        	{
-	        	LOGGER.trace("Check if text {} isn't present in element {}", value, xPath);
-	        	Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
-	        			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
-	        						//wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
-        	}
-        	catch(AssertionError | TimeoutException eX)
-        	
-        	//catch(TimeoutException eX)
-        	{
-        		throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
-        		//validate if value is not present in attribute @value
-        		/*try
-        		{
-        			LOGGER.trace("Check if the attribute @value, in element {}, doesn't contain the text {}", xPath,value );
-        			Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
-    			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementValue(element, value))));
-        					//wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
-        		}
-        		catch(AssertionError | TimeoutException e)
-        		//catch(TimeoutException e)
-        		{
-        			//this.doCaptureScreen("doValidateText");
-        			throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
-        			//throw e;
-        		}*/
-        	}
-        }
-        // Check if element contains the given text
-        else
-        {
-        	//validate if value is present in text
-        	try
-        	{
-        		LOGGER.trace("Check if text {} is present in element {}", value, xPath);
-        		Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
- 			           wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
-        	}
-        	catch(AssertionError | TimeoutException eX)
-        	//catch(TimeoutException eX)
-        	{
-        		//validate if value is present in attribute @value
-        		try
-        		{
-        			LOGGER.trace("Check if the attribute @value, in element {}, contains the text {}", xPath,value );
-        			Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
-      			           wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
-        		}
-        		catch(AssertionError | TimeoutException e)
-        		//catch(TimeoutException e)
-        		{
-        			//this.doCaptureScreen("doValidateText");
-        			throw new TimeoutException("The value \"" + value + "\" is not found in the text: " + text);
-        		}
-        	}
-        }
-        
-        // action succeeded. Return.
-        return;
-      }
-      catch(Exception eX)
-      {
-        if(++count > maxRetries)
-        {
-          LOGGER.debug("Exception while validating text '{}' in '{}': {} (retry count: {})", 
-                        value, xPath, eX.getMessage(), count);
-          this.doCaptureScreen("doValidateText");
-          throw eX;
-        }
-      }
-    }   
+	    LOGGER.debug("Checking: " + check);
+	    bCheck = true;
+	    count = 0;
+    	while(bCheck)
+	    {
+	      try
+	      {
+	    	value = check;
+	    	WebElement element = webdriver.findElement(By.xpath(xPath));
+	    	
+	        if(element == null) //|| !element.isEnabled())
+	        {
+	          throw new Exception("Element '" + xPath + "' not found.");
+	        }
+	        // Get text from element
+	        String text = element.getText()+ "\r\n";
+	        text = text + "Attribute @value: " + element.getAttribute("value");
+	        //LOGGER.trace(text);
+	        // If exists is false, check if text is not present in element
+	        if (!exists)
+	        {
+	        	//validate if value is not present in text
+	        	try
+	        	{
+		        	LOGGER.trace("Check if text {} isn't present in element {}", value, xPath);
+		        	Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
+		        			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElement(element, value))));
+		        						//wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
+	        	}
+	        	catch(AssertionError | TimeoutException eX)
+	        	
+	        	//catch(TimeoutException eX)
+	        	{
+	        		throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
+	        		//validate if value is not present in attribute @value
+	        		/*try
+	        		{
+	        			LOGGER.trace("Check if the attribute @value, in element {}, doesn't contain the text {}", xPath,value );
+	        			Assert.assertTrue("The value \"" + value + "\" is found in the text: " + text,
+	    			            wait.until(ExpectedConditions.not(ExpectedConditions.textToBePresentInElementValue(element, value))));
+	        					//wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
+	        		}
+	        		catch(AssertionError | TimeoutException e)
+	        		//catch(TimeoutException e)
+	        		{
+	        			//this.doCaptureScreen("doValidateText");
+	        			throw new TimeoutException("The value \"" + value + "\" is found in the text: " + text);
+	        			//throw e;
+	        		}*/
+	        	}
+	        }
+	        // Check if element contains the given text
+	        else
+	        {
+	        	//validate if value is present in text
+	        	try
+	        	{
+	        		LOGGER.trace("Check if text {} is present in element {}", value, xPath);
+	        		Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
+	 			           wait.until(ExpectedConditions.textToBePresentInElement(element, value)));
+	        	}
+	        	catch(AssertionError | TimeoutException eX)
+	        	//catch(TimeoutException eX)
+	        	{
+	        		//validate if value is present in attribute @value
+	        		try
+	        		{
+	        			LOGGER.trace("Check if the attribute @value, in element {}, contains the text {}", xPath,value );
+	        			Assert.assertTrue("The value \"" + value + "\" is not found in the text: " + text,
+	      			           wait.until(ExpectedConditions.textToBePresentInElementValue(element, value)));
+	        		}
+	        		catch(AssertionError | TimeoutException e)
+	        		//catch(TimeoutException e)
+	        		{
+	        			//this.doCaptureScreen("doValidateText");
+	        			throw new TimeoutException("The value \"" + value + "\" is not found in the text: " + text);
+	        		}
+	        	}
+	        }
+	        
+	        // action succeeded. Return.
+	        //return;
+	        bCheck = false;
+	      }
+	      catch(Exception eX)
+	      {
+	        if(++count > maxRetries)
+	        {
+	          LOGGER.debug("Exception while validating text '{}' in '{}': {} (retry count: {})", 
+	                        value, xPath, eX.getMessage(), count);
+	          this.doCaptureScreen("doValidateText");
+	          throw eX;
+	        }
+	      }
+	    }
+    }
   }
   
   @Override
@@ -1103,6 +1155,95 @@ public class Selenium implements WebOutputPlugin
       }
     }    
   }
+  @Override
+  public void doWaitForElement(String xPath, String type, Boolean value, double timeOut) throws Exception
+  {
+	    if(this.webdriver == null)
+	    {
+	      prepareWebdriver();
+	    }
+	    
+	    LOGGER.debug("> Wait for element '{}' ", xPath);
+	    int iTimeOut = 0;
+	    try
+	    {
+	    	if (timeOut == 0)
+	    	{
+	    		try
+	    		{
+	    			LOGGER.trace("Timeout not set; setting timeout to default");
+	    			timeOut = Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
+	    		}
+	    		catch(Exception eX)
+	    		{
+	    			LOGGER.debug("Setting default timeout failed: " + eX);
+	    		}
+	    	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
+	    	iTimeOut = Integer.valueOf((int) (timeOut/1000));
+	    	if(iTimeOut < 1) iTimeOut = 1;
+	    	LOGGER.trace("Convertion to seconds complete, timeout is {} seconds", iTimeOut);
+	    	}
+	    	else
+	    	{
+	    		iTimeOut = (int)timeOut;
+	    	}
+	    }
+	    catch(Exception eX)
+	    {
+	    	LOGGER.debug("Converting to seconds failed: " + eX);
+	    	throw eX;
+	    }
+	    WebDriverWait wait = new WebDriverWait(webdriver, iTimeOut);
+	    try
+	      {
+	    	switch(type.toLowerCase())
+	    	{
+	    	case("exists"):
+	    		LOGGER.trace("type is exists");
+	    		if (value)
+	    		{
+	    			wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath(xPath)));
+	    		}
+	    		else
+	    		{
+	    			wait.until(ExpectedConditions.not(ExpectedConditions.presenceOfAllElementsLocatedBy(By.xpath(xPath))));
+	    		}
+	    		break;
+	    	case("clickable"):
+	    		LOGGER.trace("type is clickable");
+		    	if (value)
+	    		{
+	    			wait.until(ExpectedConditions.elementToBeClickable(By.xpath(xPath)));
+	    		}
+	    		else
+	    		{
+	    			wait.until(ExpectedConditions.not(ExpectedConditions.elementToBeClickable(By.xpath(xPath))));
+	    		}
+		    	break;
+	    	case("visible"):
+	    		LOGGER.trace("type is visible");
+	    		if (value)
+	    		{
+	    			wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath(xPath)));
+	    		}
+	    		else
+	    		{
+	    			wait.until(ExpectedConditions.not(ExpectedConditions.visibilityOfElementLocated(By.xpath(xPath))));
+	    		}
+	    		break;
+	    	default:
+	    		throw new Exception(type + " is not a valid type to wait for...");
+
+	    	}
+	    	
+	    	
+	      }
+	    catch(TimeoutException eX)
+	    {
+	    	throw new TimeoutException(eX);
+	    }
+  }
+  
   private void scroll_element_into_view(WebElement element) {
 	    int Y = (element.getLocation().getY() - 200);
 	    JavascriptExecutor js = (JavascriptExecutor) webdriver;

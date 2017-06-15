@@ -49,4 +49,6 @@ public interface WebOutputPlugin extends OutputPlugin {
 	public void doValidateText(String xPath, String value, Boolean exists, double timeOut) throws Exception;
 
 	public void doNavigate(String string);
+
+	public void doWaitForElement(String xPath, String type, Boolean exists, double timeOut) throws Exception;
 }
