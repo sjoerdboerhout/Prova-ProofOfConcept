@@ -56,7 +56,7 @@ public class Jdbc implements DbOutputPlugin
   private TestCase testCase = null;
   private OracleConnectionManager connectionManager = null;
   private Connection connection = null;
-  private Statement statement = null;
+  private PreparedStatement statement = null;
 
   private String currentAdress = null;
   private String currentUser = null;
@@ -260,8 +260,8 @@ public class Jdbc implements DbOutputPlugin
       registerDriver();
       connection = DriverManager.getConnection(currentAdress, currentUser, currentPassword);
       
-      statement = connection.createStatement();
-      return statement.executeQuery(currentQuery);
+      statement = connection.prepareStatement(currentQuery);
+      return statement.executeQuery();
     }
     catch (SQLException e)
     {
