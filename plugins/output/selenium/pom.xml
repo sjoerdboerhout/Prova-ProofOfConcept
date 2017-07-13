@@ -28,9 +28,9 @@
 
     <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
 		
-    <selenium-java.version>2.53.1</selenium-java.version>
-    <selenium-server.version>2.53.1</selenium-server.version>
-    <phantomjsdriver.version>1.2.0</phantomjsdriver.version>
+    <selenium-java.version>3.4.0</selenium-java.version>
+    <selenium-server.version>3.4.0</selenium-server.version>
+    <phantomjsdriver.version>2.1.1</phantomjsdriver.version>
   </properties>
 
   <dependencies>
@@ -59,6 +59,11 @@
       <version>${phantomjsdriver.version}</version>
     </dependency>
   -->
+    <dependency>
+	<groupId>com.google.guava</groupId>
+	<artifactId>guava</artifactId>
+	<version>21.0</version>
+    </dependency>
   </dependencies>
 
   <build>

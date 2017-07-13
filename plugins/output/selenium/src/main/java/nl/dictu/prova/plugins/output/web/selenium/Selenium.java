@@ -153,7 +153,7 @@ public class Selenium implements WebOutputPlugin
         //LOGGER.trace("Try to load webdriver 'Gecko' ({})", fireFoxPath);
         LOGGER.trace("Try to load webdriver 'Gecko'");
         System.setProperty("webdriver.gecko.driver", fireFoxPath);
-    	
+        System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE,"false");
         if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO))
         {
         	System.setProperty("webdriver.firefox.bin", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO));
