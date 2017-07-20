@@ -630,28 +630,28 @@ public class TestCaseBuilder
     if (new SheetPrefixValidator(nextSheet).validate("SOAP") || new SheetPrefixValidator(nextSheet).validate("DB"))
     {
       String specificSheet = null;
-      
+      ArrayList<List<Properties>> testData;
+      List<TestAction> testActions = new ArrayList<>();
       //If the TestdataSheet column exists and is filled in, the sheet to be used
       if(rowMap.containsKey("testdatasheet"))
       {
         if(!(rowMap.get("testdatasheet").isEmpty()))
         {
-          specificSheet = rowMap.get("testdatasheet");  
+          specificSheet = rowMap.get("testdatasheet");
+          testData = getSoapDbTestdata(testCase, nextSheet, specificSheet);
+          if (testData.size() > 0)
+          {
+            //If multiple sets of testdata are defined, the 'template' of the soap message or db query is ran with each set of testdata.
+            LOGGER.info(testData.size() + " sets of testdata found for sheet '" + nextSheet.getSheetName() + "'");
+            for (List<Properties> dataSet : testData)
+            {
+              testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet, specificSheet));
+            }
+            return testActions;
+          }
         }
       }
-      
-      List<TestAction> testActions = new ArrayList<>();
-      ArrayList<List<Properties>> testData = getSoapDbTestdata(testCase, nextSheet, specificSheet);
-      if (testData.size() > 0)
-      {
-        //If multiple sets of testdata are defined, the 'template' of the soap message or db query is ran with each set of testdata.
-        LOGGER.info(testData.size() + " sets of testdata found for sheet '" + nextSheet.getSheetName() + "'");
-        for (List<Properties> dataSet : testData)
-        {
-          testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet, specificSheet));
-        }
-        return testActions;
-      }
+ 
       else
       {
         LOGGER.info("No testdata found for sheet '" + nextSheet.getSheetName() + "', processing once.");
