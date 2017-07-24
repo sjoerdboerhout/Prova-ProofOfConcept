@@ -15,13 +15,15 @@ import nl.dictu.prova.framework.parameters.Xpath;
  */
 class StoreText extends TestAction
 {
-  public final static String ATTR_TIMEOUT  = "TIMEOUT";
-  public final static String ATTR_REGEX    = "REGEX";
-  public final static String ATTR_NAME     = "NAME";
-  public final static String ATTR_XPATH    = "XPATH";
+  public final static String ATTR_TIMEOUT   = "TIMEOUT";
+  public final static String ATTR_REGEX     = "REGEX";
+  public final static String ATTR_INPUTTEXT = "INPUTTEXT";
+  public final static String ATTR_NAME      = "NAME";
+  public final static String ATTR_XPATH     = "XPATH";
   
   Xpath xPath = null;
   String regex = null;
+  String inputtext = null;
   String name = null;
   TimeOut timeout;
   
@@ -38,6 +40,7 @@ class StoreText extends TestAction
     {
       case ATTR_TIMEOUT   : timeout = new TimeOut(Integer.parseInt(value));   break;
       case ATTR_REGEX     : regex   = value.trim();                           break;
+      case ATTR_INPUTTEXT : inputtext   = value.trim();                       break;
       case ATTR_PARAMETER : name    = value.trim();                           break;
       case ATTR_NAME      : name    = value.trim();                           break;
       case ATTR_XPATH     : xPath.setValue(value);                            break;
@@ -52,7 +55,7 @@ class StoreText extends TestAction
     {
       throw new Exception("Please check if xPath, regex, name and timeout values are provided!");
     }
-    this.testRunner.getWebActionPlugin().doStoreText(xPath.getValue(), regex, name, new Double(timeout.getValue()));
+    this.testRunner.getWebActionPlugin().doStoreText(xPath.getValue(), regex, inputtext,  name, new Double(timeout.getValue()));
   }
 
   @Override
@@ -60,7 +63,7 @@ class StoreText extends TestAction
   {
     if(xPath == null) return false;
     if(name == null) return false;
-    if(timeout == null) return false;
+    //if(timeout == null) return false;
     return true;
   }
   

@@ -973,94 +973,108 @@ public class Selenium implements WebOutputPlugin
   }
   
   @Override
-  public void doStoreText(String xPath, String regex, String name, double timeOut) throws Exception
+  public void doStoreText(String xPath, String regex, String inputtext, String name, double timeOut) throws Exception
   {
-    if(this.webdriver == null)
+	if(inputtext != null)
     {
-      prepareWebdriver();
-    }
-    
-    LOGGER.debug("> Store text '{}'", xPath);
-    int iTimeOut = 0;
-    try
-    {
-    	if (timeOut == 0)
-    	{
-    		try
-    		{
-    			LOGGER.trace("Timeout not set; setting timeout to default");
-    			timeOut = Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
-    		}
-    		catch(Exception eX)
-    		{
-    			LOGGER.debug("Setting default timeout failed: " + eX);
-    		}
-    	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
-    	iTimeOut = (int) (timeOut/1000);
-    	if(iTimeOut < 1) iTimeOut = 1;
-    	LOGGER.trace("Conversion to seconds complete, timeout is {} seconds", iTimeOut);
-    	}
-    }
-    catch(Exception eX)
-    {
-    	LOGGER.debug("Converting to seconds failed: " + eX);
-    	throw eX;
-    }
-    WebDriverWait wait = new WebDriverWait(webdriver, iTimeOut);
-    int count = 0;
-    
-    while(true)
-    {
-      try
+      if(inputtext.trim().length() > 0) 
       {
-    	
-        WebElement element = webdriver.findElement(By.xpath(xPath));
-    	
-        if(element == null || !element.isEnabled())
-        {
-          throw new Exception("Element '" + xPath + "' not found.");
-        }
-        // Get text from element
-        String text = element.getText()+ "\r\n";
-        
-        LOGGER.debug("Found the following text in element: " + text);
-        
-        if(regex != null)
-        {
-          if(regex.trim().length() > 0)
-          {
-            Pattern pattern = Pattern.compile(regex);
-            Matcher matcher = pattern.matcher(text);        
-
-            if(matcher.find())
-            {
-              text = matcher.group(0);
-            }
-            else
-            {
-              LOGGER.warn("No value has been retrieved using regex, element text is stored instead.");
-            }
-
-            LOGGER.trace("The following text has been retrieved with regex: " + text);
-          }
-        }
-        
-        //Store the found text als a property under the provided name
-        this.testRunner.setPropertyValue(name, text);
-        
-        // action succeeded. Return.
-        return;
+    	  this.testRunner.setPropertyValue(name, inputtext);
       }
-      catch(Exception eX)
+      else
       {
-        if(++count > maxRetries)
-        {
-          LOGGER.debug("Exception storing text");
-          this.doCaptureScreen("doStoreText");
-          throw eX;
-        }
+    	  LOGGER.warn("The length of the given value is < than 0. Is there a space in the field 'inputtext'?");
       }
-    }   
+    }
+	else
+	{  
+		if(this.webdriver == null)
+	    {
+	      prepareWebdriver();
+	    }
+	    
+	    LOGGER.debug("> Store text '{}'", xPath);
+	    int iTimeOut = 0;
+	    try
+	    {
+	    	if (timeOut == 0)
+	    	{
+	    		try
+	    		{
+	    			LOGGER.trace("Timeout not set; setting timeout to default");
+	    			timeOut = Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
+	    		}
+	    		catch(Exception eX)
+	    		{
+	    			LOGGER.debug("Setting default timeout failed: " + eX);
+	    		}
+	    	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
+	    	iTimeOut = (int) (timeOut/1000);
+	    	if(iTimeOut < 1) iTimeOut = 1;
+	    	LOGGER.trace("Conversion to seconds complete, timeout is {} seconds", iTimeOut);
+	    	}
+	    }
+	    catch(Exception eX)
+	    {
+	    	LOGGER.debug("Converting to seconds failed: " + eX);
+	    	throw eX;
+	    }
+	    WebDriverWait wait = new WebDriverWait(webdriver, iTimeOut);
+	    int count = 0;
+	    
+	    while(true)
+	    {
+	      try
+	      {
+	    	
+	        WebElement element = webdriver.findElement(By.xpath(xPath));
+	    	
+	        if(element == null || !element.isEnabled())
+	        {
+	          throw new Exception("Element '" + xPath + "' not found.");
+	        }
+	        // Get text from element
+	        String text = element.getText()+ "\r\n";
+	        
+	        LOGGER.debug("Found the following text in element: " + text);
+	        
+	        if(regex != null)
+	        {
+	          if(regex.trim().length() > 0)
+	          {
+	            Pattern pattern = Pattern.compile(regex);
+	            Matcher matcher = pattern.matcher(text);        
+	
+	            if(matcher.find())
+	            {
+	              text = matcher.group(0);
+	            }
+	            else
+	            {
+	              LOGGER.warn("No value has been retrieved using regex, element text is stored instead.");
+	            }
+	
+	            LOGGER.trace("The following text has been retrieved with regex: " + text);
+	          }
+	        }
+	        
+	        //Store the found text als a property under the provided name
+	        this.testRunner.setPropertyValue(name, text);
+	        
+	        // action succeeded. Return.
+	        return;
+	      }
+	      catch(Exception eX)
+	      {
+	        if(++count > maxRetries)
+	        {
+	          LOGGER.debug("Exception storing text");
+	          this.doCaptureScreen("doStoreText");
+	          throw eX;
+	        }
+	      }
+	    }
+	}
   }
   
   @Override

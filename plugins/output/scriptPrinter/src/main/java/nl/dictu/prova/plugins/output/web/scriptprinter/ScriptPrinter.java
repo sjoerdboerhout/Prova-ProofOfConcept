@@ -193,7 +193,7 @@ public class ScriptPrinter implements WebOutputPlugin
   }
 
   @Override
-  public void doStoreText(String xpath, String string, String string1, double d) throws Exception
+  public void doStoreText(String xpath, String string, String inputtext, String string1, double d) throws Exception
   {
     throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
   }
