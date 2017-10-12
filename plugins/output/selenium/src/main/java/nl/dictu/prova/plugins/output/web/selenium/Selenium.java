@@ -346,7 +346,7 @@ public class Selenium implements WebOutputPlugin
           }
       
         // TODO support right click
-        if(rightClick) throw new Exception("Right click is not supported yet.");
+       
         
         LOGGER.trace("Clicking on element '{}' (doClick)", xPath);
         assert element.isDisplayed();
@@ -366,8 +366,14 @@ public class Selenium implements WebOutputPlugin
         {
         	LOGGER.debug("Scrolling element into view failed");
         }
-        
-        element.click();
+        if(rightClick)
+        {
+        	actions.contextClick(element).perform();
+        }
+        else
+        {
+        	element.click();
+        }
         //element.sendKeys(Keys.RETURN);
         
         // TODO Add support for waitUntilPageLoaded
@@ -427,7 +433,13 @@ public class Selenium implements WebOutputPlugin
 	  if (url.equalsIgnoreCase("closebrowser"))
 	  {
 		  webdriver.close();
+		  currentWindow = "";
 	      webdriver = null;
+	  }
+	  else if (url.equalsIgnoreCase("closewindow"))
+	  {
+		  webdriver.close();
+	      //webdriver = null;
 	  }
 	  else if (url.equalsIgnoreCase("back"))
 	  {
@@ -584,12 +596,22 @@ public class Selenium implements WebOutputPlugin
       keys = keys.replace("<ALT>", Keys.ALT);
       keys = keys.replace("<PAGEDOWN>", Keys.PAGE_DOWN);
       keys = keys.replace("<PAGEUP>", Keys.PAGE_UP);
+      keys = keys.replace("<ARROWUP>", Keys.ARROW_UP);
+      keys = keys.replace("<ARROWDOWN>", Keys.ARROW_DOWN);
+      keys = keys.replace("<ENTER>", Keys.ENTER);
       
       //if xPath is not filled, sendKeys to the active element
       if (xPath.equalsIgnoreCase("/html/body"))
       {
 	      LOGGER.trace("> Send keys '{}' to active element (doSendKeys)", keys);
 	      webdriver.switchTo().activeElement().sendKeys(keys);
+	      
+      }
+      else if (xPath.equalsIgnoreCase("frame"))
+      {
+    	  LOGGER.trace("> Send keys '{}' to frame (doSendKeys)", keys);
+    	  Actions actions = new Actions(webdriver);
+	      actions.sendKeys(keys).build().perform();
       }
       //xPath is filled. Find element and send keys
       else
@@ -664,10 +686,10 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doSleep(long waitTime) throws Exception
   {
-    if(this.webdriver == null)
+    /*if(this.webdriver == null)
     {
       prepareWebdriver();
-    }
+    }*/
     
     LOGGER.debug(">> Sleep '{}' ms", waitTime);
     
@@ -979,6 +1001,7 @@ public class Selenium implements WebOutputPlugin
     {
       if(inputtext.trim().length() > 0) 
       {
+    	  LOGGER.trace("> Store text '{}' in variable {}", inputtext, name);
     	  this.testRunner.setPropertyValue(name, inputtext);
       }
       else
@@ -1034,7 +1057,7 @@ public class Selenium implements WebOutputPlugin
 	          throw new Exception("Element '" + xPath + "' not found.");
 	        }
 	        // Get text from element
-	        String text = element.getText()+ "\r\n";
+	        String text = element.getText();//+ "\r\n";
 	        
 	        LOGGER.debug("Found the following text in element: " + text);
 	        
@@ -1059,6 +1082,7 @@ public class Selenium implements WebOutputPlugin
 	        }
 	        
 	        //Store the found text als a property under the provided name
+	        LOGGER.trace("> Store extracted text '{}' in variable {}", text, name);
 	        this.testRunner.setPropertyValue(name, text);
 	        
 	        // action succeeded. Return.

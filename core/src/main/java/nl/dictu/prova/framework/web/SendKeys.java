@@ -91,7 +91,11 @@ public class SendKeys extends TestAction
   {
     if(testRunner == null)  return false;
     if(!keys.isValid())     return false;
-    if(!xPath.isValid())     return false;
+    if(!xPath.getValue().toLowerCase().equals("frame"))
+    {
+    	if(!xPath.isValid())     return false;
+    }
+    
     
     return true;
   }
