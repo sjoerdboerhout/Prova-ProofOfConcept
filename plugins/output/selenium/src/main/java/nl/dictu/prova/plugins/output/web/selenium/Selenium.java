@@ -30,6 +30,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import nl.dictu.prova.Config;
+import nl.dictu.prova.TestRunner;
+import nl.dictu.prova.framework.TestCase;
+import nl.dictu.prova.plugins.output.WebOutputPlugin;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -58,12 +63,6 @@ import org.openqa.selenium.security.UserAndPassword;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-import nl.dictu.prova.Config;
-import nl.dictu.prova.TestRunner;
-import nl.dictu.prova.framework.TestCase;
-import nl.dictu.prova.framework.web.Navigate;
-import nl.dictu.prova.plugins.output.WebOutputPlugin;
 
 /**
  * Driver for controlling Selenium Webdriver
@@ -216,7 +215,9 @@ public class Selenium implements WebOutputPlugin
       {
         throw new Exception("Unsupported browser '" + browserType + "' requested.");
       }
-           
+      
+      //TODO, set window resolution according to config properties
+      //webdriver.manage().window().setSize(new Dimension(800, 600));     
       
       // Compose the setting name of the project url.
       String url =  Config.PROVA_ENV_PFX + "." +

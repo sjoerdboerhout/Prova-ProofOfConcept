@@ -31,16 +31,15 @@ import java.nio.channels.FileChannel;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.framework.TestSuite;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /*
  * Hello world!
@@ -396,26 +395,25 @@ public class SimpleReport implements ReportingPlugin
 		  countPassedTestcases = countPassedTestcases + 1;
 		  pwTestcase.println("<br><b>Status testcase: <font color=\"green\">" + testCase.getStatus()+"</b></font></br>" );
 		  
-		  // TODO: Creat a relative link to the file name instead of an absolute link!
 		  pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"lightgreen\">"+testCase.getStatus()+"</td><td style=\"width:1200px\">"
 				  				+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</td><td style=\"width:200px\">" 
-				  				+ "<a href=\""+ currTestCaseFile
+				  				+ "<a href=\""+ makeHtmlLinkRelative(currTestCaseFile)
 				  				+ "\">Result testcase</a></td></tr>");
 	  }
 	  else
 	  {
 		  countFailedTestcases = countFailedTestcases + 1;
 		  pwTestcase.println("<br><b>Status testcase: <font color=\"red\">" + testCase.getStatus()+"</b></font></br>" );
-		  // TODO: Creat a relative link to the file name instead of an absolute link!
+
 		  pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"+testCase.getStatus()+"</td><td style=\"width:1200px\">"
 	  				+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</td><td style=\"width:200px\">" 
-	  				+ "<a href=\""+currTestCaseFile
+	  				+ "<a href=\""+ makeHtmlLinkRelative(currTestCaseFile)
 	  				+ "\">Result testcase</a></td></tr>");
-		  // TODO: Creat a relative link to the file name instead of an absolute link!
+
 		  pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)
 				    +"</td><td style=\"width:1200px\">"
 	  				+testCase.getSummary()+"</td><td style=\"width:200px\">" 
-	  				+ "<a href=\""+currTestCaseFile
+	  				+ "<a href=\""+ makeHtmlLinkRelative(currTestCaseFile)
 	  				+ "\">Result testcase</a></td></tr>");
 	  }
 	  pwTestcase.println("<br><b>Summary: </b>" + testCase.getSummary()+"</br>");
@@ -582,5 +580,12 @@ public class SimpleReport implements ReportingPlugin
     catch(Exception ex){
       LOGGER.error("Exception while writing message/query to txt file! : " + ex.getMessage());
     }
+  }
+  
+  private String makeHtmlLinkRelative(String linkTarget) {
+	  if (linkTarget != null && !"".equals(linkTarget)) {
+		  return linkTarget.replaceFirst(currTestSuiteDir + File.separator,"");	
+	  }
+	  return linkTarget;
   }
 }
