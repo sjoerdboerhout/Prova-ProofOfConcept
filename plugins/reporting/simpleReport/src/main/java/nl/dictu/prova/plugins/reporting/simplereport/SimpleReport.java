@@ -64,6 +64,7 @@ public class SimpleReport implements ReportingPlugin
   private Long startTimeSummary;
   private Integer countPassedTestcases = 0;
   private Integer countFailedTestcases = 0;
+private String testProject;
 
   @Override
   public void init(TestRunner testRunner) throws Exception
@@ -85,6 +86,9 @@ public class SimpleReport implements ReportingPlugin
 		  
 		  // Save the test root to strip that part from the test suite/case names.
 		  this.testRoot = testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT);
+		  
+		  //save project name, needed for making html links relative
+		  this.testProject = testRunner.getPropertyValue(Config.PROVA_PROJECT);
 		  
 		  /*
 		   * - Check if property 'prova.plugins.reporting.dir' is an existing dir.
@@ -582,9 +586,16 @@ public class SimpleReport implements ReportingPlugin
     }
   }
   
-  private String makeHtmlLinkRelative(String linkTarget) {
+ /**
+  * Convert a given filename as linktarget to a relative link
+  * 
+  * 
+ * @param linkTarget
+ * @return
+ */
+private String makeHtmlLinkRelative(String linkTarget) {
 	  if (linkTarget != null && !"".equals(linkTarget)) {
-		  return linkTarget.replaceFirst(currTestSuiteDir + File.separator,"");	
+		  return linkTarget.replaceFirst(currTestSuiteDir,this.testProject);	
 	  }
 	  return linkTarget;
   }
