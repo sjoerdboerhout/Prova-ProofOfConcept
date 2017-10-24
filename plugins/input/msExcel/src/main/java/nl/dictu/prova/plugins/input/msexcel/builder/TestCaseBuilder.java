@@ -19,14 +19,31 @@
  */
 package nl.dictu.prova.plugins.input.msexcel.builder;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Properties;
+import java.util.Set;
+
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
+import nl.dictu.prova.framework.ActionFactory;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.framework.TestStatus;
+import nl.dictu.prova.framework.db.DbActionFactory;
+import nl.dictu.prova.framework.shell.ShellActionFactory;
+import nl.dictu.prova.framework.soap.SoapActionFactory;
 import nl.dictu.prova.framework.web.WebActionFactory;
+import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 import nl.dictu.prova.plugins.input.msexcel.reader.WorkbookReader;
 import nl.dictu.prova.plugins.input.msexcel.validator.SheetPrefixValidator;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.functors.NotNullPredicate;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -37,16 +54,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
-import nl.dictu.prova.framework.soap.SoapActionFactory;
-import nl.dictu.prova.framework.ActionFactory;
-import nl.dictu.prova.framework.db.DbActionFactory;
-import nl.dictu.prova.framework.shell.ShellActionFactory;
-import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 
 /**
  * @author Hielke de Haan
@@ -209,6 +216,9 @@ public class TestCaseBuilder
                 break;
               case "labels":
                 // Ignore
+                break;
+              case "filter":
+                testCase.setFilter(flowWorkbookReader.readProperty(row, firstCell));  
                 break;
               case "profile":
                 readSelectedProfile(this.workbook, sheet, rowNum);
@@ -546,6 +556,7 @@ public class TestCaseBuilder
           readTestActionsFromReference(testCase, rowMap, "setup").forEach(testCase::addSetUpAction);
           break;
         case "test":
+          testCase.createTestBlock(rowMap.get("test"), rowMap.get("opmerking"));
           readTestActionsFromReference(testCase, rowMap, "test").forEach(testCase::addTestAction);
           break;
         case "teardown":

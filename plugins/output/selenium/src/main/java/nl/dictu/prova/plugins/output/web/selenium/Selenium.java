@@ -41,6 +41,7 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoAlertPresentException;
@@ -216,8 +217,7 @@ public class Selenium implements WebOutputPlugin
         throw new Exception("Unsupported browser '" + browserType + "' requested.");
       }
       
-      //TODO, set window resolution according to config properties
-      //webdriver.manage().window().setSize(new Dimension(800, 600));     
+      setBrowserResolution(webdriver);
       
       // Compose the setting name of the project url.
       String url =  Config.PROVA_ENV_PFX + "." +
@@ -264,6 +264,23 @@ public class Selenium implements WebOutputPlugin
     }
   }
 
+	/**
+	 * If a resolution is given in the configuration, set the browser to that resolution.
+	 * 
+	 * @param webDriver
+	 */
+	protected void setBrowserResolution(WebDriver webDriver) {
+		if (testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_RESOLUTION)) {
+			try {
+				String[] resXY = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_RESOLUTION)
+						.split("x");
+				webdriver.manage().window().setSize(new Dimension(new Integer(resXY[0]), new Integer(resXY[1])));
+			} catch (Exception e) {
+				LOGGER.warn("Problem setting browser resolution.", e);
+			}
+		}
+	}
+  
   public void doCaptureScreen(String fileName) throws Exception
   {
     if(this.webdriver == null)
