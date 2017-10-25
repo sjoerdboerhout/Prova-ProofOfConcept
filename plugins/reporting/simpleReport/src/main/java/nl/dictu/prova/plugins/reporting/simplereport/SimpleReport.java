@@ -280,65 +280,55 @@ public class SimpleReport implements ReportingPlugin {
 		}
 	}
 
+	private String getScreenShotFile(String status) throws Exception {
+		String result = null;
+		if (this.testRunner.hasPropertyValue("SCREENSHOT_PATH")
+				&& this.testRunner.getPropertyValue("SCREENSHOT_PATH").length() > 1) {
+			LOGGER.trace("SCREENSHOT_PATH found");
+			try {
+				File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
+				String destinationPath = currTestCaseFile
+						.substring(0, currTestCaseFile.lastIndexOf(File.separator))
+						+ File.separator
+						+ source.getName();
+				LOGGER.debug("destinationPath: " + destinationPath);
+				File destination = new File(destinationPath);
+
+				;
+				if (!destination.exists()) {
+					copyFileUsingChannel(source, destination);
+
+				}
+				String errorPrefix = "";
+				if ("NOK".equals(status)) {
+					errorPrefix = "error_";
+				}
+				result = "." + File.separator + errorPrefix + source.getName();
+				this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
+
+			} catch (Exception eX) {
+				LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
+			}
+		}
+		return result;
+	}
+	
 	@Override
 	public void logAction(TestAction action, String status, long executionTime) throws Exception {
 		String color = "red";
+		String screenshotFile = getScreenShotFile(status);
 		if (status.equalsIgnoreCase("ok")) {
 			color = "lightgreen";
-			if (this.testRunner.hasPropertyValue("SCREENSHOT_PATH")
-					&& this.testRunner.getPropertyValue("SCREENSHOT_PATH").length() > 1) {
-				LOGGER.trace("SCREENSHOT_PATH found");
-				try {
-					String Path = testRunner.getPropertyValue("SCREENSHOT_PATH");
-					File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
-					String destinationPath = currTestCaseFile
-							.substring(0, currTestCaseFile.lastIndexOf(File.separator))
-							+ File.separator
-							+ source.getName();
-					LOGGER.debug("destinationPath: " + destinationPath);
-					File destination = new File(destinationPath);
+		} 
 
-					;
-					if (!destination.exists()) {
-						copyFileUsingChannel(source, destination);
-
-					}
-					status = "<a href=\"." + File.separator + source.getName() + "\"" + "target=\"_blank\" >" + status
-							+ "</a>";
-					this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
-
-				} catch (Exception eX) {
-					LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
-				}
-
-			}
-		} else {
-			if (this.testRunner.hasPropertyValue("SCREENSHOT_PATH")
-					&& this.testRunner.getPropertyValue("SCREENSHOT_PATH").length() > 1) {
-				LOGGER.trace("SCREENSHOT_PATH found");
-				try {
-					File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
-					String destinationPath = currTestCaseFile
-							.substring(0, currTestCaseFile.lastIndexOf(File.separator)) + File.separator + "error.png";
-					File destination = new File(destinationPath);
-
-					if (!destination.exists()) {
-						source.renameTo(destination);
-					}
-					status = "<a href=\"." + File.separator + "error.png" + "\"" + "target=\"_blank\" >" + status
-							+ "</a>";
-					this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
-
-				} catch (Exception eX) {
-					LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
-				}
-
-			}
-
+		String statusHtml = status;
+		if (screenshotFile != null) {
+			statusHtml = "<a href=\"" + screenshotFile + "\"" + "target=\"_blank\" >" + status
+					+ "</a>";
 		}
 
 		try {
-			pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + status
+			pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + statusHtml
 					+ "</td><td style=\"width:1200px\">" + action.toString() + "</td><td style=\"width:200px\">"
 					+ (action.getId()) + "</td><td style=\"width:200px\">" + executionTime + "ms</td></tr>");
 		} catch (Exception eX) {
@@ -352,8 +342,6 @@ public class SimpleReport implements ReportingPlugin {
 	}
 
 	protected void addTestBlockSummary(TestCase testCase) {
-		int countFailed = 0;
-		int countPassed = 0;
 		
 		pwTestcase.println("<br><b>TestBlocks summary: </b></br><ul>");
 		
