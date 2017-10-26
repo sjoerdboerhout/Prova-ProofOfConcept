@@ -280,30 +280,28 @@ public class SimpleReport implements ReportingPlugin {
 		}
 	}
 
-	private String getScreenShotFile(String status) throws Exception {
+	private String getScreenShotFile(String status, TestAction action) throws Exception {
 		String result = null;
 		if (this.testRunner.hasPropertyValue("SCREENSHOT_PATH")
 				&& this.testRunner.getPropertyValue("SCREENSHOT_PATH").length() > 1) {
 			LOGGER.trace("SCREENSHOT_PATH found");
 			try {
-				File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
-				String destinationPath = currTestCaseFile
-						.substring(0, currTestCaseFile.lastIndexOf(File.separator))
-						+ File.separator
-						+ source.getName();
-				LOGGER.debug("destinationPath: " + destinationPath);
-				File destination = new File(destinationPath);
-
-				;
-				if (!destination.exists()) {
-					copyFileUsingChannel(source, destination);
-
-				}
 				String errorPrefix = "";
 				if ("NOK".equals(status)) {
 					errorPrefix = "error_";
 				}
-				result = "." + File.separator + errorPrefix + source.getName();
+
+				File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
+				String destFileName = makeFilenameValid(errorPrefix + action.getId() + "_" + source.getName() );
+				String destinationPath = currTestCaseFile.substring(0, currTestCaseFile.lastIndexOf(File.separator))
+						+ File.separator + destFileName;
+				LOGGER.debug("destinationPath: " + destinationPath);
+				File destination = new File(destinationPath);
+
+				if (!destination.exists()) {
+					copyFileUsingChannel(source, destination);
+				}
+				result = "." + File.separator + destFileName;
 				this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
 
 			} catch (Exception eX) {
@@ -316,15 +314,14 @@ public class SimpleReport implements ReportingPlugin {
 	@Override
 	public void logAction(TestAction action, String status, long executionTime) throws Exception {
 		String color = "red";
-		String screenshotFile = getScreenShotFile(status);
+		String screenshotFile = getScreenShotFile(status, action);
 		if (status.equalsIgnoreCase("ok")) {
 			color = "lightgreen";
-		} 
+		}
 
 		String statusHtml = status;
 		if (screenshotFile != null) {
-			statusHtml = "<a href=\"" + screenshotFile + "\"" + "target=\"_blank\" >" + status
-					+ "</a>";
+			statusHtml = "<a href=\"" + screenshotFile + "\"" + "target=\"_blank\" >" + status + "</a>";
 		}
 
 		try {
@@ -339,7 +336,9 @@ public class SimpleReport implements ReportingPlugin {
 							+ "\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">Unknown action id</td><td style=\"width:200px\">"
 							+ executionTime + "ms</td></tr>");
 		}
+		pwTestcase.flush();
 	}
+
 
 	protected void addTestBlockSummary(TestCase testCase) {
 		
@@ -560,11 +559,22 @@ public class SimpleReport implements ReportingPlugin {
 		return linkTarget;
 	}
 
+	/**
+	 * Replace all illegal characters in filename.
+	 * 
+	 * @param fileName
+	 * @return
+	 */
+	public String makeFilenameValid(String fileName) {
+		return fileName.replaceAll("[^a-zA-Z0-9.-]", "");
+	}
+	
 	@Override
 	public void logStartTestBlock(TestBlock testBlock) throws Exception {
 		String color = "white";
 		pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + 
 				"</td><td style=\"width:1200px\">" + "start TestBlock: " + testBlock.getName() + "</td>");
+		pwTestcase.flush();
 	}
 
 	@Override
@@ -577,8 +587,6 @@ public class SimpleReport implements ReportingPlugin {
 				+ "</td><td style=\"width:1200px\">block: "
 				+ testBlock.getName()
 				+ "</td><td style=\"width:200px\"></td></tr>");
-		
-		
-
+		pwTestsuite.flush();
 	}
 }
