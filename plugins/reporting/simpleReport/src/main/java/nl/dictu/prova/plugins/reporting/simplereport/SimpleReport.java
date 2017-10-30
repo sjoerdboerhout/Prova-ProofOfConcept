@@ -566,7 +566,7 @@ public class SimpleReport implements ReportingPlugin {
 	 * @return
 	 */
 	public String makeFilenameValid(String fileName) {
-		return fileName.replaceAll("[^a-zA-Z0-9.-]", "");
+		return fileName.replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("_+", "_");
 	}
 	
 	@Override
