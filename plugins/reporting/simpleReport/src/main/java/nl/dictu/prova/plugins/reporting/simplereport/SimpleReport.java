@@ -381,6 +381,12 @@ public class SimpleReport implements ReportingPlugin {
 					+ testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
 					+ "</td><td style=\"width:200px\">" + "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile)
 					+ "\">Result testcase</a></td></tr>");
+
+			pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"lightgreen\">"
+					+ testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
+					+ "</td><td style=\"width:1200px\">" + testCase.getSummary() + "</td><td style=\"width:200px\">"
+					+ "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile) + "\">Result testcase</a></td></tr>");
+
 		} else {
 			countFailedTestcases = countFailedTestcases + 1;
 
