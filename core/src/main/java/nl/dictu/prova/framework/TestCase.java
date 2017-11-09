@@ -47,6 +47,7 @@ public class TestCase
   private TestStatus status     = TestStatus.NOTRUN;
   private String     summary    = "";
   private TestRunner testRunner = null;
+  private Boolean    error      = false;
   
   private String projectName  = "";
   
@@ -363,7 +364,27 @@ public class TestCase
             }
             if(this.testRunner.getPropertyValue("prova.flow.failon.actionfail").equalsIgnoreCase("true"))
             {
-              throw eX;
+            	if(this.testRunner.getPropertyValue("prova.flow.failon.testfail").equalsIgnoreCase("false")&&eX.getMessage().contains("Validation Failed:"))
+            	{
+            		LOGGER.debug("Validation failed");
+            		error = true;
+            	}
+            	else
+            	{
+            		throw eX;
+            	}
+            }
+            else
+            {
+            	if(this.testRunner.getPropertyValue("prova.flow.failon.testfail").equalsIgnoreCase("false")&&eX.getMessage().contains("Validation Failed:"))
+            	{
+            		LOGGER.debug("Validation failed");
+            		error = true;
+            	}
+            	else
+            	{
+            		throw eX;
+            	}
             }
           }
           try
@@ -381,7 +402,14 @@ public class TestCase
         }    
         
         // Errors during tearDown do not alter the test result
-        this.setStatus(TestStatus.PASSED);
+        if (error)
+        {
+        	this.setStatus(TestStatus.COMPLETED);
+        }
+        else
+        {
+        	this.setStatus(TestStatus.PASSED);
+        }  
       }
       catch(Exception eX)
       {

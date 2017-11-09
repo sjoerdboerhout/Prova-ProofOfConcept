@@ -29,6 +29,7 @@ public enum TestStatus
 {
   NOTRUN("NotRun"),
   BLOCKED("Blocked"),
+  COMPLETED("CompletedWithErrors"),
   PASSED("Passed"),
   FAILED("Failed");  
   

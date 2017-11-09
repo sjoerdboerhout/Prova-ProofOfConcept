@@ -353,13 +353,13 @@ public class SimpleReport implements ReportingPlugin
 			  try
 			  {
 				  File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
-				  String destinationPath = currTestCaseFile.substring(0, currTestCaseFile.lastIndexOf(File.separator)) + File.separator + "error.png";
+				  String destinationPath = currTestCaseFile.substring(0, currTestCaseFile.lastIndexOf(File.separator)) + File.separator + "error_"+(action.getId().replace(" | #", "_"))+".png";
 				  File destination = new File(destinationPath);
 
 				  if (!destination.exists()) {
 					  source.renameTo(destination);
 				  }
-				  status =  "<a href=\"."+ File.separator + "error.png" + "\""
+				  status =  "<a href=\"."+ File.separator + "error_"+(action.getId().replace(" | #", "_")) +".png" + "\""
 						  + "target=\"_blank\" >" + status + "</a>";
 				  this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
 						  
