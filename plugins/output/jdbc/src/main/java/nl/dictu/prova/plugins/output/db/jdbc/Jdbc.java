@@ -28,6 +28,8 @@ import org.apache.logging.log4j.Logger;
 import oracle.jdbc.connector.OracleConnectionManager;
 import com.microsoft.sqlserver.jdbc.*;
 import java.sql.DriverManager;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -107,6 +109,11 @@ public class Jdbc implements DbOutputPlugin
   public void doSetQuery(String query)
   {
     LOGGER.debug("Setting query in output plugin Jdbc.");
+    if(query.toLowerCase().contains("file:"))
+    {
+    	query = readQueryFromFile(query.trim().substring(query.trim().indexOf(':') + 1));
+    	LOGGER.trace("Query read from file: " + query);
+    }
     this.currentQuery = query;
   }
 
@@ -177,6 +184,7 @@ public class Jdbc implements DbOutputPlugin
         case INSERT:
         case UPDATE:
         case DECLARE:
+        case USE:
         case BEGIN:
           for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
             plugin.storeToTxt("" + currentQuery, currentPrefix);
@@ -277,7 +285,7 @@ public class Jdbc implements DbOutputPlugin
 
   public enum StatementType
   {
-    SELECT, DELETE, INSERT, UPDATE, DECLARE, BEGIN, UNSUPPORTED;
+    SELECT, DELETE, INSERT, UPDATE, DECLARE, BEGIN, UNSUPPORTED, USE;
   }
 
   public StatementType getQueryType()
@@ -291,6 +299,7 @@ public class Jdbc implements DbOutputPlugin
       case "INSERT":        return StatementType.INSERT;
       case "DECLARE":       return StatementType.DECLARE;
       case "BEGIN":         return StatementType.BEGIN;
+      case "USE":           return StatementType.USE;
       default:              return StatementType.UNSUPPORTED;
     }
   }
@@ -347,7 +356,19 @@ public class Jdbc implements DbOutputPlugin
     }
     return true;
   }
-  
+  private String readQueryFromFile(String file)
+  {
+	  String query = "";
+	  try
+	  {
+		  query = new String(Files.readAllBytes(Paths.get(file)));
+	  }
+	  catch (Exception eX)
+	  {
+		  LOGGER.error("Reading query file failed: " + eX);
+	  }
+	return query;
+  }
   private Boolean containsKeywords(String entry) throws Exception
   {
     Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
