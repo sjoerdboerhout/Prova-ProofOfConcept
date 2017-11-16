@@ -601,6 +601,9 @@ public class Selenium implements WebOutputPlugin
       keys = keys.replace("<ARROWUP>", Keys.ARROW_UP);
       keys = keys.replace("<ARROWDOWN>", Keys.ARROW_DOWN);
       keys = keys.replace("<ENTER>", Keys.ENTER);
+      keys = keys.replace("<DELETE>", Keys.DELETE);
+      keys = keys.replace("<BACKSPACE>", Keys.BACK_SPACE);
+      keys = keys.replace("<CLEAR>", Keys.CLEAR);
       
       //if xPath is not filled, sendKeys to the active element
       if (xPath.equalsIgnoreCase("/html/body"))
