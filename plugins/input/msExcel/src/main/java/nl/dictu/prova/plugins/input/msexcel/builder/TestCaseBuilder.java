@@ -191,7 +191,12 @@ public class TestCaseBuilder
             switch (tagName)
             {
               case "tcid":
-                // Already read in earlier state
+            	// read tcid value, it should be the same as current testcase id. If not, skip sheet.
+            	String tcid = flowWorkbookReader.readProperty(row, firstCell);
+            	if (!testCase.getId().equals(tcid)) {
+            		LOGGER.info("Skipping sheet with Testcase definition with id {}",tcid);
+            		return;
+            	}
                 break;
               case "beschrijving":
                 testCase.setSummary(flowWorkbookReader.readProperty(row, firstCell));
@@ -215,7 +220,7 @@ public class TestCaseBuilder
                 testCase.setStatus(TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
                 break;
               case "labels":
-                // Ignore
+                //TODO
                 break;
               case "filter":
                 testCase.setFilter(flowWorkbookReader.readProperty(row, firstCell));  
