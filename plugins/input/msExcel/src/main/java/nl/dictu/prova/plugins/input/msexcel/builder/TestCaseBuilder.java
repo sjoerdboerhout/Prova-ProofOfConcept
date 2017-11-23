@@ -775,7 +775,8 @@ public class TestCaseBuilder
                   rowMap.get("actie").toUpperCase(),
                   locatorName,
                   xPath);
-
+          LOGGER.trace("Sheet {}, Rownumber {}",sheet.getSheetName(), rowNum);
+          
           testAction.setTestRunner(testRunner);
           testAction.setId(sheet.getSheetName() + " | #" + ((rowNum.toInteger())+1));
           
