@@ -844,70 +844,139 @@ public class Selenium implements WebOutputPlugin
     throw new Exception("doValidateElement is not supported yet.");
   }
 
+	private List<String> getCheckStrings(String valueIn) {
+		List<String> lChecks = null;
+		if (valueIn.contains(";")) {
+			try {
+				String[] checks = valueIn.split(";");
+				lChecks = Arrays.asList(checks);
 
+			} catch (Exception eX) {
+				LOGGER.debug("Converting multiple checks to list failed: " + eX);
+				throw eX;
+			}
+		} else {
+			try {
+				lChecks = Arrays.asList(valueIn);
+			} catch (Exception eX) {
+				LOGGER.debug("Adding check to list failed: " + eX);
+				throw eX;
+			}
+		}
+		return lChecks;
+	}  
+
+	private int getTimeout(double timeOut) {
+		int iTimeOut = 0;
+	    try
+	    {
+	    	if (timeOut == 0)
+	    	{
+	    		try
+	    		{
+	    			LOGGER.trace("Timeout not set; setting timeout to default");
+	    			timeOut = Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
+	    		}
+	    		catch(Exception eX)
+	    		{
+	    			LOGGER.debug("Setting default timeout failed: " + eX);
+	    		}
+	    	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
+	    	iTimeOut = Integer.valueOf((int) (timeOut/1000));
+	    	if(iTimeOut < 1) iTimeOut = 1;
+	    	LOGGER.trace("Convertion to seconds complete, timeout is {} seconds", iTimeOut);
+	    	}
+	    }
+	    catch(Exception eX)
+	    {
+	    	LOGGER.debug("Converting to seconds failed: " + eX);
+	    	throw eX;
+	    }
+	    return iTimeOut;
+	}
+	
+	public void doFastValidateText(String xPath, String valueIn, Boolean exists, double timeOut) throws Exception {
+
+		if (this.webdriver == null) {
+			prepareWebdriver();
+		}
+		LOGGER.debug("> FastValidate '{}' with text '{}'", xPath, valueIn);
+
+		try {
+			List<String> lChecks = getCheckStrings(valueIn);
+			int iNumberChecks = lChecks.size();
+			LOGGER.debug(iNumberChecks);
+
+			String htmlPageSource = webdriver.getPageSource();
+
+			String value = "";
+			Boolean bCheck = true;
+			for (String check : lChecks) {
+				LOGGER.debug("Checking: " + check);
+				bCheck = true;
+				while (bCheck) {
+					value = check;
+
+					boolean stringFound = htmlPageSource.contains(check);
+
+					// WebElement element =
+					// webdriver.findElement(By.xpath(xPath));
+					// if(element == null) //|| !element.isEnabled())
+					// {
+					// throw new Exception("Element '" + xPath +
+					// "' not found.");
+					// }
+					// // Get text from element
+					// String text = element.getText()+ "\r\n";
+					// text = text + "Attribute @value: " +
+					// element.getAttribute("value");
+
+					boolean valid = (stringFound && exists) || (!stringFound && !exists);
+
+					if (!valid) {
+						if (exists) {
+							LOGGER.info("The value \"" + value + "\" is not found in the html");
+						} else {
+							Assert.assertTrue("The value \"" + value + "\" is found in the html", valid);
+						}
+					} else {
+						if (exists) {
+							Assert.assertFalse("The value \"" + value + "\" is not found in the html", valid);
+						} else {
+							LOGGER.info("The value \"" + value + "\" is found in the html");
+						}
+					}
+
+					bCheck = false;
+				}
+
+			}
+		} catch (Exception e) {
+			LOGGER.debug("Exception while fast validating text '{}', msg {}.", valueIn, e.getMessage());
+			this.doCaptureScreen("doFastValidateText");
+		}
+
+	}
+  
   @Override
   public void doValidateText(String xPath, String valueIn, Boolean exists, double timeOut) throws Exception
   {
+	if ("/html/body".equals(xPath)) {
+		doFastValidateText(xPath, valueIn, exists, timeOut);
+		return;
+	}
+	  
     if(this.webdriver == null)
     {
       prepareWebdriver();
     }
     
     LOGGER.debug("> Validate '{}' with text '{}'", xPath, valueIn);
-    int iNumberChecks = 1;
-    int iTimeOut = 0;
-    List<String> lChecks = null;
-    if (valueIn.contains(";"))
-	{
-    	try
-	    {
-	    	String [] checks = valueIn.split(";");
-    		lChecks = Arrays.asList(checks);
-	    	iNumberChecks = lChecks.size();
-	    	LOGGER.debug(iNumberChecks);
-	    }
-	    catch(Exception eX)
-	    {
-	    	LOGGER.debug("Converting multiple checks to list failed: " + eX);
-	    	throw eX;
-	    }
-	}
-	else 
-	{
-		try
-		{
-			lChecks = Arrays.asList(valueIn);
-		}
-		catch(Exception eX)
-		{
-			LOGGER.debug("Adding check to list failed: " + eX);
-	    	throw eX;
-		}
-	}
-    try
-    {
-    	if (timeOut == 0)
-    	{
-    		try
-    		{
-    			LOGGER.trace("Timeout not set; setting timeout to default");
-    			timeOut = Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
-    		}
-    		catch(Exception eX)
-    		{
-    			LOGGER.debug("Setting default timeout failed: " + eX);
-    		}
-    	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
-    	iTimeOut = Integer.valueOf((int) (timeOut/1000));
-    	if(iTimeOut < 1) iTimeOut = 1;
-    	LOGGER.trace("Convertion to seconds complete, timeout is {} seconds", iTimeOut);
-    	}
-    }
-    catch(Exception eX)
-    {
-    	LOGGER.debug("Converting to seconds failed: " + eX);
-    	throw eX;
-    }
+    List<String> lChecks = getCheckStrings(valueIn);
+	int iNumberChecks = lChecks.size();
+	LOGGER.debug(iNumberChecks);
+    int iTimeOut = getTimeout(timeOut);    
+
     WebDriverWait wait = new WebDriverWait(webdriver, iTimeOut);
     int count = 0;
     String value = "";
