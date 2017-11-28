@@ -71,7 +71,7 @@ public class TestSuiteBuilderTests {
 	}
 
 	@Test
-	//@Ignore
+	@Ignore
 	public void testCaseBuildMultiplePerWorkbook() throws Exception {
 		String testRootFile =  testRoot + "/functional/gebeurtenissen";
 		
