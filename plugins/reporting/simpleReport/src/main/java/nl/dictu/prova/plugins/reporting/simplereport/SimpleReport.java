@@ -33,7 +33,6 @@ import java.time.format.DateTimeFormatter;
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestAction;
-import nl.dictu.prova.framework.TestBlock;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.framework.TestSuite;
@@ -339,23 +338,6 @@ public class SimpleReport implements ReportingPlugin {
 		pwTestcase.flush();
 	}
 
-
-	protected void addTestBlockSummary(TestCase testCase) {
-		
-		pwTestcase.println("<br><b>TestBlocks summary: </b></br><ul>");
-		
-		for (TestBlock testBlock: testCase.getTestBlocks()) {
-			String color = "green";
-			if (TestStatus.FAILED.equals(testBlock.getStatus())) {
-				color = "red";
-			}
-
-			pwTestcase.println("<li><b>" + testBlock.getName() + " - </b> <font color=\"" + color + "\">" +testBlock.getStatus() + "</font> - " + testBlock.getDescription() + "</li>");
-		}
-		pwTestcase.println("</ul>");
-			
-	}
-	
 	@Override
 	public void logEndTest(TestCase testCase) throws Exception {
 		// Write end testcase report and close stream
@@ -371,7 +353,7 @@ public class SimpleReport implements ReportingPlugin {
 		pwTestcase.println("<br><b>Status testcase: <font color=\"" + color + "\">" + testCase.getStatus()
 				+ "</b></font></br>");
 		
-		addTestBlockSummary(testCase);
+		//addTestBlockSummary(testCase);
 		
 		if (testCase.getStatus().toString().equalsIgnoreCase("passed")) {
 			countPassedTestcases = countPassedTestcases + 1;
@@ -575,24 +557,24 @@ public class SimpleReport implements ReportingPlugin {
 		return fileName.replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("_+", "_");
 	}
 	
-	@Override
-	public void logStartTestBlock(TestBlock testBlock) throws Exception {
-		String color = "white";
-		pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + 
-				"</td><td style=\"width:1200px\">" + "start TestBlock: " + testBlock.getName() + "</td>");
-		pwTestcase.flush();
-	}
-
-	@Override
-	public void logEndTestBlock(TestBlock testBlock) throws Exception {
-		String color = "white";
-		if (TestStatus.FAILED.equals(testBlock.getStatus())) {
-			color = "red";
-		}
-		pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + testBlock.getStatus()
-				+ "</td><td style=\"width:1200px\">block: "
-				+ testBlock.getName()
-				+ "</td><td style=\"width:200px\"></td></tr>");
-		pwTestsuite.flush();
-	}
+//	@Override
+//	public void logStartTestBlock(TestBlock testBlock) throws Exception {
+//		String color = "white";
+//		pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + 
+//				"</td><td style=\"width:1200px\">" + "start TestBlock: " + testBlock.getName() + "</td>");
+//		pwTestcase.flush();
+//	}
+//
+//	@Override
+//	public void logEndTestBlock(TestBlock testBlock) throws Exception {
+//		String color = "white";
+//		if (TestStatus.FAILED.equals(testBlock.getStatus())) {
+//			color = "red";
+//		}
+//		pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + testBlock.getStatus()
+//				+ "</td><td style=\"width:1200px\">block: "
+//				+ testBlock.getName()
+//				+ "</td><td style=\"width:200px\"></td></tr>");
+//		pwTestsuite.flush();
+//	}
 }

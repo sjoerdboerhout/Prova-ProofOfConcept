@@ -25,7 +25,6 @@ import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
-import nl.dictu.prova.framework.exceptions.TestActionException;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 import org.apache.logging.log4j.LogManager;
@@ -58,8 +57,7 @@ public class TestCase {
 
 	// Test actions lists per type
 	private LinkedList<TestAction> setUpActions = new LinkedList<TestAction>();
-	private LinkedList<TestBlock> testBlocks = new LinkedList<TestBlock>();
-	private TestBlock currentTestBlock = null;
+	private LinkedList<TestAction> testActions      = new LinkedList<TestAction>();
 	private LinkedList<TestAction> tearDownActions = new LinkedList<TestAction>();
 
 	/**
@@ -248,21 +246,14 @@ public class TestCase {
 		setUpActions.add(setUpAction);
 	}
 
-	public void createTestBlock(String name, String description) {
-		TestBlock testBlock = new TestBlock(name);
-		testBlock.setDescription(description);
-		LOGGER.debug("Add test block {}", () -> testBlock.toString());
-		getTestBlocks().add(testBlock);
-		currentTestBlock = testBlock;
-	}
-
 	/**
 	 * @param testAction
 	 *            the testActions to set
 	 */
 	public void addTestAction(TestAction testAction) {
 		LOGGER.debug("Add test action {}", () -> testAction.toString());
-		currentTestBlock.addTestAction(testAction);
+		testActions.add(testAction);  
+		//currentTestBlock.addTestAction(testAction);
 	}
 
 	/**
@@ -340,50 +331,17 @@ public class TestCase {
 
 		// Execute all test actions if set up succeeded
 		if (exception == null) {
-			try {
 				this.setStatus(TestStatus.PASSED);
 				
-				for (TestBlock testBlock : getTestBlocks()) {
-					
-					//check if testBlock name matches the filter, if not, don't execute this testblock
-					if (!testBlock.getName().matches(this.getFilter()))  {
-						LOGGER.info("Block {} does not match testcase filter, it will not be executed, continuing with next block.", testBlock);
-						continue;
+				//TestAction currentTestAction = null;
+				try {
+					for (TestAction testAction : getTestActions()) {
+						//currentTestAction = testAction;
+						executeAction(testAction, waitTime);
 					}
-					
-					testBlock.setStatus(TestStatus.PASSED);
-					
-					for (ReportingPlugin reportPlugin : testRunner.getReportingPlugins()) {
-						LOGGER.debug("Report: start testBlock");
-						reportPlugin.logStartTestBlock(testBlock);
-					}
-
-					TestAction currentTestAction = null;
-					try {
-						for (TestAction testAction : testBlock.getTestActions()) {
-							currentTestAction = testAction;
-							executeAction(testAction, waitTime);
-						}
-					} catch (Exception e) {
-						LOGGER.error("Exception while excuting action {} in block {} ", currentTestAction, testBlock, e);
-						LOGGER.info("Execution of block {} halted, continuing with next block.", testBlock);
-						this.setStatus(TestStatus.FAILED);
-						testBlock.setStatus(TestStatus.FAILED);
-					}
-					for (ReportingPlugin reportPlugin : testRunner.getReportingPlugins()) {
-						LOGGER.debug("Report: end testBlock");
-						reportPlugin.logEndTestBlock(testBlock);
-					}
-
+				} catch (Exception e) {
+					this.setStatus(TestStatus.FAILED);
 				}
-
-			} catch (Exception eX) {
-				LOGGER.error(eX);
-				this.setStatus(TestStatus.FAILED);
-				this.setSummary(eX.getMessage());
-				eX.printStackTrace();
-				exception = new TestActionException(eX.getMessage());
-			}
 		}
 
 		// Always execute the tear down actions
@@ -411,8 +369,8 @@ public class TestCase {
 			throw exception;
 	}
 
-	public LinkedList<TestBlock> getTestBlocks() {
-		return testBlocks;
+	public LinkedList<TestAction> getTestActions() {
+		return testActions;
 	}
 
 	/**
@@ -422,7 +380,7 @@ public class TestCase {
 	public void clearAllActions() {
 		try {
 			setUpActions.clear();
-			getTestBlocks().clear();
+			getTestActions().clear();
 			tearDownActions.clear();
 		} catch (Exception eX) {
 			LOGGER.warn("Exception whie clearing test actions for TC '{}'", this.getId(), eX);
@@ -437,7 +395,7 @@ public class TestCase {
 	@Override
 	public String toString() {
 		return String.format("ID: %s (Setup: %d, Actions: %d, Teardown: %d)", id, this.setUpActions.size(),
-				this.getTestBlocks().size(), this.tearDownActions.size());
+				this.getTestActions().size(), this.tearDownActions.size());
 	}
 
 	public String getFilter() {

@@ -19,6 +19,7 @@
  */
 package nl.dictu.prova.runners.cli;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -206,6 +207,7 @@ public class Cli extends ProvaRunner
     try
     {
       LOGGER.trace("Configure all CLI options");
+      //TODO, eigenlijk kunnen deze opties weg vanwege generieke opties via reflectie. Of behouden als shortcuts.
       configureCliOption("c", "config",   true,  "fileName",     '=', "Set configuration file");
       configureCliOption("e", "env",      true,  "environment",  '=', "Set environment for executing the test scripts");
       configureCliOption("f", "filters",  true,  "filter(s)",    '=', "Only test scripts with these filter(s) are executed");
@@ -218,6 +220,15 @@ public class Cli extends ProvaRunner
       configureCliOption("t", "timeout",  true,  "milliseconds", '=', "Timeout for test actions before failing");
       configureCliOption("u", "uitvoeren",true,  "ja/nee",       '=', "Testen uitvoeren of alleen valideren?");
       configureCliOption("v", "version",  false, "",             ' ', "Display version information");
+      
+      //expose all fields from config as commandline options via reflection
+      Field[] configOptionFields = Config.class.getFields();
+      for(Field f:configOptionFields) {
+          f.setAccessible(true); // you need this if variables are private
+          String fieldName = (String) f.get(null);
+          fieldName = fieldName.replace(".", "_");
+    	  configureCliOption(fieldName, fieldName,true,"value",'=', fieldName);
+      }
       
       LOGGER.trace("Parse CLI options");
       cmdLine = cmdLineParser.parse(options, args);      
@@ -237,6 +248,15 @@ public class Cli extends ProvaRunner
       if(cmdLine.hasOption("timeout"))    properties.setProperty(Config.PROVA_TIMEOUT,                cmdLine.getOptionValue("timeout"));
       if(cmdLine.hasOption("uitvoeren"))  properties.setProperty(Config.PROVA_TESTS_EXECUTE,          cmdLine.getOptionValue("uitvoeren"));
 
+      for(Field f:configOptionFields) {
+          f.setAccessible(true); // you need this if variables are private
+          String fieldName = (String) f.get(null);
+          fieldName = fieldName.replace(".", "_");
+          if(cmdLine.hasOption(fieldName)) {
+        	  properties.setProperty(f.getName(),cmdLine.getOptionValue(fieldName));
+          }
+      }
+      
       LOGGER.debug("Found {} option(s) on the command line", properties.size());
       
       if(LOGGER.isTraceEnabled())         

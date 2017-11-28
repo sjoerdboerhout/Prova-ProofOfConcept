@@ -193,7 +193,9 @@ public class TestCaseBuilder
               case "tcid":
             	// read tcid value, it should be the same as current testcase id. If not, skip sheet.
             	String tcid = flowWorkbookReader.readProperty(row, firstCell);
-            	if (!testCase.getId().equals(tcid)) {
+            	// get string after last / char. 
+            	String testCaseIdShort = testCase.getId().replaceAll(".+/", "");
+            	if (!testCaseIdShort.equals(tcid)) {
             		LOGGER.info("Skipping sheet with Testcase definition with id {}",tcid);
             		return;
             	}
@@ -561,7 +563,6 @@ public class TestCaseBuilder
           readTestActionsFromReference(testCase, rowMap, "setup").forEach(testCase::addSetUpAction);
           break;
         case "test":
-          testCase.createTestBlock(rowMap.get("test"), rowMap.get("opmerking"));
           readTestActionsFromReference(testCase, rowMap, "test").forEach(testCase::addTestAction);
           break;
         case "teardown":

@@ -21,7 +21,6 @@ package nl.dictu.prova.plugins.reporting;
 
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestAction;
-import nl.dictu.prova.framework.TestBlock;
 import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.framework.TestSuite;
 
@@ -44,9 +43,6 @@ public interface ReportingPlugin
   public void logStartTest(TestCase testCase) throws Exception;  
   public void logEndTest(TestCase testCase) throws Exception;
 
-  public void logStartTestBlock(TestBlock testBlock) throws Exception;  
-  public void logEndTestBlock(TestBlock testBlock) throws Exception;
-  
   public void logAction(TestAction action, String status, long time) throws Exception;  
   
   public void logMessage(String message) throws Exception;

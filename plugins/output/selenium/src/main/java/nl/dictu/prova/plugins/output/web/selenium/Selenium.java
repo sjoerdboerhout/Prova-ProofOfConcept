@@ -902,14 +902,15 @@ public class Selenium implements WebOutputPlugin
 		}
 		LOGGER.debug("> FastValidate '{}' with text '{}'", xPath, valueIn);
 
+		List<String> lChecks = getCheckStrings(valueIn);
+		int iNumberChecks = lChecks.size();
+		LOGGER.debug(iNumberChecks);
+
+		String htmlPageSource = webdriver.getPageSource();
+
+		String value = "";
 		try {
-			List<String> lChecks = getCheckStrings(valueIn);
-			int iNumberChecks = lChecks.size();
-			LOGGER.debug(iNumberChecks);
-
-			String htmlPageSource = webdriver.getPageSource();
-
-			String value = "";
+			
 			Boolean bCheck = true;
 			for (String check : lChecks) {
 				LOGGER.debug("Checking: " + check);
@@ -933,17 +934,17 @@ public class Selenium implements WebOutputPlugin
 
 					boolean valid = (stringFound && exists) || (!stringFound && !exists);
 
-					if (!valid) {
+					if (valid) {
 						if (exists) {
-							LOGGER.info("The value \"" + value + "\" is not found in the html");
+							LOGGER.info("The value \"" + value + "\" is found in the html");							
 						} else {
-							Assert.assertTrue("The value \"" + value + "\" is found in the html", valid);
+							LOGGER.info("The value \"" + value + "\" is not found in the html");
 						}
 					} else {
 						if (exists) {
-							Assert.assertFalse("The value \"" + value + "\" is not found in the html", valid);
+							throw new Exception("The value \"" + value + "\" is not found in the html");
 						} else {
-							LOGGER.info("The value \"" + value + "\" is found in the html");
+							throw new Exception("The value \"" + value + "\" is found in the html");
 						}
 					}
 
@@ -952,8 +953,10 @@ public class Selenium implements WebOutputPlugin
 
 			}
 		} catch (Exception e) {
-			LOGGER.debug("Exception while fast validating text '{}', msg {}.", valueIn, e.getMessage());
+			LOGGER.info("Exception while fast validating text '{}', msg {}.", value, e.getMessage());
+			LOGGER.debug("PageSource " + htmlPageSource);
 			this.doCaptureScreen("doFastValidateText");
+			throw e;
 		}
 
 	}
