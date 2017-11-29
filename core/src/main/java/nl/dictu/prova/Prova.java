@@ -566,7 +566,7 @@ public class Prova implements Runnable, TestRunner
 		// Filter on labels per testcase if labels are present.
 		String labelFilterString = properties.getProperty(Config.PROVA_TESTS_FILTERS);
 
-		if (labelFilterString != null) {
+		if (labelFilterString != null && !"".equals(labelFilterString.trim())) {
 			List<String> labelFilters = new ArrayList<String>(Arrays.asList(labelFilterString.split(",")));
 			if (labelFilters.size() > 0) {
 				LOGGER.debug("Checking label filters '{}' for testcase with labels {}.", labelFilterString, testCase.getLabels());
