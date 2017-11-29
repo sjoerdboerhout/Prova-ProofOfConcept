@@ -175,6 +175,8 @@ public class TestCaseBuilder
     
     LOGGER.trace("Parsing sheet '{}'", sheet.getSheetName());
 
+    boolean tcidFound = false;
+    
     while (rowNum.intValue() < sheet.getLastRowNum())
     {
       Row row = sheet.getRow(rowNum.intValue());
@@ -188,56 +190,65 @@ public class TestCaseBuilder
           {
             String tagName = flowWorkbookReader.getTagName(firstCellContent);
             LOGGER.trace("Found tag: {}", tagName);
-            switch (tagName)
-            {
-              case "tcid":
-            	// read tcid value, it should be the same as current testcase id. If not, skip sheet.
-            	String tcid = flowWorkbookReader.readProperty(row, firstCell);
-            	// get string after last / char. 
-            	String testCaseIdShort = testCase.getId().replaceAll(".+/", "");
-            	if (!testCaseIdShort.equals(tcid)) {
-            		LOGGER.info("Skipping sheet with Testcase definition with id {}",tcid);
-            		return;
-            	}
-                break;
-              case "beschrijving":
-                testCase.setSummary(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "functionaliteit":
-                // TODO add field to TestCase
-                break;
-              case "issueid":
-                testCase.setIssueId(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "prioriteit":
-                testCase.setPriority(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "project":
-                testCase.setProjectName(flowWorkbookReader.readProperty(row, firstCell));
-                break;
-              case "requirement":
-                // TODO add field to TestCase
-                break;
-              case "status":
-                testCase.setStatus(TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
-                break;
-              case "labels":
-                //TODO
-                break;
-              case "filter":
-                testCase.setFilter(flowWorkbookReader.readProperty(row, firstCell));  
-                break;
-              case "profile":
-                readSelectedProfile(this.workbook, sheet, rowNum);
-                break;
-              case "setup":
-              case "test":
-              case "teardown":
-                parseTestCaseSection(testCase, sheet, rowNum, tagName);
-                break;
-              default:
-                LOGGER.warn("Ignoring unknown tag {} ({})", tagName, testCase.getId());
-            }
+            
+            if (!tcidFound) {
+            	//first tag on sheet tag should be tcid
+	            if  (tagName.equals("tcid")) {
+	            	tcidFound = true;
+	            
+		          	// read tcid value, it should be the same as current testcase id. If not, skip sheet.
+		          	String tcid = flowWorkbookReader.readProperty(row, firstCell);
+		          	// get string after last / char. 
+		          	String testCaseIdShort = testCase.getId().replaceAll(".+/", "");
+		          	if (!testCaseIdShort.equals(tcid)) {
+		          		LOGGER.info("Skipping sheet with Testcase definition with id {}",tcid);
+		          		return;
+		          	} 
+	            }
+            } else {
+	            switch (tagName)
+	            {
+	              case "tcid":
+	            	throw new Exception(String.format("Multiple TCID tags on one sheet %s, this is not allowed",sheet.getSheetName())); 
+	              case "beschrijving":
+	                testCase.setSummary(flowWorkbookReader.readProperty(row, firstCell));
+	                break;
+	              case "functionaliteit":
+	                // TODO add field to TestCase
+	                break;
+	              case "issueid":
+	                testCase.setIssueId(flowWorkbookReader.readProperty(row, firstCell));
+	                break;
+	              case "prioriteit":
+	                testCase.setPriority(flowWorkbookReader.readProperty(row, firstCell));
+	                break;
+	              case "project":
+	                testCase.setProjectName(flowWorkbookReader.readProperty(row, firstCell));
+	                break;
+	              case "requirement":
+	                // TODO add field to TestCase
+	                break;
+	              case "status":
+	                testCase.setStatus(TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
+	                break;
+	              case "labels":
+	                //TODO
+	                break;
+	              case "filter":
+	                testCase.setFilter(flowWorkbookReader.readProperty(row, firstCell));  
+	                break;
+	              case "profile":
+	                readSelectedProfile(this.workbook, sheet, rowNum);
+	                break;
+	              case "setup":
+	              case "test":
+	              case "teardown":
+	                parseTestCaseSection(testCase, sheet, rowNum, tagName);
+	                break;
+	              default:
+	                LOGGER.warn("Ignoring unknown tag {} ({})", tagName, testCase.getId());
+	            }
+            }   
           }
         }
       }
