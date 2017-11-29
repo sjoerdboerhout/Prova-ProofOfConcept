@@ -30,6 +30,17 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.functors.NotNullPredicate;
+import org.apache.commons.lang.mutable.MutableInt;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.ActionFactory;
@@ -43,17 +54,6 @@ import nl.dictu.prova.framework.web.WebActionFactory;
 import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 import nl.dictu.prova.plugins.input.msexcel.reader.WorkbookReader;
 import nl.dictu.prova.plugins.input.msexcel.validator.SheetPrefixValidator;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.functors.NotNullPredicate;
-import org.apache.commons.lang.mutable.MutableInt;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 /**
  * @author Hielke de Haan
@@ -209,12 +209,6 @@ public class TestCaseBuilder {
 								case "status":
 									testCase.setStatus(
 											TestStatus.valueOf(flowWorkbookReader.readProperty(row, firstCell)));
-									break;
-								case "labels":
-									// TODO
-									break;
-								case "filter":
-									testCase.setFilter(flowWorkbookReader.readProperty(row, firstCell));
 									break;
 								case "profile":
 									readSelectedProfile(this.workbook, sheet, rowNum);

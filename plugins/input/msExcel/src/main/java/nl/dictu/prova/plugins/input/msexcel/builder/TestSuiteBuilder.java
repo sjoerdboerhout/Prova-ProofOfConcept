@@ -93,14 +93,14 @@ public class TestSuiteBuilder
 									// if it isn't, ignore the sheet
 									String tagName = workbookReader.getTagName(cellContent);
 									LOGGER.trace("Found tag: {}", tagName);
-									
+
 									if (!firstTagIsTcid) {
 										if (!tagName.equals("tcid")) {
 											break; // ignore sheet
 										}
 										firstTagIsTcid = true;
 									}
-									
+
 									if ("tcid".equals(tagName)) {
 										testDataSets = collectDataSets(excelFile.getParentFile().getPath(),
 												getFileNameWithoutExtension(excelFile.getName()),
@@ -128,7 +128,14 @@ public class TestSuiteBuilder
 											testCase.setTestRunner(testSuite.getTestRunner());
 											testSuite.addTestCase(testCase);
 										}
-									} 
+										//Read labels in this stage to allow for filtering on label.
+									} else if ("labels".equals(tagName)) {
+										String labelString = workbookReader.fetchProperty(row, cell);
+										if (labelString != null) {
+											testCase.setLabels(labelString);
+										}
+									}
+
 								}
 							}
 						}

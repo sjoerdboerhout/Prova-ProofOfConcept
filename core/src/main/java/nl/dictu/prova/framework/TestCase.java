@@ -19,16 +19,19 @@
  */
 package nl.dictu.prova.framework;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.exceptions.SetUpActionException;
 import nl.dictu.prova.framework.exceptions.TearDownActionException;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * Contains all the data of a test case including a list of all actions that are
@@ -52,8 +55,8 @@ public class TestCase {
 	private String issueId = "";
 	private String priority = "";
 	
-	//A filter, in regexp syntax, for filtering testblocks by name. Only testblocks matching the filter are executed.
-	private String filter = ".*";
+	//Labels for this testcase. This allows for filtering on testcases using a label 
+	private List<String> labels = new ArrayList<String>();
 
 	// Test actions lists per type
 	private LinkedList<TestAction> setUpActions = new LinkedList<TestAction>();
@@ -398,12 +401,26 @@ public class TestCase {
 				this.getTestActions().size(), this.tearDownActions.size());
 	}
 
-	public String getFilter() {
-		return filter;
+	public List<String> getLabels() {
+		return labels;
+	}
+	
+	/**
+	 * Determines is this testcase has the label given.
+	 * 
+	 * @param label
+	 * @return
+	 */
+	public boolean hasLabel(String label) {
+		return labels.contains(label);
 	}
 
-	public void setFilter(String filter) {
-		this.filter = filter;
+	/**
+	 * Fill label list using commaseparated string
+	 * @param labelString
+	 */
+	public void setLabels(String labelString) {
+		this.labels = Arrays.asList(labelString.split(","));
 	}
 
 }
