@@ -964,10 +964,10 @@ public class Selenium implements WebOutputPlugin
   @Override
   public void doValidateText(String xPath, String valueIn, Boolean exists, double timeOut) throws Exception
   {
-	if ("/html/body".equals(xPath)) {
-		doFastValidateText(xPath, valueIn, exists, timeOut);
-		return;
-	}
+//	if ("/html/body".equals(xPath)) {
+//		doFastValidateText(xPath, valueIn, exists, timeOut);
+//		return;
+//	}
 	  
     if(this.webdriver == null)
     {
