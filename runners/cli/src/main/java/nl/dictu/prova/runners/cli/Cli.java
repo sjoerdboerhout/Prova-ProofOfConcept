@@ -251,9 +251,9 @@ public class Cli extends ProvaRunner
       for(Field f:configOptionFields) {
           f.setAccessible(true); // you need this if variables are private
           String fieldName = (String) f.get(null);
-          fieldName = fieldName.replace(".", "_");
-          if(cmdLine.hasOption(fieldName)) {
-        	  properties.setProperty(f.getName(),cmdLine.getOptionValue(fieldName));
+          String fieldNameKey = fieldName.replace(".", "_");
+          if(cmdLine.hasOption(fieldNameKey)) {
+        	  properties.setProperty(fieldName,cmdLine.getOptionValue(fieldNameKey));
           }
       }
       
