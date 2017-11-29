@@ -19,11 +19,11 @@
  */
 package nl.dictu.prova.plugins.input.msexcel.builder;
 
-import nl.dictu.prova.TestRunner;
-import nl.dictu.prova.framework.TestCase;
-import nl.dictu.prova.framework.TestSuite;
-import nl.dictu.prova.plugins.input.msexcel.reader.WorkbookReader;
-import nl.dictu.prova.plugins.input.msexcel.validator.SheetPrefixValidator;
+import java.io.File;
+import java.io.FileFilter;
+import java.util.Arrays;
+import java.util.LinkedList;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,12 +33,11 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.File;
-import java.io.FileFilter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.ListIterator;
-import java.util.Map;
+import nl.dictu.prova.TestRunner;
+import nl.dictu.prova.framework.TestCase;
+import nl.dictu.prova.framework.TestSuite;
+import nl.dictu.prova.plugins.input.msexcel.reader.WorkbookReader;
+import nl.dictu.prova.plugins.input.msexcel.validator.SheetPrefixValidator;
 
 /**
  * @author Hielke de Haan
@@ -67,85 +66,78 @@ public class TestSuiteBuilder
     return testSuite;
   }
 
-  private TestSuite addTestCases(TestSuite testSuite) throws Exception
-  {
-    File[] excelFiles = new File(testSuite.getId()).listFiles(excelFlowFileFilter);
+	private TestSuite addTestCases(TestSuite testSuite) throws Exception {
+		File[] excelFiles = new File(testSuite.getId()).listFiles(excelFlowFileFilter);
 
-    for (File excelFile : excelFiles)
-    {
-      LOGGER.trace("File: {}", excelFile);
-      Workbook workbook = new XSSFWorkbook(excelFile);
-      WorkbookReader workbookReader = new WorkbookReader(workbook);
-      LinkedList<String> testDataSets = null;
-      TestCase testCase = null;
+		for (File excelFile : excelFiles) {
+			LOGGER.trace("File: {}", excelFile);
+			Workbook workbook = new XSSFWorkbook(excelFile);
+			WorkbookReader workbookReader = new WorkbookReader(workbook);
+			LinkedList<String> testDataSets = null;
+			TestCase testCase = null;
 
-      for (Sheet sheet : workbook)
-      {
-        LOGGER.trace("Sheet: {}", sheet::getSheetName);
-        if (new SheetPrefixValidator(sheet).validate())
-        {
-          for (Row row : sheet)
-          {
-            if (row != null)
-            {
-              Cell cell = row.getCell(0);
-              if (cell != null)
-              {
-                String cellContent = workbookReader.evaluateCellContent(cell);
-                String identifier;
-                
-                if (workbookReader.isTag(cellContent))
-                {
-                  // examine the first tag that is encountered and check if it is a [TCID] tag
-                  // if it is, add a new test case to the test suite
-                  // if it isn't, ignore the sheet
-                  String tagName = workbookReader.getTagName(cellContent);
-                  LOGGER.trace("Found tag: {}", tagName);
-                  if ("tcid".equals(tagName))
-                  {
-                    testDataSets = collectDataSets( excelFile.getParentFile().getPath(), 
-                                                    getFileNameWithoutExtension(excelFile.getName()),
-                                                    workbookReader.readProperty(row, cell),
-                                                    "testdata");
-                    
-                    if(testDataSets.size() > 0 & new SheetPrefixValidator(sheet).validate("WEB"))
-                    {
-                      for(int i=0; i<testDataSets.size(); i++)
-                      {
-                        identifier = excelFile.getPath() + 
-                                     File.separator + 
-                                     workbookReader.readProperty(row, cell) +
-                                     File.separator + File.separator +
-                                     testDataSets.get(i);
-                        
-                        LOGGER.debug("Create TestCase: '{}' (with data file)", identifier);
-                        
-                        testCase = new TestCase(identifier);
-                        testCase.setTestRunner(testSuite.getTestRunner());
-                        testSuite.addTestCase(testCase);
-                      }
-                    }
-                    else
-                    {
-                      // No data file found. Just create one test case.
-                      identifier = excelFile.getPath() + File.separator + workbookReader.readProperty(row, cell);
-                      
-                      LOGGER.debug("Create TestCase: '{}' (no data file)", identifier);
-                      testCase = new TestCase(identifier);
-                      testCase.setTestRunner(testSuite.getTestRunner());
-                      testSuite.addTestCase(testCase);
-                    }
-                  }
-                  break; // exit for
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return testSuite;
-  }
+			for (Sheet sheet : workbook) {
+				LOGGER.trace("Sheet: {}", sheet::getSheetName);
+				boolean firstTagIsTcid = false;
+				if (new SheetPrefixValidator(sheet).validate()) {
+					for (Row row : sheet) {
+						if (row != null) {
+							Cell cell = row.getCell(0);
+							if (cell != null) {
+								String cellContent = workbookReader.evaluateCellContent(cell);
+								String identifier;
+
+								if (workbookReader.isTag(cellContent)) {
+									// examine the first tag that is encountered and check if it is a [TCID] tag
+									// if it is, add a new test case to the test suite
+									// if it isn't, ignore the sheet
+									String tagName = workbookReader.getTagName(cellContent);
+									LOGGER.trace("Found tag: {}", tagName);
+									
+									if (!firstTagIsTcid) {
+										if (!tagName.equals("tcid")) {
+											break; // ignore sheet
+										}
+										firstTagIsTcid = true;
+									}
+									
+									if ("tcid".equals(tagName)) {
+										testDataSets = collectDataSets(excelFile.getParentFile().getPath(),
+												getFileNameWithoutExtension(excelFile.getName()),
+												workbookReader.readProperty(row, cell), "testdata");
+
+										if (testDataSets.size() > 0 & new SheetPrefixValidator(sheet).validate("WEB")) {
+											for (int i = 0; i < testDataSets.size(); i++) {
+												identifier = excelFile.getPath() + File.separator
+														+ workbookReader.readProperty(row, cell) + File.separator
+														+ File.separator + testDataSets.get(i);
+
+												LOGGER.debug("Create TestCase: '{}' (with data file)", identifier);
+
+												testCase = new TestCase(identifier);
+												testCase.setTestRunner(testSuite.getTestRunner());
+												testSuite.addTestCase(testCase);
+											}
+										} else {
+											// No data file found. Just create one test case.
+											identifier = excelFile.getPath() + File.separator
+													+ workbookReader.readProperty(row, cell);
+
+											LOGGER.debug("Create TestCase: '{}' (no data file)", identifier);
+											testCase = new TestCase(identifier);
+											testCase.setTestRunner(testSuite.getTestRunner());
+											testSuite.addTestCase(testCase);
+										}
+									} 
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return testSuite;
+	}
 
   /**
    * Scan for data files for the given test case.
