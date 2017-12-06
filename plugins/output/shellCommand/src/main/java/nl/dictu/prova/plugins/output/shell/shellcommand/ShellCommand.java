@@ -8,56 +8,67 @@ import nl.dictu.prova.plugins.output.ShellOutputPlugin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class ShellCommand implements ShellOutputPlugin {
+public class ShellCommand implements ShellOutputPlugin
+{
+  
+  final static Logger LOGGER = LogManager.getLogger();
+  
+  private TestRunner testRunner;
 
-    final static Logger LOGGER = LogManager.getLogger();
+  @Override
+  public String getName()
+  {
+    return "ShellCommand";
+  }
 
-    private TestRunner testRunner;
+  @Override
+  public void init(TestRunner tr) throws Exception
+  {
+    LOGGER.debug("Init: output plugin Soap messaging!");
 
-    @Override
-    public String getName() {
-        return "ShellCommand";
+    if (tr == null)
+    {
+      throw new Exception("No testRunner supplied!");
     }
 
-    @Override
-    public void init(TestRunner tr) throws Exception {
-        LOGGER.debug("Init: output plugin Soap messaging!");
+    this.testRunner = testRunner;
+  }
 
-        if (tr == null) {
-            throw new Exception("No testRunner supplied!");
-        }
+  @Override
+  public void shutDown()
+  {
+  }
 
-        this.testRunner = testRunner;
+  @Override
+  public void setUp(TestCase tc) throws Exception
+  {
+  }
+  
+  @Override
+  public void doExecute(String string) throws Exception
+  {
+    try
+    {
+      StringBuffer sb = new StringBuffer();
+      Process p = Runtime.getRuntime().exec(string);
+      p.waitFor();
+
+      BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+      String line = "";
+
+      while ((line = reader.readLine())!= null) 
+      {
+        sb.append(line + "\n");
+      }
+
+      LOGGER.info("Command succesfully executed.");
+      LOGGER.trace(sb.toString());
     }
-
-    @Override
-    public void shutDown() {
+    catch(Exception ex)
+    {
+      LOGGER.error(ex);
     }
-
-    @Override
-    public void setUp(TestCase tc) throws Exception {
-    }
-
-    @Override
-    public void doExecute(String string) throws Exception {
-        try {
-            StringBuffer sb = new StringBuffer();
-            Process p = Runtime.getRuntime().exec(string);
-            p.waitFor();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-            String line = "";
-
-            while ((line = reader.readLine()) != null) {
-                sb.append(line + "\n");
-            }
-
-            LOGGER.info("Command succesfully executed.");
-            LOGGER.trace(sb.toString());
-        } catch (Exception ex) {
-            LOGGER.error(ex);
-        }
-    }
-
+  }
+  
 }

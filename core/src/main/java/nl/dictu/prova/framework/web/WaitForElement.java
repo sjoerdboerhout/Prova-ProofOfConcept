@@ -26,110 +26,119 @@ import nl.dictu.prova.framework.parameters.TimeOut;
 import nl.dictu.prova.framework.parameters.Xpath;
 
 /**
- * Handles the Prova function 'wait for element' to wait until the given element is (not) available on the web page.
+ * Handles the Prova function 'wait for element' to wait until the given element
+ * is (not) available on the web page.
  * 
- * @author Robert Bralts
- * @since 0.0.1
+ * @author  Robert Bralts
+ * @since   0.0.1
  */
-public class WaitForElement extends TestAction {
-    // Action attribute names
-    public final static String ATTR_XPATH = "XPATH";
-    public final static String ATTR_TYPE = "TYPE";
-    public final static String ATTR_VALUE = "VALUE";
-    public final static String ATTR_TIMEOUT = "TIMEOUT";
+public class WaitForElement extends TestAction
+{
+  // Action attribute names
+  public final static String ATTR_XPATH    = "XPATH";
+  public final static String ATTR_TYPE    = "TYPE";
+  public final static String ATTR_VALUE   = "VALUE";
+  public final static String ATTR_TIMEOUT  = "TIMEOUT";
+   
+  private Xpath   xPath;
+  private Text  type;
+  private Bool    text;
+  private TimeOut timeOut;
 
-    private Xpath xPath;
-    private Text type;
-    private Bool text;
-    private TimeOut timeOut;
+  
+  /**
+   * Constructor
+   * @throws Exception 
+   */
+  public WaitForElement() throws Exception
+  {
+    super();
+ 
+    // Create parameters with (optional) defaults and limits
+    xPath = new Xpath();
+    type = new Text();
+    text = new Bool(true);
+    timeOut = new TimeOut();
+  }
 
-    /**
-     * Constructor
-     * 
-     * @throws Exception
-     */
-    public WaitForElement() throws Exception {
-        super();
-
-        // Create parameters with (optional) defaults and limits
-        xPath = new Xpath();
-        type = new Text();
-        text = new Bool(true);
-        timeOut = new TimeOut();
+  
+  /**
+   * Set attribute <key> with <value>
+   * - Unknown attributes are ignored
+   * - Invalid values result in an exception
+   * 
+   * @param key
+   * @param value
+   * @throws Exception
+   */
+  @Override
+  public void setAttribute(String key, String value) throws Exception
+  {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    
+    switch(key.toUpperCase())
+    {
+      case ATTR_XPATH:  
+        xPath.setValue(value); 
+      break;
+      case ATTR_TYPE:
+        type.setValue(value);
+      break;
+      case ATTR_PARAMETER:
+      case ATTR_VALUE:
+        text.setValue(value); 
+      break;
+      
+      case ATTR_TIMEOUT:
+        timeOut.setValue(value); 
+      break;
     }
+    
+    xPath.setAttribute(key, value);
+  }
+  
 
-    /**
-     * Set attribute <key> with <value> - Unknown attributes are ignored - Invalid values result in an exception
-     * 
-     * @param key
-     * @param value
-     * @throws Exception
-     */
-    @Override
-    public void setAttribute(String key, String value) throws Exception {
-        LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+  /**
+   * Check if all requirements are met to execute this action
+   */
+  @Override
+  public boolean isValid()
+  {
+    if(testRunner == null)  return false;
+    if(!xPath.isValid())    return false;
+    if(!type.isValid())    return false;
+    if(!text.isValid())   return false;
+    if(!timeOut.isValid())  return false;
+    
+    return true;
+  }
 
-        switch (key.toUpperCase()) {
-        case ATTR_XPATH:
-            xPath.setValue(value);
-            break;
-        case ATTR_TYPE:
-            type.setValue(value);
-            break;
-        case ATTR_PARAMETER:
-        case ATTR_VALUE:
-            text.setValue(value);
-            break;
 
-        case ATTR_TIMEOUT:
-            timeOut.setValue(value);
-            break;
-        }
+  /**
+   * Execute this action in the active output plug-in
+   */
+  @Override
+  public void execute() throws Exception
+  {
+    LOGGER.trace("> Execute test action: {}", () -> this.toString());
+    
+    if(!isValid())
+      throw new Exception("Action is not validated!");
+    
+    testRunner.getWebActionPlugin().doWaitForElement(xPath.getValue(), type.getValue() , text.getValue(), timeOut.getValue());
+  }
 
-        xPath.setAttribute(key, value);
-    }
 
-    /**
-     * Check if all requirements are met to execute this action
-     */
-    @Override
-    public boolean isValid() {
-        if (testRunner == null)
-            return false;
-        if (!xPath.isValid())
-            return false;
-        if (!type.isValid())
-            return false;
-        if (!text.isValid())
-            return false;
-        if (!timeOut.isValid())
-            return false;
-
-        return true;
-    }
-
-    /**
-     * Execute this action in the active output plug-in
-     */
-    @Override
-    public void execute() throws Exception {
-        LOGGER.trace("> Execute test action: {}", () -> this.toString());
-
-        if (!isValid())
-            throw new Exception("Action is not validated!");
-
-        testRunner.getWebActionPlugin().doWaitForElement(xPath.getValue(), type.getValue(), text.getValue(),
-                timeOut.getValue());
-    }
-
-    /**
-     * Return a string representation of the objects content
-     * 
-     * @return
-     */
-    @Override
-    public String toString() {
-        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': Validate that element '" + xPath.getValue()
-                + "' " + (text.getValue() ? "does" : "doesn't ") + "exist. " + "TimeOut: " + timeOut.getValue());
-    }
+  /**
+   * Return a string representation of the objects content
+   * 
+   * @return 
+   */
+  @Override
+  public String toString()
+  {
+    return("'" + this.getClass().getSimpleName().toUpperCase() + "': Validate that element '" + xPath.getValue() + "' " +
+           (text.getValue() ? "does" : "doesn't ") + "exist. " +
+           "TimeOut: " + timeOut.getValue());
+  }
 }
