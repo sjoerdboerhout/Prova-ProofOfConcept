@@ -35,20 +35,18 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Hielke de Haan
  */
-public class SheetPrefixValidatorTests
-{
-  private Workbook workbook;
+public class SheetPrefixValidatorTests {
+    private Workbook workbook;
 
-  @Before
-  public void setUp() throws IOException
-  {
-    workbook = new XSSFWorkbook(this.getClass().getResourceAsStream("../tests/functional/projectSubsidies/verlening/AVBH/AVBH.xlsm"));
-  }
+    @Before
+    public void setUp() throws IOException {
+        workbook = new XSSFWorkbook(
+                this.getClass().getResourceAsStream("../tests/functional/projectSubsidies/verlening/AVBH/AVBH.xlsm"));
+    }
 
-  @Test
-  public void testSheetPrefixes()
-  {
-    assertFalse(new SheetPrefixValidator(workbook.getSheetAt(1)).validate());
-    assertTrue(new SheetPrefixValidator(workbook.getSheetAt(2)).validate());
-  }
+    @Test
+    public void testSheetPrefixes() {
+        assertFalse(new SheetPrefixValidator(workbook.getSheetAt(1)).validate());
+        assertTrue(new SheetPrefixValidator(workbook.getSheetAt(2)).validate());
+    }
 }

@@ -25,65 +25,64 @@ import nl.dictu.prova.framework.parameters.TimeOut;
 import static nl.dictu.prova.framework.web.StoreText.ATTR_TIMEOUT;
 
 /**
- * Handles the Prova function 'switchScreen' to switch to the next browser
- * screen or pop-up.
+ * Handles the Prova function 'switchScreen' to switch to the next browser screen or pop-up.
  * 
  * @author Coos van der Galiën
  * @since 0.0.1
  */
 public class SwitchScreen extends TestAction {
 
-  public Text name;
-  public final static String ATTR_NAME  = "NAME";
-  
-	public SwitchScreen() {
-		super();
-    name = new Text();
-	}
+    public Text name;
+    public final static String ATTR_NAME = "NAME";
 
-	/**
-	 * Set attribute <key> with <value> - Unknown attributes are ignored -
-	 * Accepted attributes are: 'parameter' and 'text' Invalid values result in
-	 * an exception
-	 * 
-	 * @param key
-	 * @param value
-	 * @throws Exception
-	 */
-	@Override
-	public void setAttribute(String key, String value) throws Exception {
-		switch(key.trim().toUpperCase())
-    {
-      case ATTR_PARAMETER :
-      case ATTR_NAME      : name.setValue(value);   break;
+    public SwitchScreen() {
+        super();
+        name = new Text();
     }
-	}
 
-	@Override
-	public void execute() throws Exception {
-		LOGGER.trace("> Execute test action: {}", () -> this.toString());
+    /**
+     * Set attribute <key> with <value> - Unknown attributes are ignored - Accepted attributes are: 'parameter' and
+     * 'text' Invalid values result in an exception
+     * 
+     * @param key
+     * @param value
+     * @throws Exception
+     */
+    @Override
+    public void setAttribute(String key, String value) throws Exception {
+        switch (key.trim().toUpperCase()) {
+        case ATTR_PARAMETER:
+        case ATTR_NAME:
+            name.setValue(value);
+            break;
+        }
+    }
 
-		if (!isValid())
-			throw new Exception("Action is not validated!");
+    @Override
+    public void execute() throws Exception {
+        LOGGER.trace("> Execute test action: {}", () -> this.toString());
 
-		testRunner.getWebActionPlugin().doSwitchScreen(name.getValue());
-	}
+        if (!isValid())
+            throw new Exception("Action is not validated!");
 
-	@Override
-	public boolean isValid() {
-		if (testRunner == null)
-			return false;
+        testRunner.getWebActionPlugin().doSwitchScreen(name.getValue());
+    }
 
-		return true;
-	}
+    @Override
+    public boolean isValid() {
+        if (testRunner == null)
+            return false;
 
-	/**
-	 * Return a string representation of the objects content
-	 * 
-	 * @return
-	 */
-	@Override
-	public String toString() {
-		return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
-	}
+        return true;
+    }
+
+    /**
+     * Return a string representation of the objects content
+     * 
+     * @return
+     */
+    @Override
+    public String toString() {
+        return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
+    }
 }

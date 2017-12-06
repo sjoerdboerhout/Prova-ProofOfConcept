@@ -1,63 +1,51 @@
-<?xml version="1.0"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" 
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>nl.dictu</groupId>
         <artifactId>Prova</artifactId>
-        <version>0.1.0-SNAPSHOT</version>   
-        <relativePath>../../../pom.xml</relativePath> 
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../../../pom.xml</relativePath>
     </parent>
-
     <groupId>nl.dictu.prova.plugins.output</groupId>
     <artifactId>apacheSoap</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
     <name>Output plugin: Apache Soap webservices</name>
     <description>Plugin to execute test actions through Soap webservices</description>
-    <packaging>jar</packaging>
-
     <properties>
-        <prova.install.dir>${project.parent.basedir}</prova.install.dir>
-        <artifact.install.dir>${prova.install.dir}/${prova.plugins.output.path}</artifact.install.dir>
-        <artifact.package>nl.dictu.prova.plugins.output.apacheSoap</artifact.package>
-        <artifact.mainclass>ApacheSoap</artifact.mainclass>
-        <dir.lib.rel>../../lib</dir.lib.rel>
-
-        <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
-	
         <apache.httpcomponents.version>4.5.2</apache.httpcomponents.version>
+        <artifact.install.dir>${prova.install.dir}/${prova.plugins.output.path}</artifact.install.dir>
+        <artifact.mainclass>ApacheSoap</artifact.mainclass>
+        <artifact.package>nl.dictu.prova.plugins.output.apacheSoap</artifact.package>
+        <dir.lib.rel>../../lib</dir.lib.rel>
+        <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
+        <prova.install.dir>${project.parent.basedir}</prova.install.dir>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>nl.dictu.prova</groupId>
             <artifactId>core</artifactId>
             <version>${prova.core.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient -->
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${apache.httpcomponents.version}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15 -->
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15</artifactId>
             <version>1.40</version>
         </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <phase>pre-integration-test</phase>
                         <goals>
                             <goal>run</goal>
                         </goals>
@@ -65,23 +53,18 @@
                             <tasks>
                                 <echo>Copy '${project.build.directory}/${artifact.source.name}.jar'</echo>
                                 <echo>To '${artifact.install.dir}/${artifact.dest.name}.jar'</echo>
-
-                                <copy file="${project.build.directory}/${artifact.source.name}.jar"
-                                      tofile="${artifact.install.dir}/${artifact.dest.name}.jar"
-                                      overwrite="true"/>
-
+                                <copy file="${project.build.directory}/${artifact.source.name}.jar" tofile="${artifact.install.dir}/${artifact.dest.name}.jar" overwrite="true"/>
                                 <copy todir="${prova.install.dir}/${prova.lib.path}" overwrite="true">
-                                    <fileset dir="${project.build.directory}/lib"></fileset>
+                                    <fileset dir="${project.build.directory}/lib"/>
                                 </copy>
                             </tasks>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>     
+                <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
                         <manifestEntries>
@@ -97,5 +80,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
