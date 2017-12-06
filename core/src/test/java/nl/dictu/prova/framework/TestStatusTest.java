@@ -35,7 +35,7 @@ public class TestStatusTest
   @Test
   public void checkNumberOfEnums()
   {
-    assertTrue(TestStatus.values().length == 4);
+    assertTrue(TestStatus.values().length == 5);
   }
   
   @Test
@@ -43,6 +43,7 @@ public class TestStatusTest
   {
     assertTrue(TestStatus.NOTRUN.getValue().equals("NotRun"));
     assertTrue(TestStatus.BLOCKED.getValue().equals("Blocked"));
+    assertTrue(TestStatus.COMPLETED.getValue().equals("CompletedWithErrors"));
     assertTrue(TestStatus.PASSED.getValue().equals("Passed"));
     assertTrue(TestStatus.FAILED.getValue().equals("Failed"));
   }
@@ -63,6 +64,13 @@ public class TestStatusTest
     assertTrue(TestStatus.lookup("Blocked").toString().equals("Blocked"));
   }
 
+  @Test
+  public void checkCompleted()
+  {
+    assertTrue(TestStatus.lookup("completed").name().equals("COMPLETED"));
+    assertTrue(TestStatus.lookup("COMPLETED").name().equals("COMPLETED"));
+    assertTrue(TestStatus.lookup("Completed").toString().equals("CompletedWithErrors"));
+  }
   @Test
   public void checkPassed()
   {    

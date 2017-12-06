@@ -48,6 +48,10 @@ target
 *target
 doc
 
+# GIT generated files #
+#######################
+*.orig
+
 # Other files #
 ######################
 _archive

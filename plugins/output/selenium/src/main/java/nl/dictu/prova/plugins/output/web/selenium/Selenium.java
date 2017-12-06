@@ -108,6 +108,8 @@ public class Selenium implements WebOutputPlugin
     maxRetries = Integer.valueOf(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_MAX_RETRIES));
     if(maxRetries < 0) maxRetries = 0;
     
+ 
+    
     LOGGER.debug("Webdriver initialized with timeout: {} ms, max retries: {}", maxTimeOut, maxRetries);
   }
 
@@ -617,6 +619,9 @@ public class Selenium implements WebOutputPlugin
       keys = keys.replace("<ARROWUP>", Keys.ARROW_UP);
       keys = keys.replace("<ARROWDOWN>", Keys.ARROW_DOWN);
       keys = keys.replace("<ENTER>", Keys.ENTER);
+      keys = keys.replace("<DELETE>", Keys.DELETE);
+      keys = keys.replace("<BACKSPACE>", Keys.BACK_SPACE);
+      keys = keys.replace("<CLEAR>", Keys.CLEAR);
       
       //if xPath is not filled, sendKeys to the active element
       if (xPath.equalsIgnoreCase("/html/body"))
@@ -1077,7 +1082,7 @@ public class Selenium implements WebOutputPlugin
 	          LOGGER.debug("Exception while validating text '{}' in '{}': {} (retry count: {})", 
 	                        value, xPath, eX.getMessage(), count);
 	          this.doCaptureScreen("doValidateText");
-	          throw eX;
+	          throw new Exception("Validation Failed: ", eX);
 	        }
 	      }
 	    }

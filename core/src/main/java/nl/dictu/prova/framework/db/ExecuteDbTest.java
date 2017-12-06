@@ -50,10 +50,10 @@ class ExecuteDbTest extends TestAction {
         }
         
         if(testRunner.getDbActionPlugin().doTest(property, test)){
-            result = "succesful";
+            result = "succesfull";
         } else {
-            result = "unsuccesful";
-            throw new Exception("Result is unsuccesful");
+            result = "unsuccesfull";
+            throw new Exception("Result is unsuccesfull");
         }
     }
 
