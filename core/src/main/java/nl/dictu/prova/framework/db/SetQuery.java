@@ -26,56 +26,65 @@ import nl.dictu.prova.framework.TestAction;
  *
  * @author cimangalienc
  */
-class SetQuery extends TestAction {
+class SetQuery extends TestAction
+{
 
-    public final static String ATTR_QUERY = "QUERY";
-    private String query;
+  public final static String ATTR_QUERY = "QUERY";
+  private String query;
 
-    @Override
-    public void setAttribute(String key, String value) throws Exception {
-        LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
-        switch (key) {
-        case (ATTR_QUERY):
-            query = value;
-            LOGGER.trace("Setting attribute query.");
-            break;
-        default:
-            LOGGER.error("Attribute not supported!");
-        }
+  @Override
+  public void setAttribute(String key, String value) throws Exception
+  {
+    LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+    switch (key)
+    {
+      case (ATTR_QUERY):
+        query = value;
+        LOGGER.trace("Setting attribute query.");
+        break;
+      default:
+        LOGGER.error("Attribute not supported!");
     }
+  }
 
-    @Override
-    public void execute() throws Exception {
-        LOGGER.info("> Execute test action: {}", () -> this.getClass().getSimpleName());
-        if (!isValid()) {
-            throw new Exception("testRunner and/or query are not properly set!");
-        }
-        this.testRunner.getDbActionPlugin().doSetQuery(query);
+  @Override
+  public void execute() throws Exception
+  {
+    LOGGER.info("> Execute test action: {}", () -> this.getClass().getSimpleName());
+    if (!isValid())
+    {
+      throw new Exception("testRunner and/or query are not properly set!");
     }
+    this.testRunner.getDbActionPlugin().doSetQuery(query);
+  }
 
-    @Override
-    public boolean isValid() throws Exception {
-        if (testRunner == null) {
-            return false;
-        }
-        if (query == null) {
-            return false;
-        }
-        if (query.length() == 0) {
-            return false;
-        }
-        return true;
+  @Override
+  public boolean isValid() throws Exception
+  {
+    if (testRunner == null)
+    {
+      return false;
     }
+    if (query == null)
+    {
+      return false;
+    }
+    if (query.length() == 0)
+    {
+      return false;
+    }
+    return true;
+  }
 
-    /**
-     * Return a string representation of the objects content
-     *
-     * @return
-     */
-    @Override
-    public String toString() {
-        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': "
-                + query.substring(0, query.length() < 120 ? query.length() : 120) + "'");
-    }
+  /**
+   * Return a string representation of the objects content
+   *
+   * @return
+   */
+  @Override
+  public String toString()
+  {
+    return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + query.substring(0, query.length() < 120 ? query.length() : 120) + "'");
+  }
 
 }

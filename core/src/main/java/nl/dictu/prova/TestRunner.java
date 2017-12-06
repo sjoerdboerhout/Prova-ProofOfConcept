@@ -30,35 +30,27 @@ import nl.dictu.prova.plugins.output.SoapOutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
 /**
- * Describes the functions that must be available for the other parts of the framework to run.
+ * Describes the functions that must be available for the other parts of the 
+ * framework to run.
  * 
- * @author Sjoerd Boerhout
- * @since 2016-04-06
+ * @author  Sjoerd Boerhout
+ * @since   2016-04-06
  */
-public interface TestRunner {
-    public Boolean containsKeywords(String input) throws Exception;
+public interface TestRunner
+{
+  public Boolean                    containsKeywords(String input) throws Exception;
+  public Boolean                    hasPropertyValue(String key);
+  public String                     getPropertyValue(String key) throws Exception;
+  public void                       setPropertyValue(String key, String value) throws Exception;
+  public String                     replaceKeywords(String input) throws Exception;
+  public void                       printAllProperties() throws Exception;
+  
+  public void                       setRootTestSuite(TestSuite testSuite);
 
-    public Boolean hasPropertyValue(String key);
-
-    public String getPropertyValue(String key) throws Exception;
-
-    public void setPropertyValue(String key, String value) throws Exception;
-
-    public String replaceKeywords(String input) throws Exception;
-
-    public void printAllProperties() throws Exception;
-
-    public void setRootTestSuite(TestSuite testSuite);
-
-    public InputPlugin getInputPlugin();
-
-    public WebOutputPlugin getWebActionPlugin();
-
-    public SoapOutputPlugin getSoapActionPlugin();
-
-    public DbOutputPlugin getDbActionPlugin();
-
-    public ShellOutputPlugin getShellActionPlugin();
-
-    public ArrayList<ReportingPlugin> getReportingPlugins();
+  public InputPlugin                getInputPlugin();
+  public WebOutputPlugin            getWebActionPlugin();
+  public SoapOutputPlugin           getSoapActionPlugin();
+  public DbOutputPlugin             getDbActionPlugin();
+  public ShellOutputPlugin          getShellActionPlugin();
+  public ArrayList<ReportingPlugin> getReportingPlugins();
 }

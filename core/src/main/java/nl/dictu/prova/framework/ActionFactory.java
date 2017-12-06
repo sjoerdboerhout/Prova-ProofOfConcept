@@ -26,7 +26,7 @@ import nl.dictu.prova.framework.TestAction;
  * @author CGALIEN
  */
 public interface ActionFactory {
-
+    
     public TestAction getAction(String name) throws Exception;
-
+    
 }

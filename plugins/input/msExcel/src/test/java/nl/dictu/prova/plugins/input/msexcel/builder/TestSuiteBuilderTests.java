@@ -42,80 +42,82 @@ import org.junit.Test;
  * @author Hielke de Haan
  */
 public class TestSuiteBuilderTests {
-    private final static Logger LOGGER = LogManager.getLogger();
-    private String testRoot;
+	private final static Logger LOGGER = LogManager.getLogger();
+	private String testRoot;
 
-    @Before
-    public void setUp() {
-        testRoot = new File(this.getClass().getResource("../CellReaderTests.xlsx").getFile()).getParentFile().getPath()
-                + File.separator + "tests";
-    }
+	@Before
+	public void setUp() {
+		testRoot = new File(this.getClass().getResource("../CellReaderTests.xlsx").getFile()).getParentFile().getPath()
+				+ File.separator + "tests";
+	}
 
-    @Test
-    @Ignore
-    public void testBuildTestSuite() throws Exception {
-        TestSuite testSuite = new TestSuiteBuilder().buildTestSuite(new File(testRoot), null);
-        logTestSuite(testSuite);
-    }
+	@Test
+	@Ignore
+	public void testBuildTestSuite() throws Exception {
+		TestSuite testSuite = new TestSuiteBuilder().buildTestSuite(new File(testRoot), null);
+		logTestSuite(testSuite);
+	}
 
-    private void logTestSuite(TestSuite testSuite) {
-        LOGGER.debug(testSuite.getId() + " (TS)");
+	private void logTestSuite(TestSuite testSuite) {
+		LOGGER.debug(testSuite.getId() + " (TS)");
 
-        LinkedHashMap<String, TestCase> testCases = testSuite.getTestCases();
-        for (Map.Entry<String, TestCase> entry : testCases.entrySet())
-            LOGGER.debug(entry.getValue().getId() + " (TC)");
+		LinkedHashMap<String, TestCase> testCases = testSuite.getTestCases();
+		for (Map.Entry<String, TestCase> entry : testCases.entrySet())
+			LOGGER.debug(entry.getValue().getId() + " (TC)");
 
-        LinkedHashMap<String, TestSuite> testSuites = testSuite.getTestSuites();
-        for (Map.Entry<String, TestSuite> entry : testSuites.entrySet())
-            logTestSuite(entry.getValue());
-    }
+		LinkedHashMap<String, TestSuite> testSuites = testSuite.getTestSuites();
+		for (Map.Entry<String, TestSuite> entry : testSuites.entrySet())
+			logTestSuite(entry.getValue());
+	}
 
-    @Test
-    @Ignore
-    public void testCaseBuildMultiplePerWorkbook() throws Exception {
-        String testRootFile = testRoot + "/functional/gebeurtenissen";
+	@Test
+	@Ignore
+	public void testCaseBuildMultiplePerWorkbook() throws Exception {
+		String testRootFile =  testRoot + "/functional/gebeurtenissen";
+		
+//		testRootFile = "/home/user/klap/prova-klap.git/prova-test/projects/mijnrvo-test/";
+		testRootFile = "/media/sf_CData/prova-klap.git/prova-test/projects/mijnrvo-test";
+		TestSuite testSuite = new TestSuiteBuilder().buildTestSuite(new File(testRootFile),
+				null);
+		logTestSuite(testSuite);
+		
+		TestRunner testRunner = new Prova() {
+			@Override
+			public String getPropertyValue(String key) throws Exception {
+				
+				try {
+					return super.getPropertyValue(key);
+				} catch (Exception e) {
+					LOGGER.debug("property {} not found",key);
+					return "dummy";
+				}
+			}
+			
+			@Override
+			public Boolean hasPropertyValue(String key) {
+				return true;
+			}
+		};
+		testRunner.setPropertyValue("prova.env", "o");
+		
+		
+		// build testactions for two TestCases.
+		LinkedHashMap<String, TestCase> testCases = testSuite.getTestCases();
+		for (Map.Entry<String, TestCase> entry : testCases.entrySet()) {
+			TestCase testCase = entry.getValue();
+			testCase = new TestCaseBuilder(testRootFile, testRunner).buildTestCase(testCase);
+			logTestCase(testCase);
+		}
+	}
 
-        // testRootFile = "/home/user/klap/prova-klap.git/prova-test/projects/mijnrvo-test/";
-        testRootFile = "/media/sf_CData/prova-klap.git/prova-test/projects/mijnrvo-test";
-        TestSuite testSuite = new TestSuiteBuilder().buildTestSuite(new File(testRootFile), null);
-        logTestSuite(testSuite);
-
-        TestRunner testRunner = new Prova() {
-            @Override
-            public String getPropertyValue(String key) throws Exception {
-
-                try {
-                    return super.getPropertyValue(key);
-                } catch (Exception e) {
-                    LOGGER.debug("property {} not found", key);
-                    return "dummy";
-                }
-            }
-
-            @Override
-            public Boolean hasPropertyValue(String key) {
-                return true;
-            }
-        };
-        testRunner.setPropertyValue("prova.env", "o");
-
-        // build testactions for two TestCases.
-        LinkedHashMap<String, TestCase> testCases = testSuite.getTestCases();
-        for (Map.Entry<String, TestCase> entry : testCases.entrySet()) {
-            TestCase testCase = entry.getValue();
-            testCase = new TestCaseBuilder(testRootFile, testRunner).buildTestCase(testCase);
-            logTestCase(testCase);
-        }
-    }
-
-    private void logTestCase(TestCase testCase) {
-        LOGGER.debug("QQQ-startlogtestcase " + testCase.getId() + " (TestCase)");
-
-        List<TestAction> testActions = testCase.getTestActions();
-        LOGGER.debug("stats: {} #actions", testActions.size());
-        for (TestAction testAction : testActions) {
-            LOGGER.debug(testAction.getId() + " (TAction)");
-        }
-    }
+	private void logTestCase(TestCase testCase) {
+		LOGGER.debug("QQQ-startlogtestcase " + testCase.getId() + " (TestCase)");
+		
+		List<TestAction> testActions = testCase.getTestActions();
+		LOGGER.debug("stats: {} #actions",testActions.size());
+		for (TestAction testAction : testActions) {
+			LOGGER.debug(testAction.getId() + " (TAction)");
+		}
+	}
 
 }
