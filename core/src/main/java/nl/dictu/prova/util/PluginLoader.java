@@ -28,150 +28,118 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * Load a Jar file from a given URL 
+ * Load a Jar file from a given URL
  * 
  * @author Sjoerd Boerhout
  * @since 2016-04-22
  */
-public class PluginLoader extends URLClassLoader
-{
-  private final static URL urls [] = {};
-  
-  final static Logger LOGGER = LogManager.getLogger();
-  
-  /**
-   * Constructor
-   * 
-   * @param urls
-   */
-  public PluginLoader()
-  {
-    super(urls);
-  }
-  
-  
-  /**
-   * Constructor with url(s)
-   * 
-   * @param urls
-   */
-  public PluginLoader(URL[] urls)
-  {
-    super(urls);
-  }
-  
+public class PluginLoader extends URLClassLoader {
+    private final static URL urls[] = {};
 
-  /**
-   * Add the given file to the Java class path
-   * 
-   * @param path
-   * @throws MalformedURLException
-   */
-  public void addFile(String path) throws Exception, MalformedURLException
-  {
-    try
-    {
-      LOGGER.trace("Try to add file to plugin loader: {}", path);
-      
-      super.addURL(new File(path).toURI().toURL());
-      LOGGER.trace("Added '{}' to classpath", new File(path).toURI().toURL());
+    final static Logger LOGGER = LogManager.getLogger();
+
+    /**
+     * Constructor
+     * 
+     * @param urls
+     */
+    public PluginLoader() {
+        super(urls);
     }
-    catch(MalformedURLException eX)
-    {
-      LOGGER.trace("Malformed URL: {}", eX.getMessage());
-      throw eX;
+
+    /**
+     * Constructor with url(s)
+     * 
+     * @param urls
+     */
+    public PluginLoader(URL[] urls) {
+        super(urls);
     }
-    catch(Exception eX)
-    {
-      LOGGER.trace("Unhandled exception: {}", eX.getMessage());
-      throw eX;      
-    }
-  }
-  
-  
-  /**
-   * Add all files from the given directory with correct file extension
-   * to the Java class path
-   * 
-   * @param dirName
-   * @param fileExt
-   */
-  public void addFiles(String dirName, String fileExt)
-  {
-    try
-    {
-      LOGGER.debug("Try to load all plugins from '{}' with ext '{}' to plugin loader.", 
-                   () -> dirName, () -> fileExt);
-      
-      File dir = new File(dirName);
-      
-      if(dir.exists() && dir.canRead())
-        addAllFiles(dir, fileExt);
-      else
-        throw new Exception("Directory name for plugins can't be read.(" + dirName + ")");
-    }
-    catch(Exception eX)
-    {
-      LOGGER.warn(eX.getMessage());
-    }
-  }
-  
-  /**
-   * Add all file's with given file extension to the class path.
-   * 
-   * @param rootDir
-   * @param fileExt 
-   */
-  private void addAllFiles(File rootDir, String fileExt)
-  {
-    for(File file : rootDir.listFiles())
-    {
-      try
-      {
-        if(file.isFile() && file.canRead())
-        {
-          if(file.getAbsolutePath().toLowerCase().endsWith(fileExt.toLowerCase()))
-          {
-            super.addURL(file.toURI().toURL());
-            LOGGER.trace("Added '{}' to classpath", file.toURI().toURL());
-          }
+
+    /**
+     * Add the given file to the Java class path
+     * 
+     * @param path
+     * @throws MalformedURLException
+     */
+    public void addFile(String path) throws Exception, MalformedURLException {
+        try {
+            LOGGER.trace("Try to add file to plugin loader: {}", path);
+
+            super.addURL(new File(path).toURI().toURL());
+            LOGGER.trace("Added '{}' to classpath", new File(path).toURI().toURL());
+        } catch (MalformedURLException eX) {
+            LOGGER.trace("Malformed URL: {}", eX.getMessage());
+            throw eX;
+        } catch (Exception eX) {
+            LOGGER.trace("Unhandled exception: {}", eX.getMessage());
+            throw eX;
         }
-        else if(file.isDirectory() && file.canRead())
-        {
-          addAllFiles(file, fileExt);
+    }
+
+    /**
+     * Add all files from the given directory with correct file extension to the Java class path
+     * 
+     * @param dirName
+     * @param fileExt
+     */
+    public void addFiles(String dirName, String fileExt) {
+        try {
+            LOGGER.debug("Try to load all plugins from '{}' with ext '{}' to plugin loader.", () -> dirName,
+                    () -> fileExt);
+
+            File dir = new File(dirName);
+
+            if (dir.exists() && dir.canRead())
+                addAllFiles(dir, fileExt);
+            else
+                throw new Exception("Directory name for plugins can't be read.(" + dirName + ")");
+        } catch (Exception eX) {
+            LOGGER.warn(eX.getMessage());
         }
-        else
-        {
-          LOGGER.warn("Unable to search '{}' for plugins!", () -> file.getAbsolutePath());
+    }
+
+    /**
+     * Add all file's with given file extension to the class path.
+     * 
+     * @param rootDir
+     * @param fileExt
+     */
+    private void addAllFiles(File rootDir, String fileExt) {
+        for (File file : rootDir.listFiles()) {
+            try {
+                if (file.isFile() && file.canRead()) {
+                    if (file.getAbsolutePath().toLowerCase().endsWith(fileExt.toLowerCase())) {
+                        super.addURL(file.toURI().toURL());
+                        LOGGER.trace("Added '{}' to classpath", file.toURI().toURL());
+                    }
+                } else if (file.isDirectory() && file.canRead()) {
+                    addAllFiles(file, fileExt);
+                } else {
+                    LOGGER.warn("Unable to search '{}' for plugins!", () -> file.getAbsolutePath());
+                }
+            } catch (Exception eX) {
+                LOGGER.warn(eX.getMessage());
+            }
         }
-      }
-      catch(Exception eX)
-      {
-        LOGGER.warn(eX.getMessage());
-      }
     }
-  }
-  
-  /**
-   * Get an instance of the given class name and type
-   * 
-   * @param className
-   * @param classType
-   * @return
-   * @throws Exception
-   */
-  public <T> T getInstanceOf(final String className, final Class<T> classType) throws Exception
-  {
-    try
-    {
-      LOGGER.trace("Try to load class '{}' of type '{}'", () -> className, () -> classType.getName());
-      
-      return classType.cast(this.loadClass(className).newInstance());
+
+    /**
+     * Get an instance of the given class name and type
+     * 
+     * @param className
+     * @param classType
+     * @return
+     * @throws Exception
+     */
+    public <T> T getInstanceOf(final String className, final Class<T> classType) throws Exception {
+        try {
+            LOGGER.trace("Try to load class '{}' of type '{}'", () -> className, () -> classType.getName());
+
+            return classType.cast(this.loadClass(className).newInstance());
+        } catch (Exception eX) {
+            LOGGER.trace("Exception: {}", eX.getMessage());
+            throw eX;
+        }
     }
-    catch(Exception eX)
-    {
-      LOGGER.trace("Exception: {}", eX.getMessage());
-      throw eX;      
-    }
-  }
 }

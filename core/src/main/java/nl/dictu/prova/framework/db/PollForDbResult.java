@@ -27,38 +27,36 @@ import nl.dictu.prova.framework.TestAction;
  *
  * @author Coos van der Galiën
  */
-public class PollForDbResult extends TestAction
-{
-  @Override
-  public void setAttribute(String key, String value) throws Exception
-  {
-    throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-  }
+public class PollForDbResult extends TestAction {
+    @Override
+    public void setAttribute(String key, String value) throws Exception {
+        throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods, choose
+                                                                       // Tools | Templates.
+    }
 
-  @Override
-  public void execute() throws Exception
-  {
-	  LOGGER.info("> Execute test action: {}", () -> this.getClass().getSimpleName());
-      if(!isValid())
-          throw new Exception("TestRunner is not set.");
-      this.testRunner.getDbActionPlugin().doPollForDbResult();
-  }
+    @Override
+    public void execute() throws Exception {
+        LOGGER.info("> Execute test action: {}", () -> this.getClass().getSimpleName());
+        if (!isValid())
+            throw new Exception("TestRunner is not set.");
+        this.testRunner.getDbActionPlugin().doPollForDbResult();
+    }
 
-  @Override
-  public boolean isValid() throws Exception
-  {
-    if(this.testRunner == null) return false;
-    return true;
-  } 
-  /**
-   * Return a string representation of the objects content
-   *
-   * @return
-   */
-  @Override
-  public String toString() 
-  {
-	  return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
-  }
-  
+    @Override
+    public boolean isValid() throws Exception {
+        if (this.testRunner == null)
+            return false;
+        return true;
+    }
+
+    /**
+     * Return a string representation of the objects content
+     *
+     * @return
+     */
+    @Override
+    public String toString() {
+        return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
+    }
+
 }

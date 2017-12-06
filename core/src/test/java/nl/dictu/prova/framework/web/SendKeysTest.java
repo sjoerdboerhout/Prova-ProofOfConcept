@@ -26,51 +26,44 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class SendKeysTest
-{
-  /*
-   *  One-time initialization code
-   */
-  @BeforeClass 
-  public static void oneTimeSetUp()
-  {    
-  }
+public class SendKeysTest {
+    /*
+     * One-time initialization code
+     */
+    @BeforeClass
+    public static void oneTimeSetUp() {
+    }
 
-  /*
-   *  One-time cleanup code
-   */
-  @AfterClass 
-  public static void oneTimeTearDown()
-  {    
-  }
+    /*
+     * One-time cleanup code
+     */
+    @AfterClass
+    public static void oneTimeTearDown() {
+    }
 
-  /*
-   *  Before each test
-   */
-  @Before 
-  public void setUp()
-  {    
-  }
+    /*
+     * Before each test
+     */
+    @Before
+    public void setUp() {
+    }
 
-  /*
-   *  After each test
-   */
-  @After 
-  public void tearDown()
-  {
-  }
+    /*
+     * After each test
+     */
+    @After
+    public void tearDown() {
+    }
 
-  /*
-   * Issue ID:    PROVA-X
-   * Requirement: ...
-   * 
-   * Test description
-   */
-  @Test
-  public void implementRealTest() 
-  {
-    // TODO: Implement Unit Tests
-    //assertTrue(false);
-    System.out.println("@Test - implementRealTest");
-  } 
+    /*
+     * Issue ID: PROVA-X Requirement: ...
+     * 
+     * Test description
+     */
+    @Test
+    public void implementRealTest() {
+        // TODO: Implement Unit Tests
+        // assertTrue(false);
+        System.out.println("@Test - implementRealTest");
+    }
 }
