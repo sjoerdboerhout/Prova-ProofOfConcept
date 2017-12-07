@@ -55,6 +55,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
@@ -148,38 +149,47 @@ public class Selenium implements WebOutputPlugin
   {
     try
     {
-      if(browserType.equalsIgnoreCase("FireFox"))
-      {
-        String fireFoxPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_GECKO);
-          
-        //LOGGER.trace("Try to load webdriver 'Gecko' ({})", fireFoxPath);
-        LOGGER.trace("Try to load webdriver 'Gecko'");
-        System.setProperty("webdriver.gecko.driver", fireFoxPath);
-        System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE,"false");
-    
-        if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO))
-        {
-        	System.setProperty("webdriver.firefox.bin", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO));
-        	LOGGER.trace("Try to load specific 'FireFox' on location '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO));
-        }
-        if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE))
-        {
-          ProfilesIni profile = new ProfilesIni();
-          FirefoxProfile ffProfile = profile.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
-          //disable firefox autoupdate. It breaks de CI test on jenkins.
-          ffProfile.setPreference("app.update.auto", false);
-          ffProfile.setPreference("app.update.enabled", false);
-          
-          LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
-          webdriver = new FirefoxDriver(ffProfile);
-        }
-        else
-        {
-          LOGGER.trace("Try to load webdriver 'FireFox'");
-          webdriver = new FirefoxDriver();
-        }
-      }
-      else if(browserType.equalsIgnoreCase("Chrome"))
+			if (browserType.equalsIgnoreCase("FireFox")) {
+				String fireFoxPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_GECKO);
+
+				// LOGGER.trace("Try to load webdriver 'Gecko' ({})", fireFoxPath);
+				LOGGER.trace("Try to load webdriver 'Gecko'");
+				System.setProperty("webdriver.gecko.driver", fireFoxPath);
+				System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE, "false");
+
+				if (testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO)) {
+					System.setProperty("webdriver.firefox.bin",
+							testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO));
+					LOGGER.trace("Try to load specific 'FireFox' on location '{}'",
+							testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO));
+				}
+				FirefoxProfile ffProfile = null;
+				if (testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE)) {
+					ProfilesIni profile = new ProfilesIni();
+					ffProfile = profile
+							.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+
+					if (ffProfile != null) {
+						// disable firefox autoupdate. It breaks de CI test on jenkins.
+						ffProfile.setPreference("app.update.auto", false);
+						ffProfile.setPreference("app.update.enabled", false);
+						LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'",
+								testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+						webdriver = new FirefoxDriver(ffProfile);
+					} else {
+						LOGGER.trace("'FireFox' profile '{}' not found, using default profile",
+								testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+					}
+				}
+				if (ffProfile == null) {
+					FirefoxOptions firefoxOptions = new FirefoxOptions();
+					firefoxOptions.addPreference("app.update.auto", false);
+					firefoxOptions.addPreference("app.update.enabled", false);
+					LOGGER.trace("Try to load webdriver 'FireFox'");
+					webdriver = new FirefoxDriver(firefoxOptions);
+				}
+
+			} else if(browserType.equalsIgnoreCase("Chrome"))
       {
         String chromePath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_CHROME);
         
