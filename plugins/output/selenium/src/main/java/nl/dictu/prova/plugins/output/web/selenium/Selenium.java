@@ -156,6 +156,7 @@ public class Selenium implements WebOutputPlugin
         LOGGER.trace("Try to load webdriver 'Gecko'");
         System.setProperty("webdriver.gecko.driver", fireFoxPath);
         System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE,"false");
+    
         if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO))
         {
         	System.setProperty("webdriver.firefox.bin", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO));
@@ -165,6 +166,9 @@ public class Selenium implements WebOutputPlugin
         {
           ProfilesIni profile = new ProfilesIni();
           FirefoxProfile ffProfile = profile.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+          //disable firefox autoupdate. It breaks de CI test on jenkins.
+          ffProfile.setPreference("app.update.auto", false);
+          ffProfile.setPreference("app.update.enabled", false);
           
           LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
           webdriver = new FirefoxDriver(ffProfile);
