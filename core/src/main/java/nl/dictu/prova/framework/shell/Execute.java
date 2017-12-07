@@ -94,7 +94,10 @@ public class Execute extends TestAction
   {
     if(!isValid())
       throw super.getLastValidationException();
-    
+    if(testRunner.containsKeywords(command.getValue()))
+    {
+      command.setValue(testRunner.replaceKeywords(command.getValue()));
+    }
     this.testRunner.getShellActionPlugin().doExecute(command.getValue());
   }
 
