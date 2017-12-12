@@ -19,7 +19,10 @@
  */
 package nl.dictu.prova.framework;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -38,8 +41,7 @@ import nl.dictu.prova.plugins.reporting.ReportingPlugin;
  * @author  Sjoerd Boerhout
  * @since   2016-04-14
  */
-public class TestCase
-{
+public class TestCase {
   final static Logger LOGGER = LogManager.getLogger();
   
   // Unique test case ID for identification
@@ -47,13 +49,14 @@ public class TestCase
   private TestStatus status     = TestStatus.NOTRUN;
   private String     summary    = "";
   private TestRunner testRunner = null;
-  private Boolean    error      = false;
   
   private String projectName  = "";
   
   // Test case information
   private String issueId  = "";
   private String priority = "";
+	//Labels for this testcase. This allows for filtering on testcases using a label 
+	private List<String> labels = new ArrayList<String>();
 
   // Test actions lists per type
   private LinkedList<TestAction> setUpActions     = new LinkedList<TestAction>();
@@ -66,8 +69,7 @@ public class TestCase
    * @param id
    * @throws Exception
    */
-  public TestCase(String id) throws Exception
-  {
+	public TestCase(String id) throws Exception {
     LOGGER.debug("Construct a new TestCase with id '{}'", () -> id);
     
     setId(id);
@@ -293,6 +295,37 @@ public class TestCase
     tearDownActions.add(tearDownAction);
   }
 
+	protected void executeAction(TestAction testAction, long waitTime) throws Exception {
+		LOGGER.trace("Execute test action: {}", () -> testAction.toString());
+		try {
+			long start = System.nanoTime();
+			testAction.execute();
+			long end = System.nanoTime();
+			long executionTime = (end - start) / 1000000;
+
+			for (ReportingPlugin reportPlugin : testRunner.getReportingPlugins()) {
+				LOGGER.debug("Report: logging action with status OK and executiontime {}ms", executionTime);
+				reportPlugin.logAction(testAction, "OK", executionTime);
+			}
+		} catch (Exception eX) {
+			for (ReportingPlugin reportPlugin : testRunner.getReportingPlugins()) {
+				LOGGER.debug("Report: logging action with status NOK");
+				reportPlugin.logAction(testAction, "NOK", 0);
+			}
+			if (this.testRunner.getPropertyValue("prova.flow.failon.actionfail").equalsIgnoreCase("true")) {
+				throw eX;
+			}
+		}
+		try {
+			LOGGER.trace("Wait {} ms before executing next action.", waitTime);
+			Thread.sleep(waitTime);
+		} catch (Exception eX) {
+			LOGGER.debug("Exception while waiting '{}' ms: {}", 2000, eX.getMessage());
+
+			throw eX;
+		}
+
+	}
   
   /**
    * Run this test case by executing all it's actions.
@@ -335,85 +368,16 @@ public class TestCase
     }
     
     // Execute all test actions if set up succeeded
-    if(exception == null)
-    {
-      try
-      {
-        for(TestAction testAction : testActions)
-        {
-          LOGGER.trace("Execute test action: {}", () -> testAction.toString());
-          try
-          {
-            long start = System.nanoTime();
-        	  testAction.execute();
-            long end = System.nanoTime();
-            long executionTime = (end - start) / 1000000;
+		if (exception == null) {
+				this.setStatus(TestStatus.PASSED);
             
-        	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
-            {
-              LOGGER.debug("Report: logging action with status OK and executiontime {}ms", executionTime);
-              reportPlugin.logAction(testAction, "OK", executionTime);
+				//TestAction currentTestAction = null;
+				try {
+					for (TestAction testAction : getTestActions()) {
+						//currentTestAction = testAction;
+						executeAction(testAction, waitTime);
             }
-          }
-          catch(Exception eX)
-          {
-        	  for(ReportingPlugin reportPlugin : testRunner.getReportingPlugins())
-            {
-              LOGGER.debug("Report: logging action with status NOK");
-              reportPlugin.logAction(testAction, "NOK", 0);
-            }
-            if(this.testRunner.getPropertyValue("prova.flow.failon.actionfail").equalsIgnoreCase("true"))
-            {
-            	if(this.testRunner.getPropertyValue("prova.flow.failon.testfail").equalsIgnoreCase("false")&&eX.getMessage().contains("Validation Failed:"))
-            	{
-            		LOGGER.debug("Validation failed");
-            		error = true;
-            	}
-            	else
-            	{
-            		throw eX;
-            	}
-            }
-            else
-            {
-            	if(this.testRunner.getPropertyValue("prova.flow.failon.testfail").equalsIgnoreCase("false")&&eX.getMessage().contains("Validation Failed:"))
-            	{
-            		LOGGER.debug("Validation failed");
-            		error = true;
-            	}
-            	else
-            	{
-            		throw eX;
-            	}
-            }
-          }
-          try
-          {
-            LOGGER.trace("Wait {} ms before executing next action.", waitTime);
-            Thread.sleep(waitTime);
-          }
-          catch(Exception eX)
-          {
-            LOGGER.debug("Exception while waiting '{}' ms: {}", 
-                          2000, eX.getMessage());
-                
-                throw eX;
-          }
-        }    
-        
-        // Errors during tearDown do not alter the test result
-        if (error)
-        {
-        	this.setStatus(TestStatus.COMPLETED);
-        }
-        else
-        {
-        	this.setStatus(TestStatus.PASSED);
-        }  
-      }
-      catch(Exception eX)
-      {
-        LOGGER.error(eX);
+				} catch (Exception eX) {
         this.setStatus(TestStatus.FAILED);
         this.setSummary(eX.getMessage());
         eX.printStackTrace();
@@ -444,12 +408,16 @@ public class TestCase
       this.setStatus(TestStatus.FAILED);
       if(exception == null)
         exception = new TearDownActionException(eX.getMessage());
-      eX.printStackTrace();
+			LOGGER.error(eX);
     }
     
     // Exception occured? Throw it back to the test suite
     if(exception != null) 
       throw exception;
+	}
+
+	public LinkedList<TestAction> getTestActions() {
+		return testActions;
   }
   
   /**
@@ -484,4 +452,25 @@ public class TestCase
                           this.testActions.size(), 
                           this.tearDownActions.size());
   }  
+	public List<String> getLabels() {
+		return labels;
+	}
+	
+	/**
+	 * Determines is this testcase has the label given.
+	 * 
+	 * @param label
+	 * @return
+	 */
+	public boolean hasLabel(String label) {
+		return labels.contains(label);
+	}
+
+	/**
+	 * Fill label list using commaseparated string
+	 * @param labelString
+	 */
+	public void setLabels(String labelString) {
+		this.labels = Arrays.asList(labelString.split(","));
+	}
 }

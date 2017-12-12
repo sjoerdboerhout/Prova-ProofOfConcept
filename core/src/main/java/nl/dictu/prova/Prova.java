@@ -22,7 +22,9 @@ package nl.dictu.prova;
 import java.lang.Thread.State;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -39,10 +41,10 @@ import nl.dictu.prova.framework.exceptions.TestActionException;
 import nl.dictu.prova.plugins.input.InputPlugin;
 import nl.dictu.prova.plugins.output.DbOutputPlugin;
 import nl.dictu.prova.plugins.output.ShellOutputPlugin;
+import nl.dictu.prova.plugins.output.SoapOutputPlugin;
 import nl.dictu.prova.plugins.output.WebOutputPlugin;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 import nl.dictu.prova.util.PluginLoader;
-import nl.dictu.prova.plugins.output.SoapOutputPlugin;
 
 /**
  * Core class Prova facilitates the whole process of executing the tests
@@ -437,9 +439,13 @@ public class Prova implements Runnable, TestRunner
       // First execute all test cases
       for(Map.Entry<String, TestCase> entry : testSuite.getTestCases().entrySet())
       {
-        // Split logging of each test case with a line
+    	  //check if current testcase should be executed
+    	  if (!checkTestCaseFilter(entry.getValue())) {
+    		  continue;
+    	  }
+    	  
+    	// Split logging of each test case with a line
         LOGGER.debug("--------------------------------------------------------------------------------");
-        
         try
         {
           //LOGGER.debug("Start with TC: '{}'", () -> entry.getValue().getId());
@@ -548,6 +554,33 @@ public class Prova implements Runnable, TestRunner
   }
   
   
+	/**
+	 * Check if testCase should be executed based on label filters.
+	 * 
+	 * @param testCase
+	 * @return
+	 */
+	private boolean checkTestCaseFilter(TestCase testCase) {
+		boolean result = true;
+
+		// Filter on labels per testcase if labels are present.
+		String labelFilterString = properties.getProperty(Config.PROVA_TESTS_FILTERS);
+
+		if (labelFilterString != null && !"".equals(labelFilterString.trim())) {
+			List<String> labelFilters = new ArrayList<String>(Arrays.asList(labelFilterString.split(",")));
+			if (labelFilters.size() > 0) {
+				LOGGER.debug("Checking label filters '{}' for testcase with labels {}.", labelFilterString, testCase.getLabels());
+				labelFilters.retainAll(testCase.getLabels());
+				if (labelFilters.size() == 0) {
+					result = false;// skip this this test
+					LOGGER.info("Skipping testcase based on labelfilters.");
+				} else {
+					LOGGER.info("Executing testcase based on labelfilters '{}'.",labelFilters);
+				}
+			}
+		}
+		return result;
+	}  
     
   /**
    *  TearDown after test execution

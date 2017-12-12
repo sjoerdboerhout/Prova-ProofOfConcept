@@ -30,12 +30,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import nl.dictu.prova.Config;
+import nl.dictu.prova.TestRunner;
+import nl.dictu.prova.framework.TestCase;
+import nl.dictu.prova.plugins.output.WebOutputPlugin;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoAlertPresentException;
@@ -58,12 +64,6 @@ import org.openqa.selenium.security.UserAndPassword;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-import nl.dictu.prova.Config;
-import nl.dictu.prova.TestRunner;
-import nl.dictu.prova.framework.TestCase;
-import nl.dictu.prova.framework.web.Navigate;
-import nl.dictu.prova.plugins.output.WebOutputPlugin;
 
 /**
  * Driver for controlling Selenium Webdriver
@@ -218,7 +218,8 @@ public class Selenium implements WebOutputPlugin
       {
         throw new Exception("Unsupported browser '" + browserType + "' requested.");
       }
-           
+      
+      setBrowserResolution(webdriver);
       
       // Compose the setting name of the project url.
       String url =  Config.PROVA_ENV_PFX + "." +
@@ -265,6 +266,23 @@ public class Selenium implements WebOutputPlugin
     }
   }
 
+	/**
+	 * If a resolution is given in the configuration, set the browser to that resolution.
+	 * 
+	 * @param webDriver
+	 */
+	protected void setBrowserResolution(WebDriver webDriver) {
+		if (testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_RESOLUTION)) {
+			try {
+				String[] resXY = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_RESOLUTION)
+						.split("x");
+				webdriver.manage().window().setSize(new Dimension(new Integer(resXY[0]), new Integer(resXY[1])));
+			} catch (Exception e) {
+				LOGGER.warn("Problem setting browser resolution.", e);
+			}
+		}
+	}
+  
   public void doCaptureScreen(String fileName) throws Exception
   {
     if(this.webdriver == null)
@@ -831,70 +849,142 @@ public class Selenium implements WebOutputPlugin
     throw new Exception("doValidateElement is not supported yet.");
   }
 
+	private List<String> getCheckStrings(String valueIn) {
+		List<String> lChecks = null;
+		if (valueIn.contains(";")) {
+			try {
+				String[] checks = valueIn.split(";");
+				lChecks = Arrays.asList(checks);
 
+			} catch (Exception eX) {
+				LOGGER.debug("Converting multiple checks to list failed: " + eX);
+				throw eX;
+			}
+		} else {
+			try {
+				lChecks = Arrays.asList(valueIn);
+			} catch (Exception eX) {
+				LOGGER.debug("Adding check to list failed: " + eX);
+				throw eX;
+			}
+		}
+		return lChecks;
+	}  
+
+	private int getTimeout(double timeOut) {
+		int iTimeOut = 0;
+	    try
+	    {
+	    	if (timeOut == 0)
+	    	{
+	    		try
+	    		{
+	    			LOGGER.trace("Timeout not set; setting timeout to default");
+	    			timeOut = Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
+	    		}
+	    		catch(Exception eX)
+	    		{
+	    			LOGGER.debug("Setting default timeout failed: " + eX);
+	    		}
+	    	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
+	    	iTimeOut = Integer.valueOf((int) (timeOut/1000));
+	    	if(iTimeOut < 1) iTimeOut = 1;
+	    	LOGGER.trace("Convertion to seconds complete, timeout is {} seconds", iTimeOut);
+	    	}
+	    }
+	    catch(Exception eX)
+	    {
+	    	LOGGER.debug("Converting to seconds failed: " + eX);
+	    	throw eX;
+	    }
+	    return iTimeOut;
+	}
+	
+	public void doFastValidateText(String xPath, String valueIn, Boolean exists, double timeOut) throws Exception {
+
+		if (this.webdriver == null) {
+			prepareWebdriver();
+		}
+		LOGGER.debug("> FastValidate '{}' with text '{}'", xPath, valueIn);
+
+		List<String> lChecks = getCheckStrings(valueIn);
+		int iNumberChecks = lChecks.size();
+		LOGGER.debug(iNumberChecks);
+
+		String htmlPageSource = webdriver.getPageSource();
+
+		String value = "";
+		try {
+			
+			Boolean bCheck = true;
+			for (String check : lChecks) {
+				LOGGER.debug("Checking: " + check);
+				bCheck = true;
+				while (bCheck) {
+					value = check;
+
+					boolean stringFound = htmlPageSource.contains(check);
+
+					// WebElement element =
+					// webdriver.findElement(By.xpath(xPath));
+					// if(element == null) //|| !element.isEnabled())
+					// {
+					// throw new Exception("Element '" + xPath +
+					// "' not found.");
+					// }
+					// // Get text from element
+					// String text = element.getText()+ "\r\n";
+					// text = text + "Attribute @value: " +
+					// element.getAttribute("value");
+
+					boolean valid = (stringFound && exists) || (!stringFound && !exists);
+
+					if (valid) {
+						if (exists) {
+							LOGGER.info("The value \"" + value + "\" is found in the html");							
+						} else {
+							LOGGER.info("The value \"" + value + "\" is not found in the html");
+						}
+					} else {
+						if (exists) {
+							throw new Exception("The value \"" + value + "\" is not found in the html");
+						} else {
+							throw new Exception("The value \"" + value + "\" is found in the html");
+						}
+					}
+
+					bCheck = false;
+				}
+
+			}
+		} catch (Exception e) {
+			LOGGER.info("Exception while fast validating text '{}', msg {}.", value, e.getMessage());
+			LOGGER.debug("PageSource " + htmlPageSource);
+			this.doCaptureScreen("doFastValidateText");
+			throw e;
+		}
+
+	}
+  
   @Override
   public void doValidateText(String xPath, String valueIn, Boolean exists, double timeOut) throws Exception
   {
+//	if ("/html/body".equals(xPath)) {
+//		doFastValidateText(xPath, valueIn, exists, timeOut);
+//		return;
+//	}
+	  
     if(this.webdriver == null)
     {
       prepareWebdriver();
     }
     
     LOGGER.debug("> Validate '{}' with text '{}'", xPath, valueIn);
-    int iNumberChecks = 1;
-    int iTimeOut = 0;
-    List<String> lChecks = null;
-    if (valueIn.contains(";"))
-	{
-    	try
-	    {
-	    	String [] checks = valueIn.split(";");
-    		lChecks = Arrays.asList(checks);
-	    	iNumberChecks = lChecks.size();
-	    	LOGGER.debug(iNumberChecks);
-	    }
-	    catch(Exception eX)
-	    {
-	    	LOGGER.debug("Converting multiple checks to list failed: " + eX);
-	    	throw eX;
-	    }
-	}
-	else 
-	{
-		try
-		{
-			lChecks = Arrays.asList(valueIn);
-		}
-		catch(Exception eX)
-		{
-			LOGGER.debug("Adding check to list failed: " + eX);
-	    	throw eX;
-		}
-	}
-    try
-    {
-    	if (timeOut == 0)
-    	{
-    		try
-    		{
-    			LOGGER.trace("Timeout not set; setting timeout to default");
-    			timeOut = Integer.parseInt(testRunner.getPropertyValue(Config.PROVA_TIMEOUT));
-    		}
-    		catch(Exception eX)
-    		{
-    			LOGGER.debug("Setting default timeout failed: " + eX);
-    		}
-    	LOGGER.trace("Converting {} from milliseconds to seconds", timeOut);
-    	iTimeOut = Integer.valueOf((int) (timeOut/1000));
-    	if(iTimeOut < 1) iTimeOut = 1;
-    	LOGGER.trace("Convertion to seconds complete, timeout is {} seconds", iTimeOut);
-    	}
-    }
-    catch(Exception eX)
-    {
-    	LOGGER.debug("Converting to seconds failed: " + eX);
-    	throw eX;
-    }
+    List<String> lChecks = getCheckStrings(valueIn);
+	int iNumberChecks = lChecks.size();
+	LOGGER.debug(iNumberChecks);
+    int iTimeOut = getTimeout(timeOut);    
+
     WebDriverWait wait = new WebDriverWait(webdriver, iTimeOut);
     int count = 0;
     String value = "";

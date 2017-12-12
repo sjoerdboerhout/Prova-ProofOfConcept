@@ -19,15 +19,13 @@
  */
 package nl.dictu.prova.plugins.input.msexcel.builder;
 
+import java.io.File;
+import java.util.Properties;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
 
 /**
  * Tests for TestDataBuilder class

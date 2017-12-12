@@ -79,4 +79,25 @@ public class WorkbookReader extends CellReader
       throw new Exception("Value for property " + evaluateCellContent(propertyKeyCell) + " not found");
     }
   }
+  
+	/**
+	 * Reads a property value from the current row, given a cell containing the
+	 * property key. It assumes the value is located in the cell right next to the
+	 * cell containing the key. Do not throw Exception when not found. Return null
+	 * when not found.
+	 *
+	 * @param row
+	 *            Row containing property key and value
+	 * @param propertyKeyCell
+	 *            Cell containing the property key
+	 * @return Property value of null if not found.
+	 */
+	public String fetchProperty(Row row, Cell propertyKeyCell) throws Exception {
+		String result = null;
+		Cell propertyValueCell = row.getCell(propertyKeyCell.getColumnIndex() + 1);
+		if (propertyValueCell != null) {
+			result = evaluateCellContent(propertyValueCell);
+		} 
+		return result;
+	}
 }
