@@ -176,7 +176,8 @@ public class TestCaseBuilder {
 							// following fields.
 							String tcid = flowWorkbookReader.readProperty(row, firstCell);
 							// get string after last / char.
-							String testCaseIdShort = testCase.getId().replaceAll(".+/", "");
+							//String testCaseIdShort = testCase.getId().replaceAll(".+/", "");
+							String testCaseIdShort = testCase.getId().substring(testCase.getId().lastIndexOf(File.separator)+1);
 							if (testCaseIdShort.equals(tcid)) {
 								currentTcidFound = true;
 								LOGGER.info("Reading fields for Testcase definition with id {}", tcid);
