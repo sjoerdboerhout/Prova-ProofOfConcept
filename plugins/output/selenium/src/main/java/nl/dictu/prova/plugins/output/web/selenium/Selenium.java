@@ -357,24 +357,33 @@ public class Selenium implements WebOutputPlugin
         //if(waitUntilPageLoaded)
         //  element.submit();
         //else
-        //First navigate to element to make sure the element to be clicked is on te screen
+       
         Actions actions = new Actions(webdriver);
-        actions.moveToElement(element).perform();
-        try
-        {
-        	scroll_element_into_view(element);
-        }
-        catch(Exception e)
-        {
-        	LOGGER.debug("Scrolling element into view failed");
-        }
         if(rightClick)
         {
         	actions.contextClick(element).perform();
         }
         else
         {
-        	element.click();
+        	try
+        	{
+        		element.click();
+        	}
+        	catch(Exception e)
+        	{
+        		 //First navigate to element to make sure the element to be clicked is on te screen
+                
+                actions.moveToElement(element).perform();
+                try
+                {
+                	scroll_element_into_view(element);
+                	element.click();
+                }
+                catch(Exception ex)
+                {
+                	LOGGER.debug("Scrolling element into view failed");
+                }
+        	}
         }
         //element.sendKeys(Keys.RETURN);
         
