@@ -587,7 +587,15 @@ public class SimpleReport implements ReportingPlugin
 	 */
 	private String makeHtmlLinkRelative(String linkTarget) {
 		if (linkTarget != null && !"".equals(linkTarget)) {
-			return linkTarget.replaceFirst(currTestSuiteDir, this.testProject);
+			try
+			{
+				return linkTarget.replaceFirst(currTestSuiteDir, this.testProject);
+			}
+			catch(Exception eX)
+			{
+				LOGGER.warn("Creating relative link failed, using normal link instead: " + eX);
+				return linkTarget;
+			}
 		}
 		return linkTarget;
 	}

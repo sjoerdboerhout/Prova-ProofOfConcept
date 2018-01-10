@@ -182,8 +182,16 @@ public class TestCaseBuilder {
 								currentTcidFound = true;
 								LOGGER.info("Reading fields for Testcase definition with id {}", tcid);
 							} else {
-								currentTcidFound = false;
-								LOGGER.info("Skipping fields for Testcase definition with id {}", tcid);
+								LOGGER.debug("datasetName = " + dataSetName);
+								if (testCaseIdShort.equals(dataSetName)){
+									currentTcidFound = true;
+									LOGGER.info("Reading fields for Testcase definition with id {}", dataSetName);
+								}
+								else
+								{
+									currentTcidFound = false;
+									LOGGER.info("Skipping fields for Testcase definition with id {}", tcid);
+								}
 							}
 						} else {
 
