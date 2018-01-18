@@ -349,7 +349,8 @@ public class Selenium implements WebOutputPlugin
     {
       try
       {
-        WebElement element = findElement(xPath);
+    	WebElement element = null;
+    	element = findElement(xPath);
         
         if(element == null)
           {
