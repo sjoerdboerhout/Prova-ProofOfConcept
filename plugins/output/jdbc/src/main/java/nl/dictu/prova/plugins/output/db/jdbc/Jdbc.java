@@ -185,6 +185,7 @@ public class Jdbc implements DbOutputPlugin
         case UPDATE:
         case DECLARE:
         case USE:
+        case SET:
         case BEGIN:
           for(ReportingPlugin plugin : this.testRunner.getReportingPlugins()){
             plugin.storeToTxt("" + currentQuery, currentPrefix);
@@ -285,7 +286,7 @@ public class Jdbc implements DbOutputPlugin
 
   public enum StatementType
   {
-    SELECT, DELETE, INSERT, UPDATE, DECLARE, BEGIN, UNSUPPORTED, USE;
+    SELECT, DELETE, INSERT, UPDATE, DECLARE, BEGIN, UNSUPPORTED, USE, SET;
   }
 
   public StatementType getQueryType()
@@ -300,6 +301,7 @@ public class Jdbc implements DbOutputPlugin
       case "DECLARE":       return StatementType.DECLARE;
       case "BEGIN":         return StatementType.BEGIN;
       case "USE":           return StatementType.USE;
+      case "SET":           return StatementType.SET;
       default:              return StatementType.UNSUPPORTED;
     }
   }
