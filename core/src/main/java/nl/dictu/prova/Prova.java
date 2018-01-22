@@ -381,7 +381,7 @@ public class Prova implements Runnable, TestRunner
    */
   public Boolean containsKeywords(String entry) throws Exception
   {
-    Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");
+    Pattern pattern = Pattern.compile(".*\\{[A-Za-z0-9._]+\\}.*");
     Matcher matcher = pattern.matcher(entry);
 
     while (matcher.find())
