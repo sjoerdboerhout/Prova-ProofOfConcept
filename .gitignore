@@ -59,3 +59,5 @@ _doc/testSite/x.png
 plugins/output/selenium/Clickx.png
 plugins/output/selenium/nbproject/project.properties
 Versie.txt
+.idea/
+*.iml
