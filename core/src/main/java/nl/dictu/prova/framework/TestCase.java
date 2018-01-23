@@ -376,6 +376,7 @@ public class TestCase {
 					for (TestAction testAction : getTestActions()) {
 						//currentTestAction = testAction;
 						executeAction(testAction, waitTime);
+						//LOGGER.debug(testAction.getId().toString());
             }
 				} catch (Exception eX) {
         this.setStatus(TestStatus.FAILED);
