@@ -19,9 +19,12 @@
  */
 package nl.dictu.prova.runners.cli;
 
-import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Properties;
+
+import nl.dictu.prova.Config;
+import nl.dictu.prova.runners.ProvaRunner;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -29,9 +32,6 @@ import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-
-import nl.dictu.prova.Config;
-import nl.dictu.prova.runners.ProvaRunner;
 
 /**
  * PROVA-18 - Command Line Interface
@@ -207,18 +207,28 @@ public class Cli extends ProvaRunner
     try
     {
       LOGGER.trace("Configure all CLI options");
+      //TODO, eigenlijk kunnen deze opties weg vanwege generieke opties via reflectie. Of behouden als shortcuts.
       configureCliOption("c", "config",   true,  "fileName",     '=', "Set configuration file");
       configureCliOption("e", "env",      true,  "environment",  '=', "Set environment for executing the test scripts");
       configureCliOption("f", "filters",  true,  "filter(s)",    '=', "Only test scripts with these filter(s) are executed");
       configureCliOption("h", "help",     false, "",             ' ', "Show this help message");
       configureCliOption("l", "loglevel", true,  "loglevel",     '=', "Set the loglevel (fatal,error,warn, info,debug,trace");
-      configureCliOption("o", "out",      true,  "filename",     '=', "Write test results to this file");
+      configureCliOption("o", "out",      true,  "directory",    '=', "Write test results to this directory");
       configureCliOption("p", "plugins",  true,  "plugin(s)",    '=', "Use these plugin(s) for executing the test scripts");
       configureCliOption("r", "root",     true,  "testroot",     '=', "Root location where the test scripts are located");
       configureCliOption("s", "start",    true,  "line",         '=', "(Re)start the first test at this line");
       configureCliOption("t", "timeout",  true,  "milliseconds", '=', "Timeout for test actions before failing");
       configureCliOption("u", "uitvoeren",true,  "ja/nee",       '=', "Testen uitvoeren of alleen valideren?");
       configureCliOption("v", "version",  false, "",             ' ', "Display version information");
+      
+      //expose all fields from config as commandline options via reflection
+      Field[] configOptionFields = Config.class.getFields();
+      for(Field f:configOptionFields) {
+          f.setAccessible(true); // you need this if variables are private
+          String fieldName = (String) f.get(null);
+          fieldName = fieldName.replace(".", "_");
+    	  configureCliOption(fieldName, fieldName,true,"value",'=', fieldName);
+      }
       
       LOGGER.trace("Parse CLI options");
       cmdLine = cmdLineParser.parse(options, args);      
@@ -231,13 +241,22 @@ public class Cli extends ProvaRunner
       if(cmdLine.hasOption("env"))        properties.setProperty(Config.PROVA_ENV,                    cmdLine.getOptionValue("env"));
       if(cmdLine.hasOption("filters"))    properties.setProperty(Config.PROVA_TESTS_FILTERS,          cmdLine.getOptionValue("filters"));
       if(cmdLine.hasOption("loglevel"))   properties.setProperty(Config.PROVA_LOG_LEVEL,              cmdLine.getOptionValue("loglevel"));
-      if(cmdLine.hasOption("out"))        properties.setProperty(Config.PROVA_PLUGINS_REPORTING_FILE, cmdLine.getOptionValue("out"));
+      if(cmdLine.hasOption("out"))        properties.setProperty(Config.PROVA_PLUGINS_REPORTING_DIR,  cmdLine.getOptionValue("out"));
       if(cmdLine.hasOption("plugins"))    properties.setProperty(Config.PROVA_CLI_PLUGINS,            cmdLine.getOptionValue("plugins"));
       if(cmdLine.hasOption("root"))       properties.setProperty(Config.PROVA_TESTS_ROOT,             cmdLine.getOptionValue("root"));
       if(cmdLine.hasOption("start"))      properties.setProperty(Config.PROVA_TESTS_START,            cmdLine.getOptionValue("start"));
       if(cmdLine.hasOption("timeout"))    properties.setProperty(Config.PROVA_TIMEOUT,                cmdLine.getOptionValue("timeout"));
       if(cmdLine.hasOption("uitvoeren"))  properties.setProperty(Config.PROVA_TESTS_EXECUTE,          cmdLine.getOptionValue("uitvoeren"));
 
+      for(Field f:configOptionFields) {
+          f.setAccessible(true); // you need this if variables are private
+          String fieldName = (String) f.get(null);
+          String fieldNameKey = fieldName.replace(".", "_");
+          if(cmdLine.hasOption(fieldNameKey)) {
+        	  properties.setProperty(fieldName,cmdLine.getOptionValue(fieldNameKey));
+          }
+      }
+      
       LOGGER.debug("Found {} option(s) on the command line", properties.size());
       
       if(LOGGER.isTraceEnabled())         

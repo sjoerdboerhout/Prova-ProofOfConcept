@@ -39,6 +39,7 @@ import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestAction;
 import nl.dictu.prova.framework.TestCase;
+import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.framework.TestSuite;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 
@@ -65,6 +66,7 @@ public class SimpleReport implements ReportingPlugin
   private Long startTimeSummary;
   private Integer countPassedTestcases = 0;
   private Integer countFailedTestcases = 0;
+	private String testProject;
 
   @Override
   public void init(TestRunner testRunner) throws Exception
@@ -87,6 +89,8 @@ public class SimpleReport implements ReportingPlugin
 		  // Save the test root to strip that part from the test suite/case names.
 		  this.testRoot = testRunner.getPropertyValue(Config.PROVA_TESTS_ROOT);
 		  
+			// save project name, needed for making html links relative
+			this.testProject = testRunner.getPropertyValue(Config.PROVA_PROJECT);
 		  /*
 		   * - Check if property 'prova.plugins.reporting.dir' is an existing dir.
 		   * - if not: Try to create it as a sub-dir in the Prova root dir.
@@ -309,80 +313,65 @@ public class SimpleReport implements ReportingPlugin
 	  }
   }
 
-  @Override
-  public void logAction(TestAction action, String status, long executionTime) throws Exception
-  {
-	  String color = "red";
-	  if (status.equalsIgnoreCase("ok"))
-	  {
-		  color = "lightgreen";
-		  if(this.testRunner.hasPropertyValue("SCREENSHOT_PATH")&& this.testRunner.getPropertyValue("SCREENSHOT_PATH").length()>1)
-		  {
-		  LOGGER.trace("SCREENSHOT_PATH found");
-		  try
-		  {
-			  String Path = testRunner.getPropertyValue("SCREENSHOT_PATH");
-			  File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
-			  String destinationPath = currTestCaseFile.substring(0, currTestCaseFile.lastIndexOf(File.separator)) 
-					  + File.separator + source.getName();
-			  LOGGER.debug("destinationPath: " + destinationPath);
-			  File destination = new File(destinationPath);
-			  
-;
-			  if (!destination.exists()) {
-				  copyFileUsingChannel(source,destination);
-				  
-			  }
-			  status =  "<a href=\"."+ File.separator + source.getName() + "\""
-					  + "target=\"_blank\" >" + status + "</a>";
-			  this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
-					  
-		  }
-		  catch(Exception eX)
-		  {
-			  LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
-		  }
-		  
-	 }
-	  }
-	  else
-	  {
-		  if(this.testRunner.hasPropertyValue("SCREENSHOT_PATH")&& this.testRunner.getPropertyValue("SCREENSHOT_PATH").length()>1)
-			  {
-			  LOGGER.trace("SCREENSHOT_PATH found");
-			  try
-			  {
-				  File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
-				  String destinationPath = currTestCaseFile.substring(0, currTestCaseFile.lastIndexOf(File.separator)) + File.separator + "error_"+(action.getId().replace(" | #", "_"))+".png";
-				  File destination = new File(destinationPath);
+	private String getScreenShotFile(String status, TestAction action) throws Exception {
+		String result = null;
+		if (this.testRunner.hasPropertyValue("SCREENSHOT_PATH")
+				&& this.testRunner.getPropertyValue("SCREENSHOT_PATH").length() > 1) {
+			LOGGER.trace("SCREENSHOT_PATH found");
+			try {
+				String errorPrefix = "";
+				if ("NOK".equals(status)) {
+					errorPrefix = "error_";
+				}
 
-				  if (!destination.exists()) {
-					  source.renameTo(destination);
-				  }
-				  status =  "<a href=\"."+ File.separator + "error_"+(action.getId().replace(" | #", "_")) +".png" + "\""
-						  + "target=\"_blank\" >" + status + "</a>";
-				  this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
-						  
-			  }
-			  catch(Exception eX)
-			  {
-				  LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
-			  }
-			  
-		 }
-			  	  
-	  }
+				File source = new File(testRunner.getPropertyValue("SCREENSHOT_PATH"));
+				String destFileName = makeFilenameValid(errorPrefix + action.getId() + "_" + source.getName() );
+				String destinationPath = currTestCaseFile.substring(0, currTestCaseFile.lastIndexOf(File.separator))
+						+ File.separator + destFileName;
+				LOGGER.debug("destinationPath: " + destinationPath);
+				File destination = new File(destinationPath);
 
-	  try
-          {
-                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">"+status+"</td><td style=\"width:1200px\">"+action.toString()+"</td><td style=\"width:200px\">" + (action.getId()) +"</td><td style=\"width:200px\">" + executionTime +"ms</td></tr>");
-          }
-          catch(Exception eX)
-          {
-                LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
-                pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\""+color+"\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">Unknown action id</td><td style=\"width:200px\">" + executionTime +"ms</td></tr>");
-          }
-  }
+				if (!destination.exists()) {
+					copyFileUsingChannel(source, destination);
+				}
+				result = "." + File.separator + destFileName;
+				this.testRunner.setPropertyValue("SCREENSHOT_PATH", "");
+
+			} catch (Exception eX) {
+				LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
+			}
+		}
+		return result;
+	}
+
+	
+	@Override
+	public void logAction(TestAction action, String status, long executionTime) throws Exception {
+		String color = "red";
+		String screenshotFile = getScreenShotFile(status, action);
+		if (status.equalsIgnoreCase("ok")) {
+			color = "lightgreen";
+		}
+
+		String statusHtml = status;
+		if (screenshotFile != null) {
+			statusHtml = "<a href=\"" + screenshotFile + "\"" + "target=\"_blank\" >" + status + "</a>";
+		}
+
+		try {
+			pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + statusHtml
+					+ "</td><td style=\"width:1200px\">" + action.toString() + "</td><td style=\"width:200px\">"
+					+ (action.getId()) + "</td><td style=\"width:200px\">" + executionTime + "ms</td></tr>");
+		} catch (Exception eX) {
+			LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
+			pwTestcase
+					.println("<tr><td style=\"width:200px\" bgcolor=\""
+							+ color
+							+ "\">N/A</td><td style=\"width:1200px\">UNKNOWN ACTION</td><td style=\"width:200px\">Unknown action id</td><td style=\"width:200px\">"
+							+ executionTime + "ms</td></tr>");
+		}
+		pwTestcase.flush();
+	}
 
   @Override
   public void logEndTest(TestCase testCase) throws Exception
@@ -391,32 +380,38 @@ public class SimpleReport implements ReportingPlugin
 	  Long elapsedTime = System.currentTimeMillis() - startTime;
 	  pwTestcase.println("<br><b>Endtime: </b>" + LocalDateTime.now()+"</br>");
 	  pwTestcase.println("<br><b>Runtime in seconds: </b>" + elapsedTime/1000 + "</br>");
-	  if (testCase.getStatus().toString().equalsIgnoreCase("passed"))
-	  {
+		String color = "green";
+		if (TestStatus.FAILED.equals(testCase.getStatus())) {
+			color = "red";
+		}
+
+		pwTestcase.println("<br><b>Status testcase: <font color=\"" + color + "\">" + testCase.getStatus()
+				+ "</b></font></br>");
+		
+		if (testCase.getStatus().toString().equalsIgnoreCase("passed")) {
 		  countPassedTestcases = countPassedTestcases + 1;
-		  pwTestcase.println("<br><b>Status testcase: <font color=\"green\">" + testCase.getStatus()+"</b></font></br>" );
-		  
-		  // TODO: Creat a relative link to the file name instead of an absolute link!
-		  pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"lightgreen\">"+testCase.getStatus()+"</td><td style=\"width:1200px\">"
-				  				+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</td><td style=\"width:200px\">" 
-				  				+ "<a href=\""+ currTestCaseFile
+		
+			pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"lightgreen\">" + testCase.getStatus()
+					+ "</td><td style=\"width:1200px\">"
+					+ testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
+					+ "</td><td style=\"width:200px\">" + "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile)
 				  				+ "\">Result testcase</a></td></tr>");
-	  }
-	  else
-	  {
+			pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"lightgreen\">"
+					+ testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
+					+ "</td><td style=\"width:1200px\">" + testCase.getSummary() + "</td><td style=\"width:200px\">"
+					+ "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile) + "\">Result testcase</a></td></tr>");
+
+		} else {
 		  countFailedTestcases = countFailedTestcases + 1;
-		  pwTestcase.println("<br><b>Status testcase: <font color=\"red\">" + testCase.getStatus()+"</b></font></br>" );
-		  // TODO: Creat a relative link to the file name instead of an absolute link!
-		  pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"+testCase.getStatus()+"</td><td style=\"width:1200px\">"
-	  				+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)+"</td><td style=\"width:200px\">" 
-	  				+ "<a href=\""+currTestCaseFile
-	  				+ "\">Result testcase</a></td></tr>");
-		  // TODO: Creat a relative link to the file name instead of an absolute link!
-		  pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"+testCase.getId().substring(testCase.getId().lastIndexOf("\\")+1)
+			pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"red\">" + testCase.getStatus()
 				    +"</td><td style=\"width:1200px\">"
-	  				+testCase.getSummary()+"</td><td style=\"width:200px\">" 
-	  				+ "<a href=\""+currTestCaseFile
+					+ testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
+					+ "</td><td style=\"width:200px\">" + "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile)
 	  				+ "\">Result testcase</a></td></tr>");
+			pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"
+					+ testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
+					+ "</td><td style=\"width:1200px\">" + testCase.getSummary() + "</td><td style=\"width:200px\">"
+					+ "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile) + "\">Result testcase</a></td></tr>");
 	  }
 	  pwTestcase.println("<br><b>Summary: </b>" + testCase.getSummary()+"</br>");
 	  pwTestcase.println("</table>");
@@ -583,4 +578,37 @@ public class SimpleReport implements ReportingPlugin
       LOGGER.error("Exception while writing message/query to txt file! : " + ex.getMessage());
     }
   }
+	/**
+	 * Convert a given filename as linktarget to a relative link
+	 * 
+	 * 
+	 * @param linkTarget
+	 * @return
+	 */
+	private String makeHtmlLinkRelative(String linkTarget) {
+		if (linkTarget != null && !"".equals(linkTarget)) {
+			try
+			{
+				return linkTarget.replaceFirst(currTestSuiteDir, this.testProject);
+			}
+			catch(Exception eX)
+			{
+				LOGGER.warn("Creating relative link failed, using normal link instead: " + eX);
+				return linkTarget;
+			}
+		}
+		return linkTarget;
+	}
+
+	/**
+	 * Replace all illegal characters in filename.
+	 * 
+	 * @param fileName
+	 * @return
+	 */
+	public String makeFilenameValid(String fileName) {
+		return fileName.replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("_+", "_");
+	}
+	
+
 }
