@@ -49,12 +49,15 @@ public class TestCase {
   private TestStatus status     = TestStatus.NOTRUN;
   private String     summary    = "";
   private TestRunner testRunner = null;
+  private Boolean    error      = false;
+
   
   private String projectName  = "";
   
   // Test case information
   private String issueId  = "";
   private String priority = "";
+  
 	//Labels for this testcase. This allows for filtering on testcases using a label 
 	private List<String> labels = new ArrayList<String>();
 
@@ -313,7 +316,28 @@ public class TestCase {
 				reportPlugin.logAction(testAction, "NOK", 0);
 			}
 			if (this.testRunner.getPropertyValue("prova.flow.failon.actionfail").equalsIgnoreCase("true")) {
-				throw eX;
+                if(this.testRunner.getPropertyValue("prova.flow.failon.testfail").equalsIgnoreCase("false")&&eX.getMessage().contains("Validation Failed:"))
+                {
+                    LOGGER.debug("Validation failed");
+                    error = true;
+                }
+                else
+                {
+                    throw eX;
+                }
+            }
+            else
+            {
+                if(this.testRunner.getPropertyValue("prova.flow.failon.testfail").equalsIgnoreCase("false")&&eX.getMessage().contains("Validation Failed:"))
+                {
+                    LOGGER.debug("Validation failed");
+                    error = true;
+                }
+                else
+                {
+                    throw eX;
+                }
+
 			}
 		}
 		try {
@@ -377,14 +401,25 @@ public class TestCase {
 						//currentTestAction = testAction;
 						executeAction(testAction, waitTime);
 						//LOGGER.debug(testAction.getId().toString());
-            }
-				} catch (Exception eX) {
-        this.setStatus(TestStatus.FAILED);
-        this.setSummary(eX.getMessage());
-        eX.printStackTrace();
-        exception = new TestActionException(eX.getMessage());
-      }
-    }
+					}
+				} 
+				catch (Exception eX) 
+				{
+			        if (error)
+			        {
+			            this.setStatus(TestStatus.COMPLETED);
+			        }
+			        else
+			        {
+			        	this.setStatus(TestStatus.FAILED);
+						this.setSummary(eX.getMessage());
+						eX.printStackTrace();
+						exception = new TestActionException(eX.getMessage());
+			        }  
+
+					
+				}
+		}
     
     // Always execute the tear down actions
     try
