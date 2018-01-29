@@ -300,6 +300,7 @@ public class TestCase {
 
 	protected void executeAction(TestAction testAction, long waitTime) throws Exception {
 		LOGGER.trace("Execute test action: {}", () -> testAction.toString());
+        error = false;
 		try {
 			long start = System.nanoTime();
 			testAction.execute();
