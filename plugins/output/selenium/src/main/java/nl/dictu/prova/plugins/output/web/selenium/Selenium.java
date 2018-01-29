@@ -426,8 +426,16 @@ public class Selenium implements WebOutputPlugin
         
         if(++count > maxRetries)
         { 
-          this.doCaptureScreen("doClick");
-          throw eX;
+        	if (continueOnNotFound) 
+        	{
+        		LOGGER.trace("Continue on not found");
+        		return;  
+        	}
+            else
+            {
+            	this.doCaptureScreen("doClick");
+            	throw eX;
+            }
         }
       }
     }

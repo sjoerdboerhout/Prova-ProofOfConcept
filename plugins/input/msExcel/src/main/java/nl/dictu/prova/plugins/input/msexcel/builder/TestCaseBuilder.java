@@ -284,15 +284,19 @@ public class TestCaseBuilder {
 		// is linked to a unique TestAction. Together they form the basis for sending
 		// and testing.
 		if (tagName.toLowerCase().equals("poll")) {
-			TestAction execute = actionFactory.getAction("POLLFOR" + type + "RESULT");
-			execute.setTestRunner(testRunner);
-			testActions.add(execute);
+			//TestAction execute = actionFactory.getAction("POLLFOR" + type + "RESULT");
+			//execute.setTestRunner(testRunner);
+			//testActions.add(execute);
+			testAction = actionFactory.getAction("POLLFOR" + type + "RESULT");
+			testAction.setTestRunner(testRunner);
 		}
 
 		else if (tagName.toLowerCase().equals("execute") | tagName.toLowerCase().equals("send")) {
-			TestAction execute = actionFactory.getAction("PROCESS" + type + "RESPONSE");
-			execute.setTestRunner(testRunner);
-			testActions.add(execute);
+			//TestAction execute = actionFactory.getAction("PROCESS" + type + "RESPONSE");
+			//execute.setTestRunner(testRunner);
+			//testActions.add(execute);
+			testAction = actionFactory.getAction("PROCESS" + type + "RESPONSE");
+			testAction.setTestRunner(testRunner);
 
 			// After adding execute TestAction, add tests from datasheet if available.
 			if (dataset != null) {
@@ -595,6 +599,7 @@ public class TestCaseBuilder {
 			else {
 				LOGGER.info("No testdata found for sheet '" + nextSheet.getSheetName() + "', processing once.");
 				testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, null, null));
+				return testActions;
 			}
 		}
 
