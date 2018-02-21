@@ -589,7 +589,7 @@ public class TestCaseBuilder {
 						LOGGER.info(testData.size() + " sets of testdata found for sheet '" + nextSheet.getSheetName()
 								+ "'");
 						for (List<Properties> dataSet : testData) {
-							testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet, specificSheet));
+							testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet, specificSheet, rowMap));
 						}
 						return testActions;
 					}
@@ -598,13 +598,13 @@ public class TestCaseBuilder {
 
 			else {
 				LOGGER.info("No testdata found for sheet '" + nextSheet.getSheetName() + "', processing once.");
-				testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, null, null));
+				testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, null, null, rowMap));
 				return testActions;
 			}
 		}
 
 		// TODO READ keywords for reference sheet!
-		return readTestActionsFromSheet(testCase, nextSheet, null, null);
+		return readTestActionsFromSheet(testCase, nextSheet, null, null, rowMap);
 	}
 
 	/**
@@ -615,7 +615,7 @@ public class TestCaseBuilder {
 	 * @throws Exception
 	 */
 	private List<TestAction> readTestActionsFromSheet(TestCase testCase, Sheet sheet, List<Properties> dataSet,
-			String specifiedPrefix) throws Exception {
+			String specifiedPrefix, Map<String,String> extraParameters) throws Exception {
 		List<TestAction> testActions = new ArrayList<>();
 		MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
 
@@ -635,7 +635,7 @@ public class TestCaseBuilder {
 						switch (tagName) {
 						case "sectie":
 						case "tc":
-							parseTestActionSection(testCase, testActions, sheet, rowNum, tagName);
+							parseTestActionSection(testCase, testActions, sheet, rowNum, tagName, extraParameters);
 							break;
 						case "query":
 						case "queryproperties":
@@ -677,7 +677,7 @@ public class TestCaseBuilder {
 	 * @throws Exception
 	 */
 	private void parseTestActionSection(TestCase testCase, List<TestAction> testActions, Sheet sheet, MutableInt rowNum,
-			String tagName) throws Exception {
+			String tagName, Map<String, String> extraParameters) throws Exception {
 		flowWorkbookReader = new WorkbookReader(sheet.getWorkbook());
 		// get header row
 		Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
@@ -686,6 +686,15 @@ public class TestCaseBuilder {
 		ActionFactory actionFactory = new WebActionFactory();
 
 		while ((rowMap = readRow(sheet, rowNum, headers)) != null) {
+			//Add extra parameters to rowMap, they can be used in eg locator as {paramKey} --> paramValue
+			if (extraParameters != null) {
+				for (String paramKey: extraParameters.keySet()) {
+					if (!rowMap.containsKey(paramKey)) {
+						//Zet parameterkeys om naar lowercase
+						rowMap.put(paramKey.toLowerCase(), extraParameters.get(paramKey));
+					}
+				}
+			}
 			switch (tagName) {
 			case "sectie":
 				TestAction testAction = actionFactory.getAction(rowMap.get("actie"));
@@ -718,6 +727,10 @@ public class TestCaseBuilder {
 								keyword = testDataKeywords.getProperty(keyword);
 							} else if (testRunner.hasPropertyValue(keyword)) {
 								keyword = testRunner.getPropertyValue(keyword);
+							} else if (rowMap.containsKey(keyword)) {
+								LOGGER.trace("Substitute from extraParameters, key '{}'. Keyword '{}' with value '{}'", key, keyword,
+										rowMap.get(keyword));
+								keyword = rowMap.get(keyword);
 							} else {
 								if (this.testRunner.hasPropertyValue(Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD)) {
 									Boolean failOnNoTestdataKeywords = false;
