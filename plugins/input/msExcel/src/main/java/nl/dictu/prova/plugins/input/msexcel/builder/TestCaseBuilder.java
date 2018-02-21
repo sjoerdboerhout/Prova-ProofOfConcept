@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.functors.NotNullPredicate;
@@ -667,6 +669,40 @@ public class TestCaseBuilder {
 	}
 
 	/**
+	 * Try to substitute variables of form {varname} in the keyword string.
+	 * Variables can occur everywhere in a the string.
+	 * The source for substitution are the extraParameters and the properties from the testrunner.
+	 * 
+	 * @param keyword
+	 * @param extraParameters
+	 * @return
+	 * @throws Exception
+	 */
+	private String substituteVariables(String keyword, Map<String,String> extraParameters) throws Exception {
+		Pattern pattern = Pattern.compile("\\{(.+?)\\}");
+		Matcher matcher = pattern.matcher(keyword);
+
+		while (matcher.find()) {
+			String paramKey = matcher.group(1);
+			LOGGER.trace("Found variable '{}' in keyword '{}', trying to substitute.", paramKey,
+					keyword);
+			if (extraParameters.containsKey(paramKey)) {
+				keyword = keyword.replace("{" + paramKey + "}", extraParameters.get(paramKey));
+				LOGGER.trace(
+						"Substitute regex from extraParameters, key '{}'. Keyword '{}' with value '{}'",
+						paramKey, keyword, extraParameters.get(paramKey));
+			} else if (testRunner.hasPropertyValue(paramKey)) {
+				String value = testRunner.getPropertyValue(paramKey);
+				keyword = keyword.replace("{" + paramKey + "}", value);
+				LOGGER.trace(
+						"Substitute regex from testRunner properties, key '{}'. Keyword '{}' with value '{}'",
+						paramKey, keyword, value);
+			}
+		}
+		return keyword;
+	}
+	
+	/**
 	 * Scan all rows on the given <sheet> and parse all actions and import
 	 * referenced sheets.
 	 *
@@ -687,11 +723,14 @@ public class TestCaseBuilder {
 
 		while ((rowMap = readRow(sheet, rowNum, headers)) != null) {
 			//Add extra parameters to rowMap, they can be used in eg locator as {paramKey} --> paramValue
+			//This is a way to propagate the variables to referenced methods via rowMap.
 			if (extraParameters != null) {
 				for (String paramKey: extraParameters.keySet()) {
 					if (!rowMap.containsKey(paramKey)) {
-						//Zet parameterkeys om naar lowercase
+						// Zet parameterkeys om naar lowercase
 						rowMap.put(paramKey.toLowerCase(), extraParameters.get(paramKey));
+						LOGGER.trace("Adding extra parameter '{}' with value '{}'", paramKey.toLowerCase(),
+								extraParameters.get(paramKey));
 					}
 				}
 			}
@@ -754,6 +793,10 @@ public class TestCaseBuilder {
 								}
 							}
 						}
+						
+						keyword = substituteVariables(keyword, rowMap);
+						//substitute twice, the value of the first variable can also be a variable.
+						keyword = substituteVariables(keyword, rowMap);
 
 						testAction.setAttribute(key, keyword);
 						LOGGER.trace("Read '{}' action attribute '{}' = '{}'", rowMap.get("actie").toUpperCase(), key,
