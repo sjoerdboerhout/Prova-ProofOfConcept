@@ -53,6 +53,7 @@ import nl.dictu.prova.framework.db.DbActionFactory;
 import nl.dictu.prova.framework.shell.ShellActionFactory;
 import nl.dictu.prova.framework.soap.SoapActionFactory;
 import nl.dictu.prova.framework.web.WebActionFactory;
+import nl.dictu.prova.plugins.input.msexcel.MsExcelConstants;
 import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 import nl.dictu.prova.plugins.input.msexcel.reader.WorkbookReader;
 import nl.dictu.prova.plugins.input.msexcel.validator.SheetPrefixValidator;
@@ -724,9 +725,10 @@ public class TestCaseBuilder {
 		while ((rowMap = readRow(sheet, rowNum, headers)) != null) {
 			//Add extra parameters to rowMap, they can be used in eg locator as {paramKey} --> paramValue
 			//This is a way to propagate the variables to referenced methods via rowMap.
+			//Reserved parameter names are excluded to prevent unwanted effects.
 			if (extraParameters != null) {
 				for (String paramKey: extraParameters.keySet()) {
-					if (!rowMap.containsKey(paramKey)) {
+					if (!rowMap.containsKey(paramKey) && !MsExcelConstants.reservedParameters.contains(paramKey.toLowerCase())) {
 						// Zet parameterkeys om naar lowercase
 						rowMap.put(paramKey.toLowerCase(), extraParameters.get(paramKey));
 						LOGGER.trace("Adding extra parameter '{}' with value '{}'", paramKey.toLowerCase(),

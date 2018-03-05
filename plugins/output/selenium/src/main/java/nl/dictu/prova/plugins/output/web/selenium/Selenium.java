@@ -1446,6 +1446,7 @@ public class Selenium implements WebOutputPlugin
       }
       catch(StaleElementReferenceException eX)
       {
+    	  LOGGER.trace(eX.getMessage());
         if(++count > maxRetries){ throw eX;}
         LOGGER.trace("Element '{}' is no longer attached to the DOM. Try again. ({})", xPath, count);
       }
