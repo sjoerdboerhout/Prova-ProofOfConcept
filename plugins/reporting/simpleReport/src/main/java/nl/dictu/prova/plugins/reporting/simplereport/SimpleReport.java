@@ -20,21 +20,6 @@
 package nl.dictu.prova.plugins.reporting.simplereport;
 
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.channels.FileChannel;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import nl.dictu.prova.Config;
 import nl.dictu.prova.TestRunner;
 import nl.dictu.prova.framework.TestAction;
@@ -42,6 +27,14 @@ import nl.dictu.prova.framework.TestCase;
 import nl.dictu.prova.framework.TestStatus;
 import nl.dictu.prova.framework.TestSuite;
 import nl.dictu.prova.plugins.reporting.ReportingPlugin;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.io.*;
+import java.nio.channels.FileChannel;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 
 /*
  * Hello world!
@@ -105,10 +98,14 @@ public class SimpleReport implements ReportingPlugin
 		  }
 		  else
 		  {
-			  dirName = testRunner.getPropertyValue(Config.PROVA_DIR) +
-					  	File.separator +
-					  	testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR);
-			  
+			  if (Boolean.valueOf(testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_CREATE_FOLDERS))) {
+				  dirName = testRunner.getPropertyValue(Config.PROVA_DIR) + File.separator +
+						  testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR);
+			  }
+			  else
+			  {
+				  dirName = testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_DIR);
+			  }
 			  dir = new File(dirName);
 			  
 			  // Try if the configured path is a sub-directoy of the Prova root path
@@ -123,22 +120,26 @@ public class SimpleReport implements ReportingPlugin
 				  LOGGER.debug("Created output directory '" + dir.getAbsolutePath() + "' for reporting to.");
 			  }
 		  }
-
+          reportRoot = dir.getAbsolutePath() + File.separator;
 		  // Create a directory for this testrun
-		  reportRoot =  dir.getAbsolutePath() +
-				  		File.separator +
-				  		(projectName.length() > 0 ? (projectName + File.separator) : "") +
-				  		LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy")).toString() +
-              File.separator +
-              LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-MMM")).toString() +
-              File.separator +
-              LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd")).toString() +
-              File.separator +
-              LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH-mm-ss")).toString();
-		  
-		  new File(reportRoot).mkdirs();
-		  
-		  
+		  if (Boolean.valueOf(testRunner.getPropertyValue(Config.PROVA_PLUGINS_REPORTING_CREATE_FOLDERS)))
+		  {
+			  reportRoot = reportRoot +
+					  (projectName.length() > 0 ? (projectName + File.separator) : "") +
+					  LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy")).toString() +
+					  File.separator +
+					  LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-MMM")).toString() +
+					  File.separator +
+					  LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd")).toString() +
+					  File.separator +
+					  LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH-mm-ss")).toString();
+
+			  new File(reportRoot).mkdirs();
+		  }
+		  else
+		  {
+			  LOGGER.debug("Not creating folders as requested. Reports will be placed in: "+reportRoot);
+		  }
 		  // Create the start of the summary file
 		  pwSummary = createPW(reportRoot + File.separator + "Testrun_Summary.html");
     	  pwSummary.println("<!DOCTYPE html>");

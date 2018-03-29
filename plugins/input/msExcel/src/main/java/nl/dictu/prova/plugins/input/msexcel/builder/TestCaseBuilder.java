@@ -558,7 +558,7 @@ public class TestCaseBuilder {
 			}
 		} else {
 			LOGGER.debug("Find sheet {} in package {}", rowMap.get(type), rowMap.get("package"));
-			String nextPath = getWorkbookFromPackage(rowMap.get("package"));
+			String nextPath = getWorkbookFromPackage(flowWorkbookPath, rowMap.get("package"));
 
 			if (!new File(nextPath).exists()) {
 				throw new Exception("Workbook '" + nextPath + "' not found");
@@ -924,10 +924,13 @@ public class TestCaseBuilder {
 	 * @param _package
 	 * @return
 	 */
-	private String getWorkbookFromPackage(String _package) {
+	private String getWorkbookFromPackage(String testFlowPath, String _package) {
 		LOGGER.trace("getWorkbookFromPackage: '{}'", _package);
-
-		return testRootPath + File.separator + _package.replace(".", File.separator) + ".xlsm";
+		// manipulate path to strip file from testcasepath
+		int p = testFlowPath.lastIndexOf(File.separator);
+        testFlowPath = testFlowPath.substring(0, p);
+		//return testRootPath + File.separator + _package.replace(".", File.separator) + ".xlsm";
+		return testFlowPath + File.separator + _package.replace(".", File.separator) + ".xlsm";
 	}
 
 	/**

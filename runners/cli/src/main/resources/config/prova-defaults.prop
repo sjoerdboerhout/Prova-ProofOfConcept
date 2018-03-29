@@ -57,6 +57,7 @@ prova.plugins.reporting.package                 = nl.dictu.prova.plugins.reporti
 prova.plugins.reporting                         = SimpleReport
 prova.plugins.reporting.file                    = yyyy-MM-dd_HHmmss
 prova.plugins.reporting.dir                     = testresults
+prova.plugins.reporting.createfolders           = true
 
 ################################################################################
 #

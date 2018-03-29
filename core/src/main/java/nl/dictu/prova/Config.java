@@ -92,7 +92,8 @@ public class Config
   
   public final static String PROVA_PLUGINS_REPORTING_DIR                = "prova.plugins.reporting.dir";
   public final static String PROVA_PLUGINS_REPORTING_FILE               = "prova.plugins.reporting.file";               // String,    Full path to file for logging test results 
-  
+  public final static String PROVA_PLUGINS_REPORTING_CREATE_FOLDERS     = "prova.plugins.reporting.createfolders";      // Boolean,   create sub-folders?
+
   public final static String PROVA_TESTS_EXECUTE                        = "prova.tests.execute";                        // Boolean,   Execute or only validate 
   public final static String PROVA_TESTS_FILTERS                        = "prova.tests.filters";                        // String[],  Comma separated filtering for test scripts
   public final static String PROVA_TESTS_ROOT                           = "prova.tests.root";                           // String,    Points to the root of the test scripts
