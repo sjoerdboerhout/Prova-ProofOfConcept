@@ -29,6 +29,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.functors.NotNullPredicate;
@@ -51,6 +53,7 @@ import nl.dictu.prova.framework.db.DbActionFactory;
 import nl.dictu.prova.framework.shell.ShellActionFactory;
 import nl.dictu.prova.framework.soap.SoapActionFactory;
 import nl.dictu.prova.framework.web.WebActionFactory;
+import nl.dictu.prova.plugins.input.msexcel.MsExcelConstants;
 import nl.dictu.prova.plugins.input.msexcel.reader.CellReader;
 import nl.dictu.prova.plugins.input.msexcel.reader.WorkbookReader;
 import nl.dictu.prova.plugins.input.msexcel.validator.SheetPrefixValidator;
@@ -603,7 +606,7 @@ public class TestCaseBuilder {
 						LOGGER.info(testData.size() + " sets of testdata found for sheet '" + nextSheet.getSheetName()
 								+ "'");
 						for (List<Properties> dataSet : testData) {
-							testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet, specificSheet));
+							testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, dataSet, specificSheet, rowMap));
 						}
 						return testActions;
 					}
@@ -612,13 +615,13 @@ public class TestCaseBuilder {
 
 			else {
 				LOGGER.info("No testdata found for sheet '" + nextSheet.getSheetName() + "', processing once.");
-				testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, null, null));
+				testActions.addAll(readTestActionsFromSheet(testCase, nextSheet, null, null, rowMap));
 				return testActions;
 			}
 		}
 
 		// TODO READ keywords for reference sheet!
-		return readTestActionsFromSheet(testCase, nextSheet, null, null);
+		return readTestActionsFromSheet(testCase, nextSheet, null, null, rowMap);
 	}
 
 	/**
@@ -629,7 +632,7 @@ public class TestCaseBuilder {
 	 * @throws Exception
 	 */
 	private List<TestAction> readTestActionsFromSheet(TestCase testCase, Sheet sheet, List<Properties> dataSet,
-			String specifiedPrefix) throws Exception {
+			String specifiedPrefix, Map<String,String> extraParameters) throws Exception {
 		List<TestAction> testActions = new ArrayList<>();
 		MutableInt rowNum = new MutableInt(sheet.getFirstRowNum());
 
@@ -649,7 +652,7 @@ public class TestCaseBuilder {
 						switch (tagName) {
 						case "sectie":
 						case "tc":
-							parseTestActionSection(testCase, testActions, sheet, rowNum, tagName);
+							parseTestActionSection(testCase, testActions, sheet, rowNum, tagName, extraParameters);
 							break;
 						case "query":
 						case "queryproperties":
@@ -681,6 +684,40 @@ public class TestCaseBuilder {
 	}
 
 	/**
+	 * Try to substitute variables of form {varname} in the keyword string.
+	 * Variables can occur everywhere in a the string.
+	 * The source for substitution are the extraParameters and the properties from the testrunner.
+	 * 
+	 * @param keyword
+	 * @param extraParameters
+	 * @return
+	 * @throws Exception
+	 */
+	private String substituteVariables(String keyword, Map<String,String> extraParameters) throws Exception {
+		Pattern pattern = Pattern.compile("\\{(.+?)\\}");
+		Matcher matcher = pattern.matcher(keyword);
+
+		while (matcher.find()) {
+			String paramKey = matcher.group(1);
+			LOGGER.trace("Found variable '{}' in keyword '{}', trying to substitute.", paramKey,
+					keyword);
+			if (extraParameters.containsKey(paramKey)) {
+				keyword = keyword.replace("{" + paramKey + "}", extraParameters.get(paramKey));
+				LOGGER.trace(
+						"Substitute regex from extraParameters, key '{}'. Keyword '{}' with value '{}'",
+						paramKey, keyword, extraParameters.get(paramKey));
+			} else if (testRunner.hasPropertyValue(paramKey)) {
+				String value = testRunner.getPropertyValue(paramKey);
+				keyword = keyword.replace("{" + paramKey + "}", value);
+				LOGGER.trace(
+						"Substitute regex from testRunner properties, key '{}'. Keyword '{}' with value '{}'",
+						paramKey, keyword, value);
+			}
+		}
+		return keyword;
+	}
+	
+	/**
 	 * Scan all rows on the given <sheet> and parse all actions and import
 	 * referenced sheets.
 	 *
@@ -691,7 +728,7 @@ public class TestCaseBuilder {
 	 * @throws Exception
 	 */
 	private void parseTestActionSection(TestCase testCase, List<TestAction> testActions, Sheet sheet, MutableInt rowNum,
-			String tagName) throws Exception {
+			String tagName, Map<String, String> extraParameters) throws Exception {
 		flowWorkbookReader = new WorkbookReader(sheet.getWorkbook());
 		// get header row
 		Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
@@ -700,6 +737,19 @@ public class TestCaseBuilder {
 		ActionFactory actionFactory = new WebActionFactory();
 
 		while ((rowMap = readRow(sheet, rowNum, headers)) != null) {
+			//Add extra parameters to rowMap, they can be used in eg locator as {paramKey} --> paramValue
+			//This is a way to propagate the variables to referenced methods via rowMap.
+			//Reserved parameter names are excluded to prevent unwanted effects.
+			if (extraParameters != null) {
+				for (String paramKey: extraParameters.keySet()) {
+					if (!rowMap.containsKey(paramKey) && !MsExcelConstants.reservedParameters.contains(paramKey.toLowerCase())) {
+						// Zet parameterkeys om naar lowercase
+						rowMap.put(paramKey.toLowerCase(), extraParameters.get(paramKey));
+						LOGGER.trace("Adding extra parameter '{}' with value '{}'", paramKey.toLowerCase(),
+								extraParameters.get(paramKey));
+					}
+				}
+			}
 			switch (tagName) {
 			case "sectie":
 				TestAction testAction = actionFactory.getAction(rowMap.get("actie"));
@@ -732,6 +782,10 @@ public class TestCaseBuilder {
 								keyword = testDataKeywords.getProperty(keyword);
 							} else if (testRunner.hasPropertyValue(keyword)) {
 								keyword = testRunner.getPropertyValue(keyword);
+							} else if (rowMap.containsKey(keyword)) {
+								LOGGER.trace("Substitute from extraParameters, key '{}'. Keyword '{}' with value '{}'", key, keyword,
+										rowMap.get(keyword));
+								keyword = rowMap.get(keyword);
 							} else {
 								if (this.testRunner.hasPropertyValue(Config.PROVA_FLOW_FAILON_NOTESTDATAKEYWORD)) {
 									Boolean failOnNoTestdataKeywords = false;
@@ -755,6 +809,10 @@ public class TestCaseBuilder {
 								}
 							}
 						}
+						
+						keyword = substituteVariables(keyword, rowMap);
+						//substitute twice, the value of the first variable can also be a variable.
+						keyword = substituteVariables(keyword, rowMap);
 
 						testAction.setAttribute(key, keyword);
 						LOGGER.trace("Read '{}' action attribute '{}' = '{}'", rowMap.get("actie").toUpperCase(), key,

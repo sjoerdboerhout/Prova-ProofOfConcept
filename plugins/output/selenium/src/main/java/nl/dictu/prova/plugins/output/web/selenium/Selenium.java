@@ -498,20 +498,19 @@ public class Selenium implements WebOutputPlugin
 		  webdriver.navigate().refresh();
 	  }
 	  else
-		  {
-		  try {
-		  
-			qualifiedUrl = new URL(url);
-	                
-	                LOGGER.debug("Url not malformed, navigating to " + qualifiedUrl.getPath());
-		  
-	                webdriver.navigate().to(qualifiedUrl);
-		  } catch (MalformedURLException e) {
-		  	// TODO Auto-generated catch block
-		  	LOGGER.debug("Provided URL is malformed.");
-		  } 
-		  }
-  }
+		{
+			try {
+
+				qualifiedUrl = new URL(url);
+
+				LOGGER.debug("Url not malformed, navigating to " + qualifiedUrl.getPath());
+
+				webdriver.navigate().to(qualifiedUrl);
+			} catch (MalformedURLException e) {
+				LOGGER.debug("Provided URL is malformed, url: {}.", url);
+			}
+		}
+	  }
 
 
   @Override
@@ -1453,6 +1452,7 @@ public class Selenium implements WebOutputPlugin
       }
       catch(StaleElementReferenceException eX)
       {
+    	  LOGGER.trace(eX.getMessage());
         if(++count > maxRetries){ throw eX;}
         LOGGER.trace("Element '{}' is no longer attached to the DOM. Try again. ({})", xPath, count);
       }
