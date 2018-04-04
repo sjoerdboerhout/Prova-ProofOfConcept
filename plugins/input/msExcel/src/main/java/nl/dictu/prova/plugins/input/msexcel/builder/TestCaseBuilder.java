@@ -295,12 +295,15 @@ public class TestCaseBuilder {
 			//TestAction execute = actionFactory.getAction("PROCESS" + type + "RESPONSE");
 			//execute.setTestRunner(testRunner);
 			//testActions.add(execute);
-			testAction = actionFactory.getAction("PROCESS" + type + "RESPONSE");
-			testAction.setTestRunner(testRunner);
+
 
 			// After adding execute TestAction, add tests from datasheet if available.
 			if (dataset != null) {
 				if (!dataset.isEmpty()) {
+                    TestAction execute = actionFactory.getAction("PROCESS" + type + "RESPONSE");
+                    execute.setTestRunner(testRunner);
+                    testActions.add(execute);
+                    LOGGER.trace("Added DB testaction within dataset");
 					for (Entry entry : dataset.get(1).entrySet()) {
 						try {
 							TestAction test = actionFactory.getAction("EXECUTE" + type + "TEST");
@@ -314,6 +317,11 @@ public class TestCaseBuilder {
 					}
 				}
 			}
+			else
+            {
+                testAction = actionFactory.getAction("PROCESS" + type + "RESPONSE");
+                testAction.setTestRunner(testRunner);
+            }
 		} else if (tagName.toLowerCase().equals("query") | tagName.toLowerCase().equals("message")) {
 			testAction = actionFactory.getAction("SET" + type + "QUERY");
 			headers = readSectionHeaderRow(sheet, rowNum);
@@ -332,9 +340,14 @@ public class TestCaseBuilder {
 					}
 				}
 			}
-			if (testRunner.containsKeywords(messageOrQuery)) {
-				messageOrQuery = testRunner.replaceKeywords(messageOrQuery);
+
+			if (testRunner.isFile(messageOrQuery)) {
+				int p = flowWorkbookPath.lastIndexOf(File.separator);
+                messageOrQuery = testRunner.readTextFromFile(flowWorkbookPath.substring(0, p) + messageOrQuery.trim().substring(messageOrQuery.trim().indexOf(':') + 1));
 			}
+            if (testRunner.containsKeywords(messageOrQuery)) {
+                messageOrQuery = testRunner.replaceKeywords(messageOrQuery);
+            }
 			testAction.setAttribute("QUERY", messageOrQuery);
 			messageOrQuery = "";
 		} else if (tagName.toLowerCase().equals("queryproperties") | tagName.toLowerCase().equals("soapproperties")) {
@@ -464,7 +477,8 @@ public class TestCaseBuilder {
 			}
 		}
 		if (testAction != null) {
-			testAction.setTestRunner(testRunner);
+			LOGGER.trace("Adding DB testaction");
+		    testAction.setTestRunner(testRunner);
 			testActions.add(testAction);
 		}
 		return testActions;
@@ -734,7 +748,7 @@ public class TestCaseBuilder {
 										throw new Exception("Keyword '" + keyword + "' in sheet '"
 												+ sheet.getSheetName() + "' not defined with a value.");
 									} else {
-										LOGGER.error("Keyword '" + keyword + "' in sheet '" + sheet.getSheetName()
+										LOGGER.warn("Keyword '" + keyword + "' in sheet '" + sheet.getSheetName()
 												+ "' not defined with a value.");
 										keyword = rowMap.get(key);
 									}

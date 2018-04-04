@@ -19,6 +19,7 @@
  */
 package nl.dictu.prova;
 
+import java.io.File;
 import java.lang.Thread.State;
 import java.net.URL;
 import java.util.ArrayList;
@@ -29,6 +30,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -390,7 +393,32 @@ public class Prova implements Runnable, TestRunner
     }
     return false;
   }
-  
+  /**
+   * Returns a boolean on whether the input contains file:.
+   */
+  public Boolean isFile(String entry) throws Exception
+  {
+    if (entry.toLowerCase().contains("file:"))
+    {
+      LOGGER.trace("'" + entry + "' is a filepath");
+      return true;
+    }
+    return false;
+  }
+  public String readTextFromFile(String path)
+  {
+      String text = "";
+      try
+      {
+          text = new String(Files.readAllBytes(Paths.get(path)));
+          LOGGER.trace("File content read: " + text);
+      }
+      catch (Exception eX)
+      {
+            LOGGER.error("Reading text file failed: " + eX);
+      }
+      return text;
+  }
   
     
   /**

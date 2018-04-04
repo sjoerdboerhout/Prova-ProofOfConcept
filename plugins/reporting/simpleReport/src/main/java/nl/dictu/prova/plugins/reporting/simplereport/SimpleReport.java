@@ -358,10 +358,15 @@ public class SimpleReport implements ReportingPlugin
 		if (screenshotFile != null) {
 			statusHtml = "<a href=\"" + screenshotFile + "\"" + "target=\"_blank\" >" + status + "</a>";
 		}
-
+		String sAction = action.toString();
+		if (sAction.toLowerCase().contains("setdbproperties"))
+		{
+            String aAction[] = sAction.split(":");
+		    sAction = aAction[0] + ": ***************************************************************************************";
+		}
 		try {
 			pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + statusHtml
-					+ "</td><td style=\"width:1200px\">" + action.toString() + "</td><td style=\"width:200px\">"
+					+ "</td><td style=\"width:1200px\">" + sAction + "</td><td style=\"width:200px\">"
 					+ (action.getId()) + "</td><td style=\"width:200px\">" + executionTime + "ms</td></tr>");
 		} catch (Exception eX) {
 			LOGGER.error("Exception in logging testAction! ({})", eX.getMessage());
@@ -594,7 +599,7 @@ public class SimpleReport implements ReportingPlugin
 			}
 			catch(Exception eX)
 			{
-				LOGGER.warn("Creating relative link failed, using normal link instead: " + eX);
+				LOGGER.warn("Creating relative link failed, using normal link instead");
 				return linkTarget;
 			}
 		}

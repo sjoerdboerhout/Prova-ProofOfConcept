@@ -274,9 +274,15 @@ public class Selenium implements WebOutputPlugin
 	protected void setBrowserResolution(WebDriver webDriver) {
 		if (testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_RESOLUTION)) {
 			try {
-				String[] resXY = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_RESOLUTION)
-						.split("x");
-				webdriver.manage().window().setSize(new Dimension(new Integer(resXY[0]), new Integer(resXY[1])));
+				String resolution = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_RESOLUTION);
+			    if (resolution.toLowerCase().equals("fullscreen"))
+                {
+                    webdriver.manage().window().maximize();
+                }
+                else {
+                    String[] resXY = resolution.split("x");
+                    webdriver.manage().window().setSize(new Dimension(new Integer(resXY[0]), new Integer(resXY[1])));
+                }
 			} catch (Exception e) {
 				LOGGER.warn("Problem setting browser resolution.", e);
 			}

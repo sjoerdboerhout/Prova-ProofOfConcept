@@ -363,7 +363,8 @@ public class Jdbc implements DbOutputPlugin
 	  String query = "";
 	  try
 	  {
-		  query = new String(Files.readAllBytes(Paths.get(file)));
+	      LOGGER.debug("This should not visible in the log; should be done earlier in the process");
+	      query = new String(Files.readAllBytes(Paths.get(file)));
 	  }
 	  catch (Exception eX)
 	  {
@@ -419,7 +420,7 @@ public class Jdbc implements DbOutputPlugin
         else
         {
           matcher.appendReplacement(entryBuffer, keyword);
-          LOGGER.error("Keyword '" + keyword + "' in '" + currentPrefix + "' not defined with a value.");
+          LOGGER.warn("Keyword '" + keyword + "' in '" + currentPrefix + "' not defined with a value.");
           return null;
         }
       }

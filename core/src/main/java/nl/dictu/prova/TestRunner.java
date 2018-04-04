@@ -39,6 +39,8 @@ import nl.dictu.prova.plugins.reporting.ReportingPlugin;
 public interface TestRunner
 {
   public Boolean                    containsKeywords(String input) throws Exception;
+  public Boolean                    isFile(String input) throws Exception;
+  public String                     readTextFromFile(String input) throws Exception;
   public Boolean                    hasPropertyValue(String key);
   public String                     getPropertyValue(String key) throws Exception;
   public void                       setPropertyValue(String key, String value) throws Exception;
