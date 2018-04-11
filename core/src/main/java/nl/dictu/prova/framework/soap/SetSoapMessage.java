@@ -28,8 +28,14 @@ public class SetSoapMessage extends TestAction {
 
 	@Override
 	public void setAttribute(String key, String value) throws Exception {
-            switch(key){
-                case ATTR_MESSAGE:          message = value;
+        LOGGER.trace("Request to set '{}' to '{}'", () -> key, () -> value);
+	    switch(key){
+	        case ATTR_MESSAGE:
+	            message = value;
+	            LOGGER.trace("Setting attribute message.");
+	            break;
+            default:
+                LOGGER.error("Attribute not supported!");
             }
 	}
 
@@ -58,6 +64,7 @@ public class SetSoapMessage extends TestAction {
   public String toString()
   {
     int length = message.length() < 120 ? message.length() : 120;
-    return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + message.substring(0, length) + "'");
+    //return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + message.substring(0, length) + "'");
+    return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + message);
   }
 }

@@ -336,7 +336,9 @@ public class TestCase {
                 }
                 else
                 {
-                    throw eX;
+                    LOGGER.trace("Action failed; continueing due 'actionfail' property is set to false");
+                    //LOGGER.error("Error: " + eX.getMessage());
+                    //throw eX;
                 }
 
 			}

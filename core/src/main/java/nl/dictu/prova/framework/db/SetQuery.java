@@ -84,7 +84,8 @@ class SetQuery extends TestAction
   @Override
   public String toString()
   {
-    return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + query.substring(0, query.length() < 120 ? query.length() : 120) + "'");
+    //return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + query.substring(0, query.length() < 120 ? query.length() : 120) + "'")
+    return ("'" + this.getClass().getSimpleName().toUpperCase() + "': " + query);
   }
 
 }

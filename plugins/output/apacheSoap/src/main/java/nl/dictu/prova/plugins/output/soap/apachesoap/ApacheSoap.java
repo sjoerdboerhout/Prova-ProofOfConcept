@@ -316,7 +316,7 @@ public class ApacheSoap implements SoapOutputPlugin
         }
         else
         {
-          LOGGER.info("Test unsuccessful!  Value is '{}' instead of '{}'", propertyValue, test.trim());
+          LOGGER.error("Test unsuccessful!  Value is '{}' instead of '{}'", propertyValue, test.trim());
           return false;
         }
       }

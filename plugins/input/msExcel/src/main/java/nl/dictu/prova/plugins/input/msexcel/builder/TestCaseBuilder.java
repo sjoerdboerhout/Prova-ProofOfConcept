@@ -345,8 +345,14 @@ public class TestCaseBuilder {
 			}
 
 			if (testRunner.isFile(messageOrQuery)) {
-				int p = flowWorkbookPath.lastIndexOf(File.separator);
-                messageOrQuery = testRunner.readTextFromFile(flowWorkbookPath.substring(0, p) + messageOrQuery.trim().substring(messageOrQuery.trim().indexOf(':') + 1));
+				if ( messageOrQuery.trim().substring(messageOrQuery.trim().indexOf(':') + 1).startsWith("."))
+                {
+                    messageOrQuery = testRunner.readTextFromFile(testRootPath + File.separator +  messageOrQuery.trim().substring(messageOrQuery.trim().indexOf(':') + 2));
+                }
+                else {
+                    int p = flowWorkbookPath.lastIndexOf(File.separator);
+                    messageOrQuery = testRunner.readTextFromFile(flowWorkbookPath.substring(0, p) + messageOrQuery.trim().substring(messageOrQuery.trim().indexOf(':') + 1));
+                }
 			}
             if (testRunner.containsKeywords(messageOrQuery)) {
                 messageOrQuery = testRunner.replaceKeywords(messageOrQuery);

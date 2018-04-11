@@ -359,10 +359,14 @@ public class SimpleReport implements ReportingPlugin
 			statusHtml = "<a href=\"" + screenshotFile + "\"" + "target=\"_blank\" >" + status + "</a>";
 		}
 		String sAction = action.toString();
-		if (sAction.toLowerCase().contains("setdbproperties"))
+		if (sAction.toLowerCase().contains("setdbproperties")||sAction.toLowerCase().contains("setsoapproperties"))
 		{
             String aAction[] = sAction.split(":");
 		    sAction = aAction[0] + ": ***************************************************************************************";
+		}
+		if (sAction.toLowerCase().contains("setsoapmessage")||sAction.toLowerCase().contains("setquery"))
+		{
+			sAction = "<textarea style=\"width:1100px\">" + sAction + "</textarea>";
 		}
 		try {
 			pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + statusHtml
