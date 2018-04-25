@@ -59,6 +59,8 @@ import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.safari.SafariDriver;
 import org.openqa.selenium.security.UserAndPassword;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -148,6 +150,15 @@ public class Selenium implements WebOutputPlugin
   {
     try
     {
+      DesiredCapabilities cap = new DesiredCapabilities();
+      if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY))
+      {
+            org.openqa.selenium.Proxy proxy = new org.openqa.selenium.Proxy();
+            proxy.setHttpProxy(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY));
+
+            cap.setCapability(CapabilityType.PROXY, proxy);
+
+      }
       if(browserType.equalsIgnoreCase("FireFox"))
       {
         String fireFoxPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_GECKO);
@@ -165,14 +176,15 @@ public class Selenium implements WebOutputPlugin
         {
           ProfilesIni profile = new ProfilesIni();
           FirefoxProfile ffProfile = profile.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
-          
+          cap = DesiredCapabilities.firefox();
+          cap.setCapability(FirefoxDriver.PROFILE, ffProfile);
           LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
-          webdriver = new FirefoxDriver(ffProfile);
+          webdriver = new FirefoxDriver(cap);
         }
         else
         {
           LOGGER.trace("Try to load webdriver 'FireFox'");
-          webdriver = new FirefoxDriver();
+          webdriver = new FirefoxDriver(cap);
         }
       }
       else if(browserType.equalsIgnoreCase("Chrome"))
@@ -182,7 +194,7 @@ public class Selenium implements WebOutputPlugin
         LOGGER.trace("Try to load webdriver 'Chrome' ({})", chromePath);
         System.setProperty("webdriver.chrome.driver", chromePath);  
 
-        webdriver = new ChromeDriver();
+        webdriver = new ChromeDriver(cap);
       }
       else if(browserType.equalsIgnoreCase("InternetExplorer") || browserType.equalsIgnoreCase("IE"))
       {
@@ -202,12 +214,12 @@ public class Selenium implements WebOutputPlugin
         
         LOGGER.trace("Try to load webdriver 'InternetExplorer' ({})", iePath);
         System.setProperty("webdriver.ie.driver", iePath);        
-        webdriver = new InternetExplorerDriver();
+        webdriver = new InternetExplorerDriver(cap);
       }
       else if(browserType.equalsIgnoreCase("Safari"))
       {
         LOGGER.trace("Try to load webdriver 'Safari'");
-        webdriver = new SafariDriver();
+        webdriver = new SafariDriver(cap);
       }
       //else if(browserType.equalsIgnoreCase("PhantomJS"))
       //{
@@ -220,7 +232,7 @@ public class Selenium implements WebOutputPlugin
       }
       
       setBrowserResolution(webdriver);
-      
+
       // Compose the setting name of the project url.
       String url =  Config.PROVA_ENV_PFX + "." +
                     testRunner.getPropertyValue(Config.PROVA_ENV).toLowerCase() + "." +
@@ -372,9 +384,7 @@ public class Selenium implements WebOutputPlugin
             }
           }
       
-        // TODO support right click
-       
-        
+
         LOGGER.trace("Clicking on element '{}' (doClick)", xPath);
         assert element.isDisplayed();
         assert element.isEnabled();

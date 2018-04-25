@@ -107,7 +107,22 @@ public class TestSuiteBuilder
 												workbookReader.readProperty(row, cell), "testdata");
 
 										if (testDataSets.size() > 0 & new SheetPrefixValidator(sheet).validate("WEB")) {
-											for (int i = 0; i < testDataSets.size(); i++) {
+                                            String dataLabelString = null;
+										    for (Row labelRow : sheet) {
+                                                if (labelRow != null) {
+                                                    Cell labelCell = row.getCell(0);
+                                                    if (labelCell != null) {
+                                                        String labelCellContent = workbookReader.evaluateCellContent(labelCell);
+                                                        if (workbookReader.isTag(labelCellContent)) {
+                                                            String labelTagName = workbookReader.getTagName(labelCellContent);
+                                                            if ("labels".equals(labelTagName)) {
+                                                                dataLabelString = workbookReader.fetchProperty(row, cell);
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+										    for (int i = 0; i < testDataSets.size(); i++) {
 												identifier = excelFile.getPath() + File.separator
 														+ workbookReader.readProperty(row, cell) + File.separator
 														+ File.separator + testDataSets.get(i);
@@ -116,6 +131,9 @@ public class TestSuiteBuilder
 
 												testCase = new TestCase(identifier);
 												testCase.setTestRunner(testSuite.getTestRunner());
+                                                if (dataLabelString != null) {
+                                                    testCase.setLabels(dataLabelString);
+                                                }
 												testSuite.addTestCase(testCase);
 											}
 										} else {

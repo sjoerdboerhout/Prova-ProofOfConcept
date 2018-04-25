@@ -337,6 +337,7 @@ public class TestCase {
                 else
                 {
                     LOGGER.trace("Action failed; continueing due 'actionfail' property is set to false");
+                    error = true;
                     //LOGGER.error("Error: " + eX.getMessage());
                     //throw eX;
                 }
@@ -405,6 +406,10 @@ public class TestCase {
 						executeAction(testAction, waitTime);
 						//LOGGER.debug(testAction.getId().toString());
 					}
+                    if (error)
+                    {
+                        this.setStatus(TestStatus.COMPLETED);
+                    }
 				} 
 				catch (Exception eX) 
 				{
