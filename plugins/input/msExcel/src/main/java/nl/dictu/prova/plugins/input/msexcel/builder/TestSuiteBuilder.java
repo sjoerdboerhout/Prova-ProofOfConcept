@@ -110,13 +110,14 @@ public class TestSuiteBuilder
                                             String dataLabelString = null;
 										    for (Row labelRow : sheet) {
                                                 if (labelRow != null) {
-                                                    Cell labelCell = row.getCell(0);
+                                                    Cell labelCell = labelRow.getCell(0);
                                                     if (labelCell != null) {
                                                         String labelCellContent = workbookReader.evaluateCellContent(labelCell);
+                                                        LOGGER.trace("Searching for labeltag... found '"+ labelCellContent +"'");
                                                         if (workbookReader.isTag(labelCellContent)) {
                                                             String labelTagName = workbookReader.getTagName(labelCellContent);
-                                                            if ("labels".equals(labelTagName)) {
-                                                                dataLabelString = workbookReader.fetchProperty(row, cell);
+                                                            if ("labels".equals(labelTagName.toLowerCase())) {
+                                                                dataLabelString = workbookReader.fetchProperty(labelRow, labelCell);
                                                             }
                                                         }
                                                     }
@@ -132,6 +133,7 @@ public class TestSuiteBuilder
 												testCase = new TestCase(identifier);
 												testCase.setTestRunner(testSuite.getTestRunner());
                                                 if (dataLabelString != null) {
+                                                    LOGGER.trace("Setting Label: '{}' (testcase with data file)", dataLabelString);
                                                     testCase.setLabels(dataLabelString);
                                                 }
 												testSuite.addTestCase(testCase);
