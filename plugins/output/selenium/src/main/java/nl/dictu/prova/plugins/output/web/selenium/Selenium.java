@@ -556,7 +556,7 @@ public class Selenium implements WebOutputPlugin
         if(++count > maxRetries)
         {
           LOGGER.debug("Exception while selecting '{}': {} (retry count: {})", xPath, eX.getMessage(), count);
-          
+          this.doCaptureScreen("doSelect");
           throw eX;
         }
       }
@@ -1406,7 +1406,8 @@ public class Selenium implements WebOutputPlugin
 	      }
 	    catch(TimeoutException eX)
 	    {
-	    	throw new TimeoutException(eX);
+            this.doCaptureScreen("doWaitForElement");
+	        throw new TimeoutException(eX);
 	    }
   }
   
