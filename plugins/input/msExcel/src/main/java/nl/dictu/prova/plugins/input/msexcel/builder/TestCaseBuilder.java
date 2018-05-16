@@ -181,19 +181,29 @@ public class TestCaseBuilder {
 							// get string after last / char.
 							//String testCaseIdShort = testCase.getId().replaceAll(".+/", "");
 							String testCaseIdShort = testCase.getId().substring(testCase.getId().lastIndexOf(File.separator)+1);
+							LOGGER.trace("Testcase tag found, same as current?; "+testCaseIdShort +"<->"+tcid);
 							if (testCaseIdShort.equals(tcid)) {
 								currentTcidFound = true;
 								LOGGER.info("Reading fields for Testcase definition with id {}", tcid);
 							} else {
 								LOGGER.debug("datasetName = " + dataSetName);
-								if (testCaseIdShort.equals(dataSetName)){
+								LOGGER.trace("commonly the dataset is not equal  ");
+								if (tcid.equals(dataSetName)){
 									currentTcidFound = true;
 									LOGGER.info("Reading fields for Testcase definition with id {}", dataSetName);
 								}
 								else
 								{
-									currentTcidFound = false;
-									LOGGER.info("Skipping fields for Testcase definition with id {}", tcid);
+                                    LOGGER.trace("commonly the dataset is not equal to the tcid, checking if content is present in testcase.id");
+								    if(testCase.getId().contains(tcid))
+                                    {
+                                        currentTcidFound = true;
+                                        LOGGER.trace("testcase.id contains tcid");
+                                    }
+                                    else {
+                                        currentTcidFound = false;
+                                        LOGGER.info("Skipping fields for Testcase definition with id {}", tcid);
+                                    }
 								}
 							}
 						} else {
