@@ -42,6 +42,7 @@ prova.plugins.out.web.maxretries                = 3
 prova.plugins.out.web.browser.path.chrome       = bin/plugins/output/chromedriver.exe
 prova.plugins.out.web.browser.path.ie           = bin/plugins/output/IEDriverServer-32bit.exe
 prova.plugins.out.web.browser.path.gecko        = bin/plugins/output/geckodriver.exe
+prova.plugins.out.web.browser.ff.usemarionette  = false
 
 prova.plugins.out.soap.package                  = nl.dictu.prova.plugins.output.soap.
 prova.plugins.out.soap                          = ApacheSoap

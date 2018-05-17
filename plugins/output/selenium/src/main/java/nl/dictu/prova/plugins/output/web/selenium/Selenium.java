@@ -55,6 +55,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
@@ -62,7 +63,7 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.safari.SafariDriver;
-import org.openqa.selenium.security.UserAndPassword;
+//import org.openqa.selenium.security.UserAndPassword;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -123,6 +124,7 @@ public class Selenium implements WebOutputPlugin
     {
     	currentWindow = "";
     	webdriver.close();
+        webdriver.quit();
     	webdriver = null;
     	
     }
@@ -166,7 +168,7 @@ public class Selenium implements WebOutputPlugin
         //LOGGER.trace("Try to load webdriver 'Gecko' ({})", fireFoxPath);
         LOGGER.trace("Try to load webdriver 'Gecko'");
         System.setProperty("webdriver.gecko.driver", fireFoxPath);
-        System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE,"false");
+        System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE,testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_FF_USEMARIONETTE));
         if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO))
         {
         	System.setProperty("webdriver.firefox.bin", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO));
@@ -176,6 +178,7 @@ public class Selenium implements WebOutputPlugin
         {
           ProfilesIni profile = new ProfilesIni();
           FirefoxProfile ffProfile = profile.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+          //FirefoxOptions cap = new FirefoxOptions();
           cap = DesiredCapabilities.firefox();
           cap.setCapability(FirefoxDriver.PROFILE, ffProfile);
           LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
@@ -717,8 +720,11 @@ public class Selenium implements WebOutputPlugin
         
         LOGGER.trace("Sending keys to element '{}'. Replace={} (doSetText)", xPath, replace);
         
-        if(replace)
-          element.sendKeys(Keys.chord(Keys.CONTROL, "a"),text);
+        if(replace) {
+            element.clear();
+            element.sendKeys(text);
+            //element.sendKeys(Keys.chord(Keys.CONTROL, "a"), text);
+        }
         else
           element.sendKeys(text);
         
@@ -1253,8 +1259,8 @@ public class Selenium implements WebOutputPlugin
         	//if username is passed, try to login
         	if (username.length()>1)
         	{
-        		LOGGER.trace("Switched to alert (doSwitchFrame) and trying to pass username and password");
-        		popupalert.authenticateUsing(new UserAndPassword(username, password));
+        		LOGGER.error("Switched to alert (doSwitchFrame) and trying to pass username and password (NOT SUPPORTED)");
+        		//popupalert.authenticateUsing(new UserAndPassword(username, password));
         		//webdriver.findElement(By.id("userID")).sendKeys(username);
         		//webdriver.findElement(By.id("password")).sendKeys(password);
         	}
