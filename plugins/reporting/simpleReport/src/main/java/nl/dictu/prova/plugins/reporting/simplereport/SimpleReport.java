@@ -391,9 +391,10 @@ public class SimpleReport implements ReportingPlugin
 	  pwTestcase.println("<br><b>Endtime: </b>" + LocalDateTime.now()+"</br>");
 	  pwTestcase.println("<br><b>Runtime in seconds: </b>" + elapsedTime/1000 + "</br>");
 		String color = "green";
-		if (TestStatus.FAILED.equals(testCase.getStatus())) {
+		if (TestStatus.FAILED.equals(testCase.getStatus())||TestStatus.COMPLETED.equals(testCase.getStatus())) {
 			color = "red";
 		}
+
 
 		pwTestcase.println("<br><b>Status testcase: <font color=\"" + color + "\">" + testCase.getStatus()
 				+ "</b></font></br>");

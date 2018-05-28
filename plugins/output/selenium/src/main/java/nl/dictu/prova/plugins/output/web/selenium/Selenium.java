@@ -122,8 +122,9 @@ public class Selenium implements WebOutputPlugin
   {
     try
     {
-    	currentWindow = "";
-    	webdriver.close();
+        LOGGER.trace("Shutting down webdriver");
+        currentWindow = "";
+    	//webdriver.close();
         webdriver.quit();
     	webdriver = null;
     	

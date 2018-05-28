@@ -300,7 +300,7 @@ public class TestCase {
 
 	protected void executeAction(TestAction testAction, long waitTime) throws Exception {
 		LOGGER.trace("Execute test action: {}", () -> testAction.toString());
-        error = false;
+        //error = false;
 		try {
 			long start = System.nanoTime();
 			testAction.execute();
@@ -397,7 +397,8 @@ public class TestCase {
     
     // Execute all test actions if set up succeeded
 		if (exception == null) {
-				this.setStatus(TestStatus.PASSED);
+				if (!error)
+                    this.setStatus(TestStatus.PASSED);
             
 				//TestAction currentTestAction = null;
 				try {
