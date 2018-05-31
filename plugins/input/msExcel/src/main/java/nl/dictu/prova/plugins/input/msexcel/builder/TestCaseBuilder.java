@@ -186,23 +186,27 @@ public class TestCaseBuilder {
 								currentTcidFound = true;
 								LOGGER.info("Reading fields for Testcase definition with id {}", tcid);
 							} else {
-								LOGGER.debug("datasetName = " + dataSetName);
-								LOGGER.trace("commonly the dataset is not equal  ");
-								if (tcid.equals(dataSetName)){
-									currentTcidFound = true;
-									LOGGER.info("Reading fields for Testcase definition with id {}", dataSetName);
-								}
-								else
-								{
-                                    LOGGER.trace("commonly the dataset is not equal to the tcid, checking if content is present in testcase.id");
-								    if(testCase.getId().contains(tcid))
-                                    {
+								if (dataSetName.length()>1)
+                                {
+                                    LOGGER.debug("datasetName = " + dataSetName);
+                                    if (tcid.equals(dataSetName)){
                                         currentTcidFound = true;
-                                        LOGGER.trace("testcase.id contains tcid");
+                                        LOGGER.info("Reading fields for Testcase definition with id {}", dataSetName);
                                     }
                                     else {
-                                        currentTcidFound = false;
-                                        LOGGER.info("Skipping fields for Testcase definition with id {}", tcid);
+                                        LOGGER.trace("commonly the dataset is not equal to the tcid, checking if content is present in testcase.id");
+                                        String testcaseID = testCase.getId().replace("\\", "\\\\");
+                                        String[] testcaseSplit = testcaseID.split("\\\\");
+                                        //LOGGER.trace("Aantal items in array: " + testcaseSplit.length);
+                                        String mainTestcaseName = testcaseSplit[testcaseSplit.length-3];
+                                        LOGGER.trace("Checking if tcid is the same as main testcase; "+mainTestcaseName +"<->"+tcid);
+                                        if (tcid.equalsIgnoreCase(mainTestcaseName)) {
+                                            currentTcidFound = true;
+                                            LOGGER.trace("testcase.id contains tcid");
+                                        } else {
+                                            currentTcidFound = false;
+                                            LOGGER.info("Skipping fields for Testcase definition with id {}", tcid);
+                                        }
                                     }
 								}
 							}
