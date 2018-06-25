@@ -411,12 +411,12 @@ public class Selenium implements WebOutputPlugin
         	catch(Exception e)
         	{
         		 //First navigate to element to make sure the element to be clicked is on te screen
-                
-                actions.moveToElement(element).perform();
+                LOGGER.debug("Clicking failed, trying to move to element");
+                //actions.moveToElement(element).perform();
                 try
                 {
                 	scroll_element_into_view(element);
-                	element.click();
+                    actions.moveToElement(element).click().perform();
                 }
                 catch(Exception ex)
                 {
