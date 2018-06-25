@@ -34,6 +34,7 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.regex.Matcher;
 
 
 /*
@@ -139,6 +140,7 @@ public class SimpleReport implements ReportingPlugin
 		  else
 		  {
 			  LOGGER.debug("Not creating folders as requested. Reports will be placed in: "+reportRoot);
+              deleteFolder(dir);
 		  }
 		  // Create the start of the summary file
 		  pwSummary = createPW(reportRoot + File.separator + "Testrun_Summary.html");
@@ -412,18 +414,31 @@ public class SimpleReport implements ReportingPlugin
 					+ "</td><td style=\"width:1200px\">" + testCase.getSummary() + "</td><td style=\"width:200px\">"
 					+ "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile) + "\">Result testcase</a></td></tr>");
 
-		} else {
+		}
+		else if (testCase.getStatus().toString().equalsIgnoreCase("completedwitherrors")){
 		  countFailedTestcases = countFailedTestcases + 1;
-			pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"red\">" + testCase.getStatus()
+			pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"orange\">" + testCase.getStatus()
 				    +"</td><td style=\"width:1200px\">"
 					+ testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
 					+ "</td><td style=\"width:200px\">" + "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile)
 	  				+ "\">Result testcase</a></td></tr>");
-			pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"
+			pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"orange\">"
 					+ testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
 					+ "</td><td style=\"width:1200px\">" + testCase.getSummary() + "</td><td style=\"width:200px\">"
 					+ "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile) + "\">Result testcase</a></td></tr>");
 	  }
+	 	 else {
+	  countFailedTestcases = countFailedTestcases + 1;
+	  pwTestsuite.println("<tr><td style=\"width:200px\" bgcolor=\"red\">" + testCase.getStatus()
+			  +"</td><td style=\"width:1200px\">"
+			  + testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
+			  + "</td><td style=\"width:200px\">" + "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile)
+			  + "\">Result testcase</a></td></tr>");
+	  pwSummary.println("<tr><td style=\"width:200px\" bgcolor=\"red\">"
+			  + testCase.getId().substring(testCase.getId().lastIndexOf("\\") + 1)
+			  + "</td><td style=\"width:1200px\">" + testCase.getSummary() + "</td><td style=\"width:200px\">"
+			  + "<a href=\"" + makeHtmlLinkRelative(currTestCaseFile) + "\">Result testcase</a></td></tr>");
+  }
 	  pwTestcase.println("<br><b>Summary: </b>" + testCase.getSummary()+"</br>");
 	  pwTestcase.println("</table>");
 	  pwTestcase.println("</body>");
@@ -600,11 +615,12 @@ public class SimpleReport implements ReportingPlugin
 		if (linkTarget != null && !"".equals(linkTarget)) {
 			try
 			{
-				return linkTarget.replaceFirst(currTestSuiteDir, this.testProject);
+                linkTarget = linkTarget.replaceAll("/", Matcher.quoteReplacement(File.separator));
+			    return linkTarget.replaceFirst(currTestSuiteDir, this.testProject);
 			}
 			catch(Exception eX)
 			{
-				LOGGER.warn("Creating relative link failed, using normal link instead");
+				LOGGER.warn("Creating relative link failed, using normal link instead: " + eX);
 				return linkTarget;
 			}
 		}
@@ -620,6 +636,24 @@ public class SimpleReport implements ReportingPlugin
 	public String makeFilenameValid(String fileName) {
 		return fileName.replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("_+", "_");
 	}
+	public static void deleteFolder(File folder){
+        LOGGER.trace("Deleting files in: " + folder.getAbsolutePath());
+	    File[] files = folder.listFiles();
+        if (files!=null)
+        {
+            for(File f: files)
+            {
+                if (f.isDirectory())
+                {
+                    deleteFolder(f);
+                }
+                else{
+                    f.delete();
+                }
+
+            }
+        }
+    }
 	
 
 }
