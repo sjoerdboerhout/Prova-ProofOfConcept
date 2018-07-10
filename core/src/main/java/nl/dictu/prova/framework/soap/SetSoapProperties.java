@@ -20,37 +20,31 @@
 package nl.dictu.prova.framework.soap;
 
 import nl.dictu.prova.framework.TestAction;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class SetSoapProperties extends TestAction
 {
-
-  String url;
-  String user;
-  String pass;
+  Map<String, String> propMap = new LinkedHashMap<>();
+  //clean up after test
+  //String url;
+  //String user;
+  //String pass;
   String prefix;
 
   @Override
   public void setAttribute(String key, String value) throws Exception
   {
-    switch (key.toLowerCase())
-    {
-      case "prova.properties.prefix":
-        prefix = value;
-        LOGGER.debug("SetProperties prefix set to " + prefix);
-        break;
-      case "prova.properties.user":
-        user = value;
-        LOGGER.debug("SetProperties user set to " + user);
-        break;
-      case "prova.properties.password":
-        pass = value;
-        LOGGER.debug("SetProperties pass set to " + pass);
-        break;
-      case "prova.properties.url":
-        url = value;
-        LOGGER.debug("SetProperties url set to " + url);
-        break;
-    }
+
+      switch (key.toLowerCase()) {
+          case "prova.properties.prefix":
+              prefix = value;
+              LOGGER.debug("SetProperties prefix set to " + prefix);
+              break;
+          default:
+              LOGGER.debug("setting property " + key.replace("prova.properties.", "") + " to " + value);
+              propMap.put(key.replace("prova.properties.", ""), value);
+      }
   }
 
   @Override
@@ -60,12 +54,11 @@ public class SetSoapProperties extends TestAction
     {
       throw new Exception("testRunner or Properties not properly set!");
     }
-    if (user == null)
-    {
-      user = "null";
-    }
-
-    this.testRunner.getSoapActionPlugin().doSetProperties(url, user, pass, prefix);
+    //if (!propMap.containsKey("user"))
+    //{
+    //    propMap.put("user","null");
+    //}
+    this.testRunner.getSoapActionPlugin().doSetProperties(propMap, prefix);
   }
 
   @Override
@@ -75,7 +68,7 @@ public class SetSoapProperties extends TestAction
     {
       return false;
     }
-    if (url == null)
+    if (!propMap.containsKey("url"))
     {
       return false;
     }
@@ -93,7 +86,8 @@ public class SetSoapProperties extends TestAction
      */
     @Override
     public String toString() {
-        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': '" + url + "', '" + user + "', '" + pass + "'");
+        //return ("'" + this.getClass().getSimpleName().toUpperCase() + "': '" + url + "', '" + user + "', '" + pass + "'");
+        return ("'" + this.getClass().getSimpleName().toUpperCase() + "': '" + propMap.get("url") + "', '" + prefix + "', '**********'");
     }
 
 }

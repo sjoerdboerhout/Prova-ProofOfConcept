@@ -377,8 +377,60 @@ public class TestCaseBuilder {
 			testAction = actionFactory.getAction("SET" + type + "PROPERTIES");
 			headers = readSectionHeaderRow(sheet, rowNum);
 			String prefix = null;
-
+            //New way of property reading
 			while ((rowMap = readRow(sheet, rowNum, headers)) != null) {
+                for(Entry e : rowMap.entrySet()){
+                    String key = e.getKey().toString();
+					LOGGER.debug("Key is: " + key);
+                    if (key.equalsIgnoreCase("prefix") ) {
+						LOGGER.trace("Prefix found. Processing.");
+
+						if (specifiedPrefix != null) {
+							prefix = specifiedPrefix;
+						} else {
+							prefix = rowMap.get("prefix");
+						}
+
+						Boolean prefixFound = true;
+						Integer counter = 1;
+
+						while (prefixFound) {
+							if (this.testRunner.hasPropertyValue("prova.properties.used." + prefix + counter)) {
+								counter++;
+							} else {
+								LOGGER.trace(
+										"Prefix of type '" + prefix + "' has highest incrementation number: " + counter);
+								prefix = prefix + counter;
+								LOGGER.trace("Setting prefix to " + prefix + " on key prova.properties.prefix");
+								prefixFound = false;
+							}
+						}
+						// Adding prefix as key to properties so properties can be scanned for
+						// existence.
+						this.testRunner.setPropertyValue("prova.properties.used." + prefix, prefix);
+						// Setting prefix as current prefix on key prova.properties.prefix.
+						testAction.setAttribute("prova.properties.prefix", prefix);
+					}
+
+					else {
+						String value = rowMap.get(key).trim();
+						if (CellReader.isKey(value)) {
+                            LOGGER.trace(key + " value is a key, retrieving property value.");
+                            value = this.testRunner
+                                    .getPropertyValue(CellReader.getKeyName(value));
+                        }
+						if (value != null){
+                            LOGGER.debug("Setting attribute: prova.properties."+key+ " to " + value);
+							testAction.setAttribute("prova.properties." + key, value);
+                        }
+                        else{
+                            LOGGER.debug("Unable to process "+ key +" tag");
+                        }
+
+					}
+                }
+            }
+			/*while ((rowMap = readRow(sheet, rowNum, headers)) != null) {
 				// Check for prefix on current row. If found then check for existence in
 				// global properties with most recent incrementation (e.g. "SOAP_message10_")
 
@@ -449,6 +501,12 @@ public class TestCaseBuilder {
 					}
 				}
 
+				//TVSABA
+                if (rowMap.containsKey("tvs_aba")) {
+                    LOGGER.trace("tvs_aba found. Processing.");
+                    String tvsaba = rowMap.get("tvs_aba").trim().toLowerCase();
+                    testAction.setAttribute("prova.properties.tvs_aba", tvsaba);
+                }
 				// ROLLBACK
 				if (rowMap.containsKey("rollback")) {
 					LOGGER.trace("Rollback found. Processing.");
@@ -479,7 +537,7 @@ public class TestCaseBuilder {
 					throw new Exception(
 							"No address or URL has been supplied! Please add a 'Address' or 'URL' key and value below your Properties tag.");
 				}
-			}
+			}*/
 		} else if (tagName.toLowerCase().equals("pollproperties")) {
 			testAction = actionFactory.getAction("SET" + type + "POLLPROPERTIES");
 			headers = readSectionHeaderRow(sheet, rowNum);

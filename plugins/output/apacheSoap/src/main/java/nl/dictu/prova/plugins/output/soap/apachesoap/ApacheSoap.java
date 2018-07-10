@@ -30,6 +30,8 @@ import nl.dictu.prova.plugins.output.SoapOutputPlugin;
 
 import org.apache.http.impl.client.HttpClientBuilder;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -65,6 +67,7 @@ public class ApacheSoap implements SoapOutputPlugin
   private String currentMessage = null;
   private URI currentUrl = null;
   private String currentPrefix = null;
+  private Map<String, String> headerMap = new LinkedHashMap<>();
   private TestCase testCase = null;
   private Boolean exceptionOnTest;
 
@@ -134,8 +137,17 @@ public class ApacheSoap implements SoapOutputPlugin
     post.addHeader("SOAPAction", "\"\"");
     post.addHeader("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 6.0");
     post.addHeader("Host", this.currentUrl.toString());
-    post.addHeader("Authorization", "Basic " + currentAuthorization);
-    LOGGER.trace("Encoded authorization is '" + currentAuthorization + "'.");
+    if (currentAuthorization != null)
+    {
+      post.addHeader("Authorization", "Basic " + currentAuthorization);
+      LOGGER.trace("Encoded authorization is '" + currentAuthorization + "'.");
+    }
+    if (!headerMap.isEmpty()) {
+        for (Entry e : headerMap.entrySet()) {
+            LOGGER.debug("Adding header: " + e.getKey().toString() + " with value " + e.getValue().toString() + " to the request");
+            post.addHeader(e.getKey().toString(), e.getValue().toString());
+        }
+    }
 
     //Set soap message
     while(containsKeywords(currentMessage))
@@ -217,34 +229,34 @@ public class ApacheSoap implements SoapOutputPlugin
   }
 
   @Override
-  public void doSetProperties(String url, String user, String pass, String prefix) throws Exception
+  public void doSetProperties(Map<String, String> propMap, String prefix) throws Exception
   {
-    //Url
-    try
-    {
-      this.currentUrl = new URI(url);
+    try {
+        for (Entry e : propMap.entrySet()) {
+            String key = e.getKey().toString();
+            LOGGER.debug("SetProperties key: " + key);
+            if (key.equalsIgnoreCase("user") | key.equalsIgnoreCase("pass")) {
+                LOGGER.trace("Encoding the authorization");
+                String authorization = propMap.get("user") + ":" + propMap.get("pass");
+                byte[] encodedAuthorizationBytes = Base64.encode(authorization.getBytes());
+                currentAuthorization = new String(encodedAuthorizationBytes);
+            } else if (key.equalsIgnoreCase("url")) {
+                this.currentUrl = new URI(e.getValue().toString());
+            } else {
+                LOGGER.trace("Putting header: " + key + " with value: " + propMap.get(key) + " in headerMap");
+                this.headerMap.put(key, propMap.get(key));
+                LOGGER.trace("Header: " + key + " added to map");
+            }
+        }
     }
-    catch (Exception e)
-    {
-      LOGGER.trace("Exception! Please check provided url");
-    }
-
-    //Authorization
-    if (!user.equals("null"))
-    {
-      LOGGER.trace("Encoding the authorization with user '" + user + "'.");
-      String authorization = user + ":" + pass;
-      byte[] encodedAuthorizationBytes = Base64.encode(authorization.getBytes());
-      currentAuthorization = new String(encodedAuthorizationBytes);
-    }
-    else
-    {
-      LOGGER.info("User supplied to Soap plugin is null, sending message without authorization.");
+    catch (Exception ex){
+        throw new Exception("doSetProperties error: " + ex);
     }
 
     //Prefix
     if (prefix != null)
     {
+      LOGGER.debug("Setting currentPrefix: " +prefix);
       this.currentPrefix = prefix;
     }
     else
@@ -252,7 +264,6 @@ public class ApacheSoap implements SoapOutputPlugin
       throw new Exception("Supplied prefix is null!");
     }
   }
-
   @Override
   public void doSetMessage(String message) throws Exception
   {
@@ -364,6 +375,7 @@ public class ApacheSoap implements SoapOutputPlugin
     currentMessage = null;
     currentUrl = null;
     currentPrefix = null;
+    headerMap = null;
   }
   
   private Boolean containsKeywords(String entry) throws Exception
