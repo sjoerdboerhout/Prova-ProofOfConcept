@@ -55,9 +55,10 @@
         </executions>
       </plugin>
 			
-      <plugin>
+      <!--<plugin>
 			  <groupId>org.apache.maven.plugins</groupId>
-			  <artifactId>maven-jar-plugin</artifactId>     
+			  <artifactId>maven-jar-plugin</artifactId> 
+			  <version>${maven-jar-plugin.version}</version>    
 			  <configuration>
 			    <archive>
 			      <manifestEntries>
@@ -70,7 +71,7 @@
 			      </manifest>
 			    </archive>
 	      </configuration>
-	    </plugin>
+	    </plugin>-->
     </plugins>
   </build>
 
