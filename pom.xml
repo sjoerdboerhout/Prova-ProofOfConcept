@@ -74,6 +74,7 @@
 
     <!-- Reporting Plugins -->
     <module>plugins/reporting/simpleReport</module>
+    <module>plugins/reporting/CsvReport</module>
   </modules>
 
   <dependencies>

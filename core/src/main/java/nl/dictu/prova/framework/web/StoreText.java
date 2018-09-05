@@ -38,7 +38,7 @@ class StoreText extends TestAction
   {
     switch(key.trim().toUpperCase())
     {
-      case ATTR_TIMEOUT   : timeout = new TimeOut(Integer.parseInt(value));   break;
+      case ATTR_TIMEOUT   : if(!value.equals("")) timeout = new TimeOut(Integer.parseInt(value));   break;
       case ATTR_REGEX     : regex   = value.trim();                           break;
       case ATTR_INPUTTEXT : inputtext   = value.trim();                       break;
       case ATTR_PARAMETER : name    = value.trim();                           break;

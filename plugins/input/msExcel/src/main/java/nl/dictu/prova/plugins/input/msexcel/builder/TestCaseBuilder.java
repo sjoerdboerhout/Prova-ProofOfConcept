@@ -177,6 +177,7 @@ public class TestCaseBuilder {
 						if (tagName.equals("tcid")) {
 							// read tcid value, it should be the same as current testcase id. If not, skip
 							// following fields.
+                            currentTcidFound = false;
 							String tcid = flowWorkbookReader.readProperty(row, firstCell);
 							// get string after last / char.
 							//String testCaseIdShort = testCase.getId().replaceAll(".+/", "");

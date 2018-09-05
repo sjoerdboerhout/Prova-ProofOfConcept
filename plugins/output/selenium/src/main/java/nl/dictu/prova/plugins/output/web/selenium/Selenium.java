@@ -157,7 +157,10 @@ public class Selenium implements WebOutputPlugin
       if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY))
       {
             org.openqa.selenium.Proxy proxy = new org.openqa.selenium.Proxy();
-            proxy.setHttpProxy(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY));
+            //proxy.setHttpProxy(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY));
+            //proxy.setFtpProxy(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY));
+            proxy.setProxyAutoconfigUrl(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY));
+
 
             cap.setCapability(CapabilityType.PROXY, proxy);
 
