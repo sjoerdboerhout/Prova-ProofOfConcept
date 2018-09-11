@@ -173,6 +173,7 @@ public class Jdbc implements DbOutputPlugin
               {
                 value = "null";
               }
+              LOGGER.debug("Setting key: " + key + " to: " + value);
               sqlProperties.put(key, value);
             }
             row = resultSet.getRow();
