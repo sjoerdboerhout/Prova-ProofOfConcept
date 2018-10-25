@@ -28,14 +28,15 @@
 
     <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
 
-    <commons.io.version>2.4</commons.io.version>
+    <commons.io.version>2.6</commons.io.version>
     <commons.collections.version>3.2.2</commons.collections.version>
     <commons.lang.version>2.6</commons.lang.version>
+    <commons.math3.version>3.6.1</commons.math3.version>
     
-    <apache-poi.version>3.14</apache-poi.version>
-    <apache-poi-ooxml.version>3.14</apache-poi-ooxml.version>
-    <apache-poi-ooxml-schemas.version>3.14</apache-poi-ooxml-schemas.version>
-    <apache-xmlbeans.version>2.6.0</apache-xmlbeans.version>
+    <apache-poi.version>4.0.0</apache-poi.version>
+    <apache-poi-ooxml.version>4.0.0</apache-poi-ooxml.version>
+    <apache-poi-ooxml-schemas.version>4.0.0</apache-poi-ooxml-schemas.version>
+    <apache-xmlbeans.version>3.0.1</apache-xmlbeans.version>
   </properties>
 
   <dependencies>
@@ -44,7 +45,12 @@
       <artifactId>core</artifactId>
       <version>${prova.core.version}</version>
     </dependency>
-    
+    <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-math3 -->
+    <dependency>
+     <groupId>org.apache.commons</groupId>
+     <artifactId>commons-math3</artifactId>
+     <version>${commons.math3.version}</version>
+    </dependency>
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>

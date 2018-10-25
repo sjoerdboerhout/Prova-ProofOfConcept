@@ -85,26 +85,26 @@ public class CellReader
 
     switch (cell.getCellType())
     {
-      case Cell.CELL_TYPE_BOOLEAN:
+      case BOOLEAN:
         result = getBooleanString(cell);
         break;
         
-      case Cell.CELL_TYPE_STRING:
+      case STRING:
         result = cell.getStringCellValue();
         break;
         
-      case Cell.CELL_TYPE_NUMERIC:
+      case NUMERIC:
         if (DateUtil.isCellDateFormatted(cell))
           result = getDateString(cell, cell.getNumericCellValue());
         else
-          result = getNumericString(cell);
+            result = getNumericString(cell);
         break;
         
-      case Cell.CELL_TYPE_FORMULA:
+      case FORMULA:
         result = evaluateFormula(cell);
         break;
         
-      case Cell.CELL_TYPE_BLANK:
+      case BLANK:
         result = "";
         break;
         
@@ -136,22 +136,22 @@ public class CellReader
       
       switch (cellValue.getCellType())
       {
-        case Cell.CELL_TYPE_BOOLEAN:
+        case BOOLEAN:
           return getBooleanString(cellValue);
           
-        case Cell.CELL_TYPE_STRING:
+        case STRING:
           return cellValue.getStringValue();
           
-        case Cell.CELL_TYPE_NUMERIC:
+        case NUMERIC:
           if (DateUtil.isCellDateFormatted(cell))
             return getDateString(cell, cellValue);
           else
             return getNumericString(cellValue);
           
-        case Cell.CELL_TYPE_BLANK:
+        case BLANK:
           return "";
           
-        case Cell.CELL_TYPE_ERROR:
+        case ERROR:
           LOGGER.warn(LOG_PREFIX + "formula couldn't not be evaluated. Returning cached result. ({})", () -> getErrorString(cell));
           return evaluateCachedFormulaResult(cell);
           
@@ -184,13 +184,13 @@ public class CellReader
 
     switch (cell.getCachedFormulaResultType())
     {
-      case Cell.CELL_TYPE_BOOLEAN:
+      case BOOLEAN:
         return getBooleanString(cell);
-      case Cell.CELL_TYPE_STRING:
+      case STRING:
         return cell.getStringCellValue();
-      case Cell.CELL_TYPE_NUMERIC:
+      case NUMERIC:
         return getNumericString(cell);
-      case Cell.CELL_TYPE_ERROR:
+      case ERROR:
         throw new Exception(LOG_PREFIX + "error in cached formula cell result: " + getErrorString(cell));
       default:
         throw new Exception(LOG_PREFIX + "unknown cached formula result type: " + cell.getCellType());
