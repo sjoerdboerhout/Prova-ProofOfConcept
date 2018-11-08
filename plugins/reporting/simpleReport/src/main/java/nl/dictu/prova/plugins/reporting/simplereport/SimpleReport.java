@@ -615,13 +615,26 @@ public class SimpleReport implements ReportingPlugin
 		if (linkTarget != null && !"".equals(linkTarget)) {
 			try
 			{
-                linkTarget = linkTarget.replaceAll("/", Matcher.quoteReplacement(File.separator));
+                LOGGER.trace("Poging 1: trying to replace " + currTestSuiteDir + " with " + this.testProject);
+				linkTarget = linkTarget.replaceAll("/", Matcher.quoteReplacement(File.separator));
+                //LOGGER.debug("Linktarget:  " + currTestSuiteDir );
 			    return linkTarget.replaceFirst(currTestSuiteDir, this.testProject);
 			}
 			catch(Exception eX)
 			{
-				LOGGER.warn("Creating relative link failed, using normal link instead: " + eX);
-				return linkTarget;
+				try
+				{
+
+				    LOGGER.trace("Poging 2: trying to replace " + currTestSuiteDir + " with " + this.testProject);
+				    //linkTarget = linkTarget.replaceAll(":", "");
+                    //LOGGER.debug("Linktarget:  " + currTestSuiteDir );
+					return linkTarget.replace(currTestSuiteDir.replace("/", Matcher.quoteReplacement(File.separator)), this.testProject);
+				}
+				catch(Exception eX2)
+				{
+					LOGGER.warn("Creating relative link failed, using normal link instead: " + eX2);
+					return linkTarget;
+				}
 			}
 		}
 		return linkTarget;
