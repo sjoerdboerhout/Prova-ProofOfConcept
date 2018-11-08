@@ -324,6 +324,7 @@ public class TestCase {
                 }
                 else
                 {
+                    error = false;
                     throw eX;
                 }
             }
