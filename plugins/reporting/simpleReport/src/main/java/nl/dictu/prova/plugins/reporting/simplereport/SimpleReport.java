@@ -370,6 +370,10 @@ public class SimpleReport implements ReportingPlugin
 		{
 			sAction = "<textarea style=\"width:1100px\">" + sAction + "</textarea>";
 		}
+		if (sAction.toLowerCase().contains("executedbtest"))
+		{
+			sAction = "<textarea style=\"width:1100px\">" + sAction + "</textarea>";
+		}
 		try {
 			pwTestcase.println("<tr><td style=\"width:200px\" bgcolor=\"" + color + "\">" + statusHtml
 					+ "</td><td style=\"width:1200px\">" + sAction + "</td><td style=\"width:200px\">"
