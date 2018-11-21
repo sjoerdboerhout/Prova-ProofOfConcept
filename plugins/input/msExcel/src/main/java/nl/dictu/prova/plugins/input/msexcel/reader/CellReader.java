@@ -96,8 +96,11 @@ public class CellReader
       case NUMERIC:
         if (DateUtil.isCellDateFormatted(cell))
           result = getDateString(cell, cell.getNumericCellValue());
-        else
-            result = getNumericString(cell);
+        else{
+            //result = getNumericString(cell);
+            DataFormatter fmt = new DataFormatter();
+            result = fmt.formatCellValue(cell);
+        }
         break;
         
       case FORMULA:
@@ -145,8 +148,12 @@ public class CellReader
         case NUMERIC:
           if (DateUtil.isCellDateFormatted(cell))
             return getDateString(cell, cellValue);
-          else
-            return getNumericString(cellValue);
+          else {
+            //return getNumericString(cellValue);
+            DataFormatter fmt = new DataFormatter();
+            String numeric = fmt.formatCellValue(cell,formulaEvaluator);
+            return numeric;
+          }
           
         case BLANK:
           return "";
@@ -189,7 +196,10 @@ public class CellReader
       case STRING:
         return cell.getStringCellValue();
       case NUMERIC:
-        return getNumericString(cell);
+        DataFormatter fmt = new DataFormatter();
+        String numeric = fmt.formatCellValue(cell,formulaEvaluator);
+        return numeric;
+       // return getNumericString(cell);
       case ERROR:
         throw new Exception(LOG_PREFIX + "error in cached formula cell result: " + getErrorString(cell));
       default:

@@ -67,9 +67,9 @@ public class CellReaderTests
     Cell cell2 = cellReader.getByCellReference(0, "C2");
     Cell cell3 = cellReader.getByCellReference(0, "D2");
 
-    assertEquals("2.2", cellReader.evaluateCellContent(cell1));
-    assertEquals("3.33", cellReader.evaluateCellContent(cell2));
-    assertEquals("4.0", cellReader.evaluateCellContent(cell3));
+    assertEquals("2,2", cellReader.evaluateCellContent(cell1));
+    assertEquals("3,33", cellReader.evaluateCellContent(cell2));
+    assertEquals("4,0", cellReader.evaluateCellContent(cell3));
   }
 
   @Test
@@ -90,7 +90,7 @@ public class CellReaderTests
 
     // assertEquals("10", cellReader.evaluateCellContent(cell1));
     // TODO the assert on cell1 fails unexpectedly as Excel formats the formula results as 10 while POI returns 10.0
-    assertEquals("1.1", cellReader.evaluateCellContent(cell2));
+    assertEquals("1,1", cellReader.evaluateCellContent(cell2));
   }
 
   @Test(expected = Exception.class)

@@ -73,7 +73,7 @@ public class Cli extends ProvaRunner
     {
       LOGGER.trace("Start of program execution");
       
-      System.out.println("Hello world, I am Prova the testing framework!");
+      System.out.println("Starting Prova the testing framework");
       
       Cli cli = new Cli();
 
@@ -90,7 +90,7 @@ public class Cli extends ProvaRunner
     }
     finally
     {
-      System.out.println("Bye bye cruel world...");
+      System.out.println("Program exectution ended");
     }
     
     System.exit(statusCode);

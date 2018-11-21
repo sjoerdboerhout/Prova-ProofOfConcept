@@ -33,6 +33,8 @@ class ExecuteDbTest extends TestAction {
     String property;
     String test;
     String result = null;
+    String testResult;
+
 
     @Override
     public void setAttribute(String key, String value) throws Exception {
@@ -51,9 +53,12 @@ class ExecuteDbTest extends TestAction {
         
         if(testRunner.getDbActionPlugin().doTest(property, test)){
             result = "succesfull";
+            testResult = testRunner.getPropertyValue(property);
         } else {
             result = "unsuccesfull";
+            testResult = testRunner.getPropertyValue(property);
             throw new Exception("Result is unsuccesfull");
+
         }
     }
 
@@ -75,7 +80,7 @@ class ExecuteDbTest extends TestAction {
       if(result == null){
           return ("'" + this.getClass().getSimpleName().toUpperCase() + "'");
       }
-      return ("'" + this.getClass().getSimpleName().toUpperCase() + "': Value of property '" + property + "' was checked with validation '" + test + "', result is '" + result + "'");
+      return ("'" + this.getClass().getSimpleName().toUpperCase() + "': Value of property '" + property + "' was checked with validation '" + test + "' found value was '" +testResult+ "', result is '" + result + "'");
     }
     
 }
