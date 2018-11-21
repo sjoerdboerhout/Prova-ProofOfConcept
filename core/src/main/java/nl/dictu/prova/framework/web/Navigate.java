@@ -72,7 +72,11 @@ public class Navigate extends TestAction {
 			throw new Exception("Action is not validated!");
 
 		try {
-			testRunner.getWebActionPlugin().doNavigate(url.getValue());
+            if(testRunner.containsKeywords(url.getValue())) {
+                url.setValue(testRunner.replaceKeywords(url.getValue()));
+            }
+            testRunner.getWebActionPlugin().doNavigate(url.getValue());
+
 		} catch (Exception eX) {
 			LOGGER.trace("Exception!: " + eX.getMessage());
 			eX.printStackTrace();
