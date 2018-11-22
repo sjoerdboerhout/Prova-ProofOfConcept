@@ -111,7 +111,14 @@ public class SendKeys extends TestAction
     
     if(!isValid())
       throw new Exception("Action is not validated!");
-    
+
+    if(testRunner.containsKeywords(xPath.getValue()))
+    {
+      xPath.setValue(testRunner.replaceKeywords(xPath.getValue()));
+    }
+    if(testRunner.containsKeywords(keys.getValue())) {
+      keys.setValue(testRunner.replaceKeywords(keys.getValue()));
+    }
     testRunner.getWebActionPlugin().doSendKeys(xPath.getValue(), keys.getValue());
   }
 
