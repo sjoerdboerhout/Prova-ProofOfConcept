@@ -110,7 +110,7 @@ public class TestCase {
   /**
    * Set the test runner reference
    * 
-   * @param testrunner
+   * @param testRunner
    * @throws Exception
    */
   public void setTestRunner(TestRunner testRunner)
@@ -183,7 +183,7 @@ public class TestCase {
    * Set a summary for this test. Usefull when the test could not be
    * completed.
    * 
-   * @param testSummary
+   * @param summary
    */
   public void setSummary(String summary)
   {
@@ -272,7 +272,7 @@ public class TestCase {
 
 
   /**
-   * @param testAction the testActions to set
+   * @param setUpAction the testActions to set
    */
   public void addSetUpAction(TestAction setUpAction)
   {
@@ -290,7 +290,7 @@ public class TestCase {
   }
 
   /**
-   * @param testAction the testActions to set
+   * @param tearDownAction the testActions to set
    */
   public void addTearDownAction(TestAction tearDownAction)
   {
@@ -405,7 +405,49 @@ public class TestCase {
 				try {
 					for (TestAction testAction : getTestActions()) {
 						//currentTestAction = testAction;
-						executeAction(testAction, waitTime);
+                        if (testAction.getCondition() != null) {
+                            try {
+                                String condition = testAction.getCondition();
+                                LOGGER.trace("Found condition on testaction: " + condition);
+                                if (testRunner.containsKeywords(condition)) {
+                                    condition = testRunner.replaceKeywords(condition);
+                                }
+                                String[] conditionParts;
+                                if (condition.contains("!=")) {
+                                    LOGGER.trace("Found != in the condition... going to split");
+                                    conditionParts = condition.split("!=");
+                                    //LOGGER.trace(conditionParts[0].trim() +" <-> "+conditionParts[1].trim());
+                                    if (!conditionParts[0].trim().equalsIgnoreCase(conditionParts[1].trim())) {
+
+                                        executeAction(testAction, waitTime);
+                                    }
+                                    else {
+                                        LOGGER.trace("Skipping " + testAction.getId() + " based on condition: " + condition );
+                                    }
+                                } else {
+                                    LOGGER.trace("condition should contain = ... going to split");
+                                    conditionParts = condition.split("=");
+                                    //LOGGER.trace(conditionParts[0].trim() +" <-> "+conditionParts[1].trim());
+                                    if (conditionParts[0].trim().equalsIgnoreCase(conditionParts[1].trim())) {
+
+                                        executeAction(testAction, waitTime);
+                                    }
+                                    else {
+                                        LOGGER.trace("Skipping " + testAction.getId() + " based on condition: " + condition );
+                                    }
+                                }
+                            }
+                            catch(Exception ex){
+                                LOGGER.trace("Evaluating condition failed");
+                                throw ex;
+                            }
+
+
+                        }
+						else {
+                            executeAction(testAction, waitTime);
+						}
+
 						//LOGGER.debug(testAction.getId().toString());
 					}
                     if (error)

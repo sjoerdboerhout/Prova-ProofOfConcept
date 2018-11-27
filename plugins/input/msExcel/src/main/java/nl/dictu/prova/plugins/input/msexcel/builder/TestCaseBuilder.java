@@ -263,7 +263,7 @@ public class TestCaseBuilder {
 	 *
 	 * @param sheet
 	 * @param rowNum
-	 * @param tagname
+	 * @param tagName
 	 * @throws Exception
 	 */
 	private List<TestAction> parseSoapDbTemplate(Sheet sheet, MutableInt rowNum, String tagName,
@@ -730,8 +730,20 @@ public class TestCaseBuilder {
 
 						switch (tagName) {
 						case "sectie":
+							String condition = null;
+							//LOGGER.trace("Kolom 1: "+flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat));
+							//LOGGER.trace("Kolom 2: "+flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat));
+							if (flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat).contains("=")){
+								condition = flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat);
+							}
+
+							else if (flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat).contains("=")){
+								condition = flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat);
+							}
+							parseTestActionSection(testCase, testActions, sheet, rowNum, tagName, extraParameters, condition);
+							break;
 						case "tc":
-							parseTestActionSection(testCase, testActions, sheet, rowNum, tagName, extraParameters);
+							parseTestActionSection(testCase, testActions, sheet, rowNum, tagName, extraParameters, null);
 							break;
 						case "query":
 						case "queryproperties":
@@ -795,7 +807,7 @@ public class TestCaseBuilder {
 		}
 		return keyword;
 	}
-	
+
 	/**
 	 * Scan all rows on the given <sheet> and parse all actions and import
 	 * referenced sheets.
@@ -807,7 +819,7 @@ public class TestCaseBuilder {
 	 * @throws Exception
 	 */
 	private void parseTestActionSection(TestCase testCase, List<TestAction> testActions, Sheet sheet, MutableInt rowNum,
-			String tagName, Map<String, String> extraParameters) throws Exception {
+			String tagName, Map<String, String> extraParameters, String condition) throws Exception {
 		flowWorkbookReader = new WorkbookReader(sheet.getWorkbook());
 		// get header row
 		Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
@@ -843,7 +855,10 @@ public class TestCaseBuilder {
 				LOGGER.trace("Action: '{}', Locator: '{}' (xpath: {})", rowMap.get("actie").toUpperCase(), locatorName,
 						xPath);
 				LOGGER.trace("Sheet {}, Rownumber {}", sheet.getSheetName(), rowNum);
-
+				if (condition != null){
+					LOGGER.trace("Setting testaction run condition to: " + condition);
+					testAction.setCondition(condition);
+				}
 				testAction.setTestRunner(testRunner);
 				testAction.setId(sheet.getSheetName() + " | #" + ((rowNum.toInteger()) + 1));
 

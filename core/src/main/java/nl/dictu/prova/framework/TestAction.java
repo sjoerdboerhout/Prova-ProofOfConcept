@@ -47,6 +47,7 @@ public abstract class TestAction
   public abstract boolean isValid() throws Exception;
   
   protected String actionId;
+  protected String actionCondition;
   
   /**
    * Constructor
@@ -93,5 +94,15 @@ public abstract class TestAction
   public String getId()
   {
     return this.actionId;
+  }
+
+  public void setCondition(String newActionCondition)
+  {
+    this.actionCondition = newActionCondition;
+  }
+
+  public String getCondition()
+  {
+    return this.actionCondition;
   }
 }
