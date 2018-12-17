@@ -105,7 +105,7 @@ public class TestDataBuilder
    * Builds a list containing sets of testdata and tests for DB and SOAP sheets
    * 
    * @param path
-   * @param sheet
+   * @param sheetname
    * @return 
    * @throws Exception
    */
@@ -769,7 +769,9 @@ public class TestDataBuilder
                 }
                 else
                 {
-                  throw new Exception("No property value found for property " + entry.getValue() + " and key " + entry.getKey());
+                  LOGGER.trace("No value found for property " + entry.getValue() + ", assuming it will be available at execute time.");
+                  continue;
+                  //throw new Exception("No property value found for property " + entry.getValue() + " and key " + entry.getKey());
                 }
             } else {
             LOGGER.trace("> {}: '{}'", entry.getKey(), entry.getValue());
