@@ -403,7 +403,8 @@ public class TestCase {
             
 				//TestAction currentTestAction = null;
 				try {
-					for (TestAction testAction : getTestActions()) {
+					LOGGER.trace("Executing testactions...");
+				    for (TestAction testAction : getTestActions()) {
 						//currentTestAction = testAction;
                         if (testAction.getCondition() != null) {
                             try {
@@ -442,10 +443,11 @@ public class TestCase {
                                 throw ex;
                             }
 
-
+                            //executeAction(testAction, waitTime);
                         }
 						else {
-                            executeAction(testAction, waitTime);
+                            LOGGER.trace("No condition found on testaction, executing now...");
+						    executeAction(testAction, waitTime);
 						}
 
 						//LOGGER.debug(testAction.getId().toString());

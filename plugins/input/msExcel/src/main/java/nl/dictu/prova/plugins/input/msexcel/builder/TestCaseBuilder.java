@@ -197,7 +197,9 @@ public class TestCaseBuilder {
                                     else {
                                         LOGGER.trace("commonly the dataset is not equal to the tcid, checking if content is present in testcase.id");
                                         String testcaseID = testCase.getId().replace("\\", "\\\\");
+										//String testcaseID = testCase.getId().replace(File.separator, File.separator+File.separator);
                                         String[] testcaseSplit = testcaseID.split("\\\\");
+										//String[] testcaseSplit = testcaseID.split(File.separator+File.separator);
                                         //LOGGER.trace("Aantal items in array: " + testcaseSplit.length);
                                         String mainTestcaseName = testcaseSplit[testcaseSplit.length-3];
                                         LOGGER.trace("Checking if tcid is the same as main testcase; "+mainTestcaseName +"<->"+tcid);
@@ -614,7 +616,7 @@ public class TestCaseBuilder {
 	 * @param tagName
 	 * @throws Exception
 	 */
-	private void parseIntegratedTestCaseSection(TestCase testCase, Sheet sheet, MutableInt rowNum, String tagName)
+	private void parseIntegratedTestCaseSection(TestCase testCase, Sheet sheet, MutableInt rowNum, String tagName, String condition)
 			throws Exception {
 		Map<Integer, String> headers = readSectionHeaderRow(sheet, rowNum);
 		Map<String, String> rowMap;
@@ -628,7 +630,25 @@ public class TestCaseBuilder {
 				break;
 			case "integratetest":
 			case "it":
-				readTestActionsFromReference(testCase, rowMap, "test").forEach(testCase::addTestAction);
+				if (condition != null){
+					try {
+						condition = replaceConditionFromTestdata(condition);
+						if (runFromCondition(condition)){
+							readTestActionsFromReference(testCase, rowMap, "test").forEach(testCase::addTestAction);
+						}
+						else{
+							LOGGER.debug("Skipping [IT] due to condition: " + condition);
+						}
+					}
+					catch(Exception ex){
+						LOGGER.trace("Failed to read condition, running [IT] anyway");
+						readTestActionsFromReference(testCase, rowMap, "test").forEach(testCase::addTestAction);
+					}
+				}
+				else{
+					readTestActionsFromReference(testCase, rowMap, "test").forEach(testCase::addTestAction);
+				}
+
 				break;
 			}
 		}
@@ -727,18 +747,28 @@ public class TestCaseBuilder {
 						// get tag
 						String tagName = flowWorkbookReader.getTagName(firstCellContent);
 						LOGGER.trace("Found tag: {}", tagName);
-
+						String condition;
 						switch (tagName) {
 						case "sectie":
-							String condition = null;
+							condition = null;
 							//LOGGER.trace("Kolom 1: "+flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat));
 							//LOGGER.trace("Kolom 2: "+flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat));
-							if (flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat).contains("=")){
-								condition = flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat);
-							}
+							try {
+								if (flowWorkbookReader.evaluateCellContent(row.getCell(1)) != null) {
+									if (flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat).contains("=")) {
+										condition = flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat);
+									}
+								}
 
-							else if (flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat).contains("=")){
-								condition = flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat);
+								if (flowWorkbookReader.evaluateCellContent(row.getCell(2)) != null) {
+
+									if (flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat).contains("=")) {
+										condition = flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat);
+									}
+								}
+							}
+							catch(Exception ex){
+								LOGGER.trace("Found value in column B or C, but reading condition failed, condition not added");
 							}
 							parseTestActionSection(testCase, testActions, sheet, rowNum, tagName, extraParameters, condition);
 							break;
@@ -763,7 +793,26 @@ public class TestCaseBuilder {
 						case "it":
 							testActions.forEach(testCase::addTestAction);
 							testActions.clear();
-							parseIntegratedTestCaseSection(testCase, sheet, rowNum, tagName);
+							condition = null;
+							//LOGGER.trace("Kolom 1: "+flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat));
+							//LOGGER.trace("Kolom 2: "+flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat));
+							try {
+								if (flowWorkbookReader.evaluateCellContent(row.getCell(1)) != null) {
+									if (flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat).contains("=")) {
+										condition = flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat);
+									}
+								}
+								if (flowWorkbookReader.evaluateCellContent(row.getCell(2)) != null) {
+
+									if (flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat).contains("=")) {
+										condition = flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat);
+									}
+								}
+							}
+							catch(Exception ex){
+								LOGGER.trace("Found value in column B or C, but reading condition failed, condition not added");
+							}
+							parseIntegratedTestCaseSection(testCase, sheet, rowNum, tagName, condition);
 							break;
 						}
 					}
@@ -855,10 +904,7 @@ public class TestCaseBuilder {
 				LOGGER.trace("Action: '{}', Locator: '{}' (xpath: {})", rowMap.get("actie").toUpperCase(), locatorName,
 						xPath);
 				LOGGER.trace("Sheet {}, Rownumber {}", sheet.getSheetName(), rowNum);
-				if (condition != null){
-					LOGGER.trace("Setting testaction run condition to: " + condition);
-					testAction.setCondition(condition);
-				}
+
 				testAction.setTestRunner(testRunner);
 				testAction.setId(sheet.getSheetName() + " | #" + ((rowNum.toInteger()) + 1));
 
@@ -912,6 +958,14 @@ public class TestCaseBuilder {
 						LOGGER.trace("Read '{}' action attribute '{}' = '{}'", rowMap.get("actie").toUpperCase(), key,
 								keyword);
 					}
+				}
+				//testRunner.printAllProperties();
+				if (condition != null){
+					if (testRunner.containsKeywords(condition)) {
+						condition = replaceConditionFromTestdata(condition);
+					}
+					LOGGER.trace("Setting testaction run condition to: " + condition);
+					testAction.setCondition(condition);
 				}
 				LOGGER.trace("Read '{}' action '{}'", rowMap.get("actie"), testAction);
 				testActions.add(testAction);
@@ -1016,7 +1070,91 @@ public class TestCaseBuilder {
 
 		return rowMap;
 	}
+	/**
+	 *
+	 */
+	private Boolean runFromCondition(String condition) {
+		String[] conditionParts;
+		if (condition.contains("!=")) {
+			LOGGER.trace("Found != in the condition... going to split");
+			conditionParts = condition.split("!=");
+			//LOGGER.trace(conditionParts[0].trim() +" <-> "+conditionParts[1].trim());
+			if (!conditionParts[0].trim().equalsIgnoreCase(conditionParts[1].trim())) {
 
+				return true;
+			}
+			else {
+				LOGGER.trace("Skipping [IT] based on condition: " + condition );
+				return false;
+			}
+		} else {
+			LOGGER.trace("condition should contain = ... going to split");
+			conditionParts = condition.split("=");
+			//LOGGER.trace(conditionParts[0].trim() +" <-> "+conditionParts[1].trim());
+			if (conditionParts[0].trim().equalsIgnoreCase(conditionParts[1].trim())) {
+
+				return true;
+			}
+			else {
+				LOGGER.trace("Skipping [IT] based on condition: " + condition );
+				return false;
+			}
+		}
+	}
+	/**
+	 * Function to search testdata variables and replace them in condition
+	 */
+	private String replaceConditionFromTestdata(String condition) {
+
+		//condition = testDataKeywords..replaceKeywords(condition);
+		String[] conditionParts;
+		String conditionLeft;
+		String conditionRight;
+		if (condition.contains("!=")) {
+			LOGGER.trace("Found != in the condition... going to split");
+			conditionParts = condition.split("!=");
+			LOGGER.trace(conditionParts[0].trim() + " <-> " + conditionParts[1].trim());
+			conditionLeft = conditionParts[0].trim();
+			conditionRight = conditionParts[1].trim();
+			if (conditionLeft.length() > 2 && conditionLeft.startsWith("{") && conditionLeft.endsWith("}")) {
+				// Remove the { } around the keyword
+				//keyword = conditionParts[0].trim().substring(1, conditionParts[0].length() - 1);
+				conditionLeft = testDataKeywords.getProperty(conditionLeft.substring(1, conditionLeft.length() - 1));
+			}
+			if (conditionRight.length() > 2 && conditionRight.startsWith("{") && conditionRight.endsWith("}")) {
+				// Remove the { } around the keyword
+				//keyword = conditionParts[0].trim().substring(1, conditionParts[0].length() - 1);
+				conditionRight = testDataKeywords.getProperty(conditionRight.substring(1, conditionRight.length() - 1));
+			}
+			LOGGER.trace("After replace " + conditionLeft + " <-> " + conditionRight);
+			condition = conditionLeft + " != " + conditionRight;
+
+		} else {
+			LOGGER.trace("condition should contain = ... going to split");
+			conditionParts = condition.split("=");
+			LOGGER.trace(conditionParts[0].trim() + " <-> " + conditionParts[1].trim());
+			conditionLeft = conditionParts[0].trim();
+			conditionRight = conditionParts[1].trim();
+			if (conditionLeft.length() > 2 && conditionLeft.startsWith("{") && conditionLeft.endsWith("}")) {
+				// Remove the { } around the keyword
+				//keyword = conditionParts[0].trim().substring(1, conditionParts[0].length() - 1);
+
+				conditionLeft = testDataKeywords.getProperty(conditionLeft.substring(1, conditionLeft.length() - 1));
+				//LOGGER.trace(conditionLeft  + " -> used " +conditionLeft.substring(1, conditionLeft.length() - 1)+ " to retrieve property");
+			}
+			if (conditionRight.length() > 2 && conditionRight.startsWith("{") && conditionRight.endsWith("}")) {
+				// Remove the { } around the keyword
+				//keyword = conditionParts[0].trim().substring(1, conditionParts[0].length() - 1);
+				conditionRight = testDataKeywords.getProperty(conditionRight.substring(1, conditionRight.length() - 1));
+				//LOGGER.trace(conditionRight  + " -> used " +conditionRight.substring(1, conditionRight.length() - 1)+ " to retrieve property");
+			}
+			LOGGER.trace("After replace " + conditionLeft + " <-> " + conditionRight);
+			condition = conditionLeft + " = " + conditionRight;
+
+		}
+		return condition;
+
+	}
 	/**
 	 * Extract the path of the workbook containing the test flow from TCID
 	 *

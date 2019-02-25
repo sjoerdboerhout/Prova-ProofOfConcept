@@ -863,6 +863,7 @@ public class Prova implements Runnable, TestRunner
     for(String key : this.properties.stringPropertyNames())
     {
       System.out.println(key + " => " + properties.getProperty(key));
+      LOGGER.trace(key + " => " + properties.getProperty(key));
     }
   }
    
