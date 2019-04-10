@@ -68,6 +68,7 @@
     <!-- Output Plugins -->
     <module>plugins/output/scriptPrinter</module>
     <module>plugins/output/selenium</module>
+    <!--<module>plugins/output/selenide</module>-->
     <module>plugins/output/shellCommand</module>
     <module>plugins/output/apacheSoap</module>
     <module>plugins/output/jdbc</module>

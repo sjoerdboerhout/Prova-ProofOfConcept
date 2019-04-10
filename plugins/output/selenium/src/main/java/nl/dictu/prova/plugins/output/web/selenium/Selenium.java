@@ -54,16 +54,19 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.ie.InternetExplorerOptions;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.safari.SafariDriver;
 //import org.openqa.selenium.security.UserAndPassword;
+import org.openqa.selenium.safari.SafariOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -153,24 +156,25 @@ public class Selenium implements WebOutputPlugin
   {
     try
     {
-      DesiredCapabilities cap = new DesiredCapabilities();
-      if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY))
+        Boolean useProxy = false;
+        org.openqa.selenium.Proxy proxy = new org.openqa.selenium.Proxy();
+        if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY))
       {
-            org.openqa.selenium.Proxy proxy = new org.openqa.selenium.Proxy();
+
             //proxy.setHttpProxy(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY));
             //proxy.setFtpProxy(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY));
             proxy.setProxyAutoconfigUrl(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROXY));
-
-
-            cap.setCapability(CapabilityType.PROXY, proxy);
-
+            useProxy = true;
       }
       if(browserType.equalsIgnoreCase("FireFox"))
       {
         String fireFoxPath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_GECKO);
-          
+        FirefoxOptions firefoxOptions = new FirefoxOptions();
         //LOGGER.trace("Try to load webdriver 'Gecko' ({})", fireFoxPath);
         LOGGER.trace("Try to load webdriver 'Gecko'");
+        if (useProxy) {
+            firefoxOptions.setCapability(CapabilityType.PROXY, proxy);
+        }
         System.setProperty("webdriver.gecko.driver", fireFoxPath);
         System.setProperty(FirefoxDriver.SystemProperty.DRIVER_USE_MARIONETTE,testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_FF_USEMARIONETTE));
         if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_BIN_GECKO))
@@ -180,18 +184,20 @@ public class Selenium implements WebOutputPlugin
         }
         if(testRunner.hasPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE))
         {
-          ProfilesIni profile = new ProfilesIni();
-          FirefoxProfile ffProfile = profile.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+          //ProfilesIni profile = new ProfilesIni();
+         // FirefoxProfile ffProfile = ffProfile.getProfile(testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
+            System.setProperty("webdriver.firefox.profile", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
           //FirefoxOptions cap = new FirefoxOptions();
-          cap = DesiredCapabilities.firefox();
-          cap.setCapability(FirefoxDriver.PROFILE, ffProfile);
+          //cap = DesiredCapabilities.firefox();
+          //cap.setCapability(FirefoxDriver.PROFILE, ffProfile);
+            //firefoxOptions.setCapability(FirefoxDriver.PROFILE, ffProfile);
           LOGGER.trace("Try to load webdriver 'FireFox' with profile '{}'", testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PROFILE));
-          webdriver = new FirefoxDriver(cap);
+          webdriver = new FirefoxDriver(firefoxOptions);
         }
         else
         {
           LOGGER.trace("Try to load webdriver 'FireFox'");
-          webdriver = new FirefoxDriver(cap);
+          webdriver = new FirefoxDriver(firefoxOptions);
         }
       }
       else if(browserType.equalsIgnoreCase("Chrome"))
@@ -199,9 +205,13 @@ public class Selenium implements WebOutputPlugin
         String chromePath = testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUT_WEB_BROWSER_PATH_CHROME);
         
         LOGGER.trace("Try to load webdriver 'Chrome' ({})", chromePath);
-        System.setProperty("webdriver.chrome.driver", chromePath);  
-
-        webdriver = new ChromeDriver(cap);
+          ChromeOptions chromeOptions = new ChromeOptions();
+          System.setProperty("webdriver.chrome.driver", chromePath);
+          if (useProxy) {
+              chromeOptions.setCapability(CapabilityType.PROXY, proxy);
+          }
+          chromeOptions.addArguments("--disable-features=VizDisplayCompositor");
+        webdriver = new ChromeDriver(chromeOptions);
       }
       else if(browserType.equalsIgnoreCase("InternetExplorer") || browserType.equalsIgnoreCase("IE"))
       {
@@ -220,13 +230,21 @@ public class Selenium implements WebOutputPlugin
         }
         
         LOGGER.trace("Try to load webdriver 'InternetExplorer' ({})", iePath);
+          InternetExplorerOptions internetExplorerOptions = new InternetExplorerOptions();
+        if (useProxy) {
+              internetExplorerOptions.setCapability(CapabilityType.PROXY, proxy);
+          }
         System.setProperty("webdriver.ie.driver", iePath);        
-        webdriver = new InternetExplorerDriver(cap);
+        webdriver = new InternetExplorerDriver(internetExplorerOptions);
       }
       else if(browserType.equalsIgnoreCase("Safari"))
       {
         LOGGER.trace("Try to load webdriver 'Safari'");
-        webdriver = new SafariDriver(cap);
+        SafariOptions safariOptions = new SafariOptions();
+          if (useProxy) {
+              safariOptions.setCapability(CapabilityType.PROXY, proxy);
+          }
+        webdriver = new SafariDriver(safariOptions);
       }
       //else if(browserType.equalsIgnoreCase("PhantomJS"))
       //{
