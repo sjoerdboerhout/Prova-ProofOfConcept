@@ -377,7 +377,7 @@ public class Selenium implements WebOutputPlugin
 
 
   @Override
-  public void doClick(String xPath, Boolean rightClick, Boolean waitUntilPageLoaded, Boolean continueOnNotFound) throws Exception
+  public void doClick(String xPath, Boolean rightClick, Integer numberOfClicks, Boolean waitUntilPageLoaded, Boolean continueOnNotFound) throws Exception
   {
     if(this.webdriver == null)
     {
@@ -425,25 +425,39 @@ public class Selenium implements WebOutputPlugin
         }
         else
         {
-        	try
-        	{
-        		element.click();
-        	}
-        	catch(Exception e)
-        	{
-        		 //First navigate to element to make sure the element to be clicked is on te screen
-                LOGGER.debug("Clicking failed, trying to move to element");
-                //actions.moveToElement(element).perform();
-                try
-                {
-                	scroll_element_into_view(element);
-                    actions.moveToElement(element).click().perform();
+            if (numberOfClicks == 1) {
+                try {
+                    LOGGER.debug("singleClick...");
+                    element.click();
+                } catch (Exception e) {
+                    //First navigate to element to make sure the element to be clicked is on te screen
+                    LOGGER.debug("Clicking failed, trying to move to element");
+                    //actions.moveToElement(element).perform();
+                    try {
+                        scroll_element_into_view(element);
+                        actions.moveToElement(element).click().perform();
+                    } catch (Exception ex) {
+                        LOGGER.debug("Scrolling element into view failed");
+                    }
                 }
-                catch(Exception ex)
-                {
-                	LOGGER.debug("Scrolling element into view failed");
+            }
+            if (numberOfClicks == 2) {
+                try {
+                    LOGGER.debug("doubleClick...");
+                    actions.doubleClick(element).perform();
+                } catch (Exception e) {
+                    //First navigate to element to make sure the element to be clicked is on te screen
+                    LOGGER.debug("Clicking failed, trying to move to element");
+                    //actions.moveToElement(element).perform();
+                    try {
+                        scroll_element_into_view(element);
+                        actions.moveToElement(element);
+                        actions.doubleClick(element).perform();
+                    } catch (Exception ex) {
+                        LOGGER.debug("Scrolling element into view failed");
+                    }
                 }
-        	}
+            }
         }
         //element.sendKeys(Keys.RETURN);
         

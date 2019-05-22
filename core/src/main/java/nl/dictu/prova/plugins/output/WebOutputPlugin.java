@@ -24,7 +24,7 @@ import nl.dictu.prova.framework.parameters.Xpath;
 public interface WebOutputPlugin extends OutputPlugin {
 	public void doCaptureScreen(String fileName) throws Exception;
 
-	public void doClick(String xPath, Boolean rightClick, Boolean waitUntilPageLoaded, Boolean continueOnNotFound ) throws Exception;
+	public void doClick(String xPath, Boolean rightClick, Integer numberOfClicks, Boolean waitUntilPageLoaded, Boolean continueOnNotFound ) throws Exception;
 
 	public void doDownloadFile(String url, String saveAs) throws Exception;
 

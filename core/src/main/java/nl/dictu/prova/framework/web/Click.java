@@ -93,7 +93,11 @@ public class Click extends TestAction
       break;
       
       case ATTR_NUMBEROFCLICKS:
-        numberOfClicks.setValue(value);
+        if(value != "")
+          numberOfClicks.setValue(value);
+        else
+          numberOfClicks.setValue(1);
+        //numberOfClicks.setValue(value);
       break;
       
       case ATTR_WAITUNTILPAGELOADED:  
@@ -143,7 +147,7 @@ public class Click extends TestAction
       xPath.setValue(testRunner.replaceKeywords(xPath.getValue()));
     }
     
-    testRunner.getWebActionPlugin().doClick(xPath.getValue(), rightClick.getValue(), waitUntilPageLoaded.getValue(), continueOnNotFound.getValue() );
+    testRunner.getWebActionPlugin().doClick(xPath.getValue(), rightClick.getValue(), Integer.parseInt(numberOfClicks.getValue().toString()), waitUntilPageLoaded.getValue(), continueOnNotFound.getValue() );
   }
 
 
