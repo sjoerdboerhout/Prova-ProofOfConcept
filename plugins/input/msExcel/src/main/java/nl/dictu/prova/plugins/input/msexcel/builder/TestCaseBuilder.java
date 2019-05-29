@@ -1228,14 +1228,29 @@ public class TestCaseBuilder {
 	 * @param _package
 	 * @return
 	 */
-	private String getWorkbookFromPackage(String testFlowPath, String _package) {
-		LOGGER.trace("getWorkbookFromPackage: '{}'", _package);
-		// manipulate path to strip file from testcasepath
-		int p = testFlowPath.lastIndexOf(File.separator);
+    private String getWorkbookFromPackage(String testFlowPath, String _package) {
+        LOGGER.trace("getWorkbookFromPackage: '{}'", _package);
+        // manipulate path to strip file from testcasepath
+        int p = testFlowPath.lastIndexOf(File.separator);
         testFlowPath = testFlowPath.substring(0, p);
-		//return testRootPath + File.separator + _package.replace(".", File.separator) + ".xlsm";
-		return testFlowPath + File.separator + _package.replace(".", File.separator) + ".xlsm";
-	}
+        //Check if package contains an alternative file location.
+        if (_package.contains(":") || _package.contains("}")) {
+            try {
+                LOGGER.debug("Package contains : or {}");
+                if (this.testRunner.containsKeywords(_package)) {
+                    LOGGER.debug("Found keyword in packagefield");
+                    _package = this.testRunner.replaceKeywords(_package);
+                }
+            }
+            catch(Exception e){
+                LOGGER.error("Exception while setting package" + e.getMessage());
+                e.printStackTrace();
+            }
+            return _package+ ".xlsm";
+        }
+        //return testRootPath + File.separator + _package.replace(".", File.separator) + ".xlsm";
+        else return testFlowPath + File.separator + _package.replace(".", File.separator) + ".xlsm";
+    }
 
 	/**
 	 * For trace logging, print the data in given test map.
