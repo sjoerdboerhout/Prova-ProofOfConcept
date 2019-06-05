@@ -817,8 +817,22 @@ public class Prova implements Runnable, TestRunner
     
     properties.setProperty(key, value);
   }
-  
-  
+
+
+  /**
+     * Remove the property with key <key>
+     *
+     * @param key
+     * @throws Exception
+     */
+    @Override
+    public void removeProperty(String key) throws Exception
+    {
+        LOGGER.trace("Remove property with key '{}' ", () -> key);
+
+        properties.remove(key);
+    }
+
   public String replaceKeywords(String entry) throws Exception
   {
     Pattern pattern = Pattern.compile("\\{[A-Za-z0-9._]+\\}");

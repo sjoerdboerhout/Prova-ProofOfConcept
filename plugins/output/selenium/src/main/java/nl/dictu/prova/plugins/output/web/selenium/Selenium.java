@@ -1165,7 +1165,7 @@ public class Selenium implements WebOutputPlugin
   }
   
   @Override
-  public void doStoreText(String xPath, String regex, String inputtext, String name, double timeOut) throws Exception
+  public void doStoreText(String xPath, String regex, String inputtext, String name, Boolean remove, double timeOut) throws Exception
   {
 	if(inputtext != null)
     {
@@ -1178,6 +1178,10 @@ public class Selenium implements WebOutputPlugin
       {
     	  LOGGER.warn("The length of the given value is < than 0. Is there a space in the field 'inputtext'?");
       }
+    }
+    else if(remove)
+    {
+        this.testRunner.removeProperty(name);
     }
 	else
 	{  

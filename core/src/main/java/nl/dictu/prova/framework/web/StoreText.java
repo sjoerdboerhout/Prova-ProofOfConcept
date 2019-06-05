@@ -19,12 +19,14 @@ class StoreText extends TestAction
   public final static String ATTR_REGEX     = "REGEX";
   public final static String ATTR_INPUTTEXT = "INPUTTEXT";
   public final static String ATTR_NAME      = "NAME";
+  public final static String ATTR_REMOVE      = "REMOVE";
   public final static String ATTR_XPATH     = "XPATH";
   
   Xpath xPath = null;
   String regex = null;
   String inputtext = null;
   String name = null;
+  String remove = "false";
   TimeOut timeout;
   
   public StoreText() throws Exception
@@ -43,6 +45,7 @@ class StoreText extends TestAction
       case ATTR_INPUTTEXT : inputtext   = value.trim();                       break;
       case ATTR_PARAMETER : name    = value.trim();                           break;
       case ATTR_NAME      : name    = value.trim();                           break;
+      case ATTR_REMOVE    : remove    = value.trim();                         break;
       case ATTR_XPATH     : xPath.setValue(value);                            break;
       default             : xPath.setAttribute(key, value);
     }
@@ -55,7 +58,7 @@ class StoreText extends TestAction
     {
       throw new Exception("Please check if xPath, regex, name and timeout values are provided!");
     }
-    this.testRunner.getWebActionPlugin().doStoreText(xPath.getValue(), regex, inputtext,  name, new Double(timeout.getValue()));
+    this.testRunner.getWebActionPlugin().doStoreText(xPath.getValue(), regex, inputtext,  name, Boolean.parseBoolean(remove), new Double(timeout.getValue()));
   }
 
   @Override

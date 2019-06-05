@@ -45,6 +45,7 @@ public interface TestRunner
   public String                     getPropertyValue(String key) throws Exception;
   public void                       setPropertyValue(String key, String value) throws Exception;
   public String                     replaceKeywords(String input) throws Exception;
+  public void                       removeProperty(String input) throws Exception;
   public void                       printAllProperties() throws Exception;
   
   public void                       setRootTestSuite(TestSuite testSuite);

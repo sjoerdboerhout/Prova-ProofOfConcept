@@ -38,7 +38,7 @@ public interface WebOutputPlugin extends OutputPlugin {
 
 	public void doSleep(long waitTime) throws Exception;
   
-    public void doStoreText(String xPath, String regex, String inputtext, String name, double timeout) throws Exception;
+    public void doStoreText(String xPath, String regex, String inputtext, String name, Boolean remove, double timeout) throws Exception;
 	
 	public void doSwitchFrame(String xPath, Boolean alert, Boolean accept, String username, String password) throws Exception;
 
