@@ -405,7 +405,10 @@ public class TestCase {
 				try {
 					LOGGER.trace("Executing testactions...");
 				    for (TestAction testAction : getTestActions()) {
-						//currentTestAction = testAction;
+				        // Property ScriptPrinter true turns DB steps off
+                        // testAction id null is een database actie
+                      if((testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUTPUT_WEB).equals("ScriptPrinter") && testAction.getId() != null) ||
+                        ((testRunner.getPropertyValue(Config.PROVA_PLUGINS_OUTPUT_WEB).equals("Selenium")))) {
                         if (testAction.getCondition() != null) {
                             try {
                                 String condition = testAction.getCondition();
@@ -421,9 +424,8 @@ public class TestCase {
                                     if (!conditionParts[0].trim().equalsIgnoreCase(conditionParts[1].trim())) {
 
                                         executeAction(testAction, waitTime);
-                                    }
-                                    else {
-                                        LOGGER.trace("Skipping " + testAction.getId() + " based on condition: " + condition );
+                                    } else {
+                                        LOGGER.trace("Skipping " + testAction.getId() + " based on condition: " + condition);
                                     }
                                 } else {
                                     LOGGER.trace("condition should contain = ... going to split");
@@ -432,23 +434,24 @@ public class TestCase {
                                     if (conditionParts[0].trim().equalsIgnoreCase(conditionParts[1].trim())) {
 
                                         executeAction(testAction, waitTime);
-                                    }
-                                    else {
-                                        LOGGER.trace("Skipping " + testAction.getId() + " based on condition: " + condition );
+                                    } else {
+                                        LOGGER.trace("Skipping " + testAction.getId() + " based on condition: " + condition);
                                     }
                                 }
-                            }
-                            catch(Exception ex){
+                            } catch (Exception ex) {
                                 LOGGER.trace("Evaluating condition failed");
                                 throw ex;
                             }
 
                             //executeAction(testAction, waitTime);
-                        }
-						else {
+                        } else {
                             LOGGER.trace("No condition found on testaction, executing now...");
-						    executeAction(testAction, waitTime);
-						}
+                            executeAction(testAction, waitTime);
+                        }
+                    }
+                    else{
+                           LOGGER.trace("testActionId null, niet uitvoeren");
+                        }
 
 						//LOGGER.debug(testAction.getId().toString());
 					}

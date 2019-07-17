@@ -31,6 +31,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.Key;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -489,6 +490,8 @@ public class TestDataBuilder
               if(value.length() > 0)
               {
                 LOGGER.trace("Found value '{}' for key '{}' in {} column '{}'", value, key, columnType, column);
+               // LOGGER.trace("Found value '{}' for key '{}' in column '{}'", value, key, testData.get(headers.get(colNum));
+
                 columnData.put(key, value);
               }
               else
