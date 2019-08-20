@@ -29,14 +29,14 @@
     <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
 
     <commons.io.version>2.6</commons.io.version>
-    <commons.collections.version>3.2.2</commons.collections.version>
-    <commons.lang.version>2.6</commons.lang.version>
+    <commons.collections.version>4.3</commons.collections.version>
+    <commons.lang.version>3.9</commons.lang.version>
     <commons.math3.version>3.6.1</commons.math3.version>
     
-    <apache-poi.version>4.0.0</apache-poi.version>
-    <apache-poi-ooxml.version>4.0.0</apache-poi-ooxml.version>
-    <apache-poi-ooxml-schemas.version>4.0.0</apache-poi-ooxml-schemas.version>
-    <apache-xmlbeans.version>3.0.1</apache-xmlbeans.version>
+    <apache-poi.version>4.1.0</apache-poi.version>
+    <apache-poi-ooxml.version>4.1.0</apache-poi-ooxml.version>
+    <apache-poi-ooxml-schemas.version>4.1.0</apache-poi-ooxml-schemas.version>
+    <apache-xmlbeans.version>3.1.0</apache-xmlbeans.version>
   </properties>
 
   <dependencies>
@@ -82,14 +82,14 @@
     </dependency>
     
     <dependency>
-      <groupId>commons-collections</groupId>
-      <artifactId>commons-collections</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-collections4</artifactId>
       <version>${commons.collections.version}</version>
     </dependency>
     
     <dependency>
-      <groupId>commons-lang</groupId>
-      <artifactId>commons-lang</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
       <version>${commons.lang.version}</version>
     </dependency>
   </dependencies>

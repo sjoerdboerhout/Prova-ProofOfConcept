@@ -42,7 +42,7 @@ public class PluginLoader extends URLClassLoader
   /**
    * Constructor
    * 
-   * @param urls
+   * //@param urls
    */
   public PluginLoader()
   {
@@ -124,29 +124,19 @@ public class PluginLoader extends URLClassLoader
    */
   private void addAllFiles(File rootDir, String fileExt)
   {
-    for(File file : rootDir.listFiles())
-    {
-      try
-      {
-        if(file.isFile() && file.canRead())
-        {
-          if(file.getAbsolutePath().toLowerCase().endsWith(fileExt.toLowerCase()))
-          {
+    for(File file : rootDir.listFiles()) {
+      try {
+        if (file.isFile() && file.canRead()) {
+          if (file.getAbsolutePath().toLowerCase().endsWith(fileExt.toLowerCase())) {
             super.addURL(file.toURI().toURL());
             LOGGER.trace("Added '{}' to classpath", file.toURI().toURL());
           }
-        }
-        else if(file.isDirectory() && file.canRead())
-        {
+        } else if (file.isDirectory() && file.canRead()) {
           addAllFiles(file, fileExt);
-        }
-        else
-        {
+        } else {
           LOGGER.warn("Unable to search '{}' for plugins!", () -> file.getAbsolutePath());
         }
-      }
-      catch(Exception eX)
-      {
+      } catch (Exception eX) {
         LOGGER.warn(eX.getMessage());
       }
     }
