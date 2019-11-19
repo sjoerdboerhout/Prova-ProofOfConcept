@@ -313,13 +313,13 @@ public class TestCase {
 			}
 		} catch (Exception eX) {
 			for (ReportingPlugin reportPlugin : testRunner.getReportingPlugins()) {
-				LOGGER.debug("Report: logging action with status NOK");
+				LOGGER.warn("Report: logging action with status NOK");
 				reportPlugin.logAction(testAction, "NOK", 0);
 			}
 			if (this.testRunner.getPropertyValue("prova.flow.failon.actionfail").equalsIgnoreCase("true")) {
                 if(this.testRunner.getPropertyValue("prova.flow.failon.testfail").equalsIgnoreCase("false")&&eX.getMessage().contains("Validation Failed:"))
                 {
-                    LOGGER.debug("Validation failed");
+                    LOGGER.warn("Validation failed");
                     error = true;
                 }
                 else
@@ -332,12 +332,12 @@ public class TestCase {
             {
                 if(this.testRunner.getPropertyValue("prova.flow.failon.testfail").equalsIgnoreCase("false")&&eX.getMessage().contains("Validation Failed:"))
                 {
-                    LOGGER.debug("Validation failed");
+                    LOGGER.warn("Validation failed");
                     error = true;
                 }
                 else
                 {
-                    LOGGER.trace("Action failed; continueing due 'actionfail' property is set to false");
+                    LOGGER.warn("Action failed; continueing due 'actionfail' property is set to false");
                     error = true;
                     //LOGGER.error("Error: " + eX.getMessage());
                     //throw eX;
