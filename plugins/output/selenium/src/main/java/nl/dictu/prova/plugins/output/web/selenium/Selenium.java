@@ -70,6 +70,13 @@ import org.openqa.selenium.safari.SafariOptions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import ru.yandex.qatools.ashot.AShot;
+import ru.yandex.qatools.ashot.Screenshot;
+import ru.yandex.qatools.ashot.shooting.ViewportPastingDecorator;
+import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
+import ru.yandex.qatools.ashot.shooting.ShootingStrategy;
+
+import javax.imageio.ImageIO;
 
 /**
  * Driver for controlling Selenium Webdriver
@@ -328,17 +335,23 @@ public class Selenium implements WebOutputPlugin
   
   public void doCaptureScreen(String fileName) throws Exception
   {
-    if(this.webdriver == null)
-    {
-      prepareWebdriver();
-    }
+      if(this.webdriver == null)
+        {
+            prepareWebdriver();
+        }
+      LOGGER.debug("Trying to make screenshot: " + fileName);
     
-    File scrFile = ((TakesScreenshot)webdriver).getScreenshotAs(OutputType.FILE);
-    
-    try 
+    //File scrFile = ((TakesScreenshot)webdriver).getScreenshotAs(OutputType.FILE);
+
+
+    try
     {
-    	
-    	fileName = fileName + ".png";
+        //WebElement element = null;
+        //element = findElement( "/html/body");
+
+        //Screenshot fpScreenshot = new AShot().shootingStrategy(ShootingStrategies.viewportPasting(100)).takeScreenshot(webdriver,element);
+        Screenshot fpScreenshot = new AShot().takeScreenshot(this.webdriver);
+        fileName = fileName + ".png";
     	LOGGER.debug("Pad1: " + fileName);
     	if(!new File(fileName).isFile()&&!fileName.contains(":"))
     	{
@@ -350,7 +363,8 @@ public class Selenium implements WebOutputPlugin
             		LOGGER.debug("Pad3: " + fileName);
         	}
     	}
-    	FileUtils.copyFile(scrFile, new File(fileName));
+    	//FileUtils.copyFile(scrFile, new File(fileName));
+        ImageIO.write(fpScreenshot.getImage(),"PNG",new File(fileName));
         LOGGER.debug("Placed screen shot in " + fileName);
         this.testRunner.setPropertyValue("SCREENSHOT_PATH", fileName);
         LOGGER.debug("Property set: Name=SCREENSHOT_PATH ; Value =" + fileName);
