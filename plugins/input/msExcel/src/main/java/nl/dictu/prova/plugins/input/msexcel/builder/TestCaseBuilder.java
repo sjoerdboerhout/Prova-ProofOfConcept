@@ -269,7 +269,7 @@ public class TestCaseBuilder {
 	 * @throws Exception
 	 */
 	private List<TestAction> parseSoapDbTemplate(Sheet sheet, MutableInt rowNum, String tagName,
-			List<Properties> dataset, String specifiedPrefix) throws Exception {
+			List<Properties> dataset, String specifiedPrefix, String condition) throws Exception {
 		Map<Integer, String> headers = null;
 		Map<String, String> rowMap = null;
 		TestAction testAction = null;
@@ -562,6 +562,13 @@ public class TestCaseBuilder {
 		}
 		if (testAction != null) {
 			LOGGER.trace("Adding DB testaction");
+			if (condition != null){
+				if (testRunner.containsKeywords(condition)) {
+					condition = replaceConditionFromTestdata(condition);
+				}
+				LOGGER.trace("Setting testaction run condition to: " + condition);
+				testAction.setCondition(condition);
+			}
 		    testAction.setTestRunner(testRunner);
 			testActions.add(testAction);
 		}
@@ -783,7 +790,38 @@ public class TestCaseBuilder {
 						case "message":
 						case "soapproperties":
 						case "send":
-							parseSoapDbTemplate(sheet, rowNum, tagName, dataSet, specifiedPrefix)
+							condition = null;
+							try {
+								if (flowWorkbookReader.evaluateCellContent(row.getCell(1)) != null && flowWorkbookReader.evaluateCellContent(row.getCell(1)).length() > 1) {
+									LOGGER.trace("Kolom 1: " + flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat));
+									//LOGGER.trace("Kolom 2: " + flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat));
+								}
+							}
+							catch(NullPointerException xx){
+								LOGGER.trace("Value next to [" + tagName + "] is null");
+							}
+							try {
+								if (flowWorkbookReader.evaluateCellContent(row.getCell(1)) != null) {
+									if (flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat).contains("=")) {
+										condition = flowWorkbookReader.evaluateCellContent(row.getCell(1), dateFormat);
+									}
+								}
+							}
+							catch(Exception ex){
+									LOGGER.trace("Found value in column B, but reading condition failed, condition not added. Error = " + ex);
+								}
+							try{
+								if (flowWorkbookReader.evaluateCellContent(row.getCell(2)) != null) {
+
+									if (flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat).contains("=")) {
+										condition = flowWorkbookReader.evaluateCellContent(row.getCell(2), dateFormat);
+									}
+								}
+							}
+							catch(Exception ex){
+								LOGGER.trace("Found value in column C, but reading condition failed, condition not added. Error = " + ex);
+							}
+							parseSoapDbTemplate(sheet, rowNum, tagName, dataSet, specifiedPrefix, condition)
 									.forEach(testCase::addTestAction);
 							break;
 						case "command":
@@ -1119,12 +1157,47 @@ public class TestCaseBuilder {
 			if (conditionLeft.length() > 2 && conditionLeft.startsWith("{") && conditionLeft.endsWith("}")) {
 				// Remove the { } around the keyword
 				//keyword = conditionParts[0].trim().substring(1, conditionParts[0].length() - 1);
-				conditionLeft = testDataKeywords.getProperty(conditionLeft.substring(1, conditionLeft.length() - 1));
+				try{
+					String conditionLeft1 = testDataKeywords.getProperty(conditionLeft.substring(1, conditionLeft.length() - 1));
+					if (conditionLeft1.equalsIgnoreCase("null")){
+						throw new Exception("Retrieving variable resulted in null");
+					}
+					else
+					{
+						conditionLeft = conditionLeft1;
+					}
+				}
+				catch(Exception eX){
+					try{
+						conditionLeft = this.testRunner.getPropertyValue(conditionLeft.substring(1, conditionLeft.length() - 1));
+
+					}
+					catch(Exception eX2){
+						LOGGER.error("Retrieving left variable failed");
+					}
+				}
 			}
 			if (conditionRight.length() > 2 && conditionRight.startsWith("{") && conditionRight.endsWith("}")) {
 				// Remove the { } around the keyword
 				//keyword = conditionParts[0].trim().substring(1, conditionParts[0].length() - 1);
-				conditionRight = testDataKeywords.getProperty(conditionRight.substring(1, conditionRight.length() - 1));
+				try{
+					String conditionRight1 = testDataKeywords.getProperty(conditionRight.substring(1, conditionRight.length() - 1));
+					if (conditionRight1.equalsIgnoreCase("null")){
+						throw new Exception("Retrieving variable resulted in null");
+					}
+					else
+					{
+						conditionRight = conditionRight1;
+					}
+				}
+				catch(Exception eX){
+					try{
+						conditionRight = this.testRunner.getPropertyValue(conditionRight.substring(1, conditionRight.length() - 1));
+					}
+					catch(Exception eX2){
+						LOGGER.error("Retrieving right variable failed");
+					}
+				}
 			}
 			LOGGER.trace("After replace " + conditionLeft + " <-> " + conditionRight);
 			condition = conditionLeft + " != " + conditionRight;
@@ -1139,13 +1212,49 @@ public class TestCaseBuilder {
 				// Remove the { } around the keyword
 				//keyword = conditionParts[0].trim().substring(1, conditionParts[0].length() - 1);
 
-				conditionLeft = testDataKeywords.getProperty(conditionLeft.substring(1, conditionLeft.length() - 1));
+				try{
+					String conditionLeft1 = testDataKeywords.getProperty(conditionLeft.substring(1, conditionLeft.length() - 1));
+					if (conditionLeft1.equalsIgnoreCase("null")){
+						throw new Exception("Retrieving variable resulted in null");
+					}
+					else
+					{
+						conditionLeft = conditionLeft1;
+					}
+				}
+				catch(Exception eX){
+					try{
+						LOGGER.error("Retrieving left variable from testdata failed, trying from properties:" + conditionLeft);
+						conditionLeft = this.testRunner.getPropertyValue(conditionLeft.substring(1, conditionLeft.length() - 1));
+					}
+					catch(Exception eX2){
+						LOGGER.error("Retrieving left variable failed");
+					}
+				}
+
 				//LOGGER.trace(conditionLeft  + " -> used " +conditionLeft.substring(1, conditionLeft.length() - 1)+ " to retrieve property");
 			}
 			if (conditionRight.length() > 2 && conditionRight.startsWith("{") && conditionRight.endsWith("}")) {
 				// Remove the { } around the keyword
 				//keyword = conditionParts[0].trim().substring(1, conditionParts[0].length() - 1);
-				conditionRight = testDataKeywords.getProperty(conditionRight.substring(1, conditionRight.length() - 1));
+				try{
+					String conditionRight1 = testDataKeywords.getProperty(conditionRight.substring(1, conditionRight.length() - 1));
+					if (conditionRight1.equalsIgnoreCase("null")){
+						throw new Exception("Retrieving variable resulted in null");
+					}
+					else
+					{
+						conditionRight = conditionRight1;
+					}
+				}
+				catch(Exception eX){
+					try{
+						conditionRight = this.testRunner.getPropertyValue(conditionRight.substring(1, conditionRight.length() - 1));
+					}
+					catch(Exception eX2){
+						LOGGER.error("Retrieving right variable failed");
+					}
+				}
 				//LOGGER.trace(conditionRight  + " -> used " +conditionRight.substring(1, conditionRight.length() - 1)+ " to retrieve property");
 			}
 			LOGGER.trace("After replace " + conditionLeft + " <-> " + conditionRight);

@@ -24,6 +24,7 @@ import java.io.FileFilter;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+import nl.dictu.prova.Config;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -104,7 +105,7 @@ public class TestSuiteBuilder
 									if ("tcid".equals(tagName)) {
 										testDataSets = collectDataSets(excelFile.getParentFile().getPath(),
 												getFileNameWithoutExtension(excelFile.getName()),
-												workbookReader.readProperty(row, cell), "testdata");
+												workbookReader.readProperty(row, cell), testSuite.getTestRunner().getPropertyValue(Config.PROVA_TESTS_DATA_DIR));
 
 										if (testDataSets.size() > 0 & new SheetPrefixValidator(sheet).validate("WEB")) {
                                             String dataLabelString = null;
@@ -200,7 +201,7 @@ public class TestSuiteBuilder
       for(File excelFile : allDataFiles)
       {
         LOGGER.trace("> DATA File: '{}'", excelFile);
-        dataSetsList.addAll(getDataSets(excelFile));
+        dataSetsList.addAll(getDataSets(excelFile, testDataDir));
       }
 
       // Locate all flow directories
@@ -215,7 +216,7 @@ public class TestSuiteBuilder
         for(File dataFile : allDataFiles)
         {
           LOGGER.trace("> DATA File: '{}'", dataFile);
-          dataSetsList.addAll(getDataSets(dataFile));
+          dataSetsList.addAll(getDataSets(dataFile, testDataDir));
         }
       }
     }
@@ -244,7 +245,7 @@ public class TestSuiteBuilder
    //* @param flowFilePath
    //* @param testCaseName
    */
-  private LinkedList<String> getDataSets(File dataFile)
+  private LinkedList<String> getDataSets(File dataFile, String testdataDir)
   { 
     LinkedList<String> dataSetsList = new LinkedList<String>();
     
@@ -257,7 +258,7 @@ public class TestSuiteBuilder
       
       for(int i=0; i<dataSetsList.size(); i++)
       {
-        path = stripFilePathToDir(dataFile,"testdata") + File.separator + dataSetsList.get(i);
+        path = stripFilePathToDir(dataFile,testdataDir) + File.separator + dataSetsList.get(i);
         LOGGER.trace("> " + path);
         
         dataSetsList.set(i, path);
