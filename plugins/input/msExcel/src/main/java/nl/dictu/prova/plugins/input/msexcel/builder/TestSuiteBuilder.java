@@ -133,9 +133,11 @@ public class TestSuiteBuilder
 
 												testCase = new TestCase(identifier);
 												testCase.setTestRunner(testSuite.getTestRunner());
-                                                if (dataLabelString != null) {
+                                                LOGGER.trace("Setting Testcase name as Label: '{}' (testcase with data file)", testDataSets.get(i).substring(testDataSets.get(i).lastIndexOf('\\')+1));
+                                                testCase.setLabels(testDataSets.get(i).substring(testDataSets.get(i).lastIndexOf('\\')+1));
+												if (dataLabelString != null) {
                                                     LOGGER.trace("Setting Label: '{}' (testcase with data file)", dataLabelString);
-                                                    testCase.setLabels(dataLabelString);
+                                                    testCase.setLabels(testDataSets.get(i).substring(testDataSets.get(i).lastIndexOf('\\')+1) +","+ dataLabelString);
                                                 }
 												testSuite.addTestCase(testCase);
 											}
@@ -153,7 +155,9 @@ public class TestSuiteBuilder
 									} else if ("labels".equals(tagName)) {
 										String labelString = workbookReader.fetchProperty(row, cell);
 										if (labelString != null) {
-											testCase.setLabels(labelString);
+											if (testCase.getLabels().size()<1) {
+                                                testCase.setLabels(labelString);
+                                            }
 										}
 									}
 
