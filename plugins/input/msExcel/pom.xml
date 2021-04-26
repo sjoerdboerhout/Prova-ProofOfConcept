@@ -28,7 +28,7 @@
 
     <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
 
-    <commons.io.version>2.6</commons.io.version>
+    <commons.io.version>2.7</commons.io.version>
     <commons.collections.version>4.3</commons.collections.version>
     <commons.lang.version>3.9</commons.lang.version>
     <commons.math3.version>3.6.1</commons.math3.version>
