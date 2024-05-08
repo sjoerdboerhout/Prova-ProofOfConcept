@@ -16,5 +16,4 @@ Prova is a modular software framework for automatic executing of test scripts in
 - Git client
 - JDK 1.8.x
 
-# Jira
-https://webapplicatie.agro.nl/jira/browse/PROVA
+
