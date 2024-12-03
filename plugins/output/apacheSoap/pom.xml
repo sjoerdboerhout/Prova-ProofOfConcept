@@ -28,7 +28,7 @@
 
         <prova.core.version>0.0.1-SNAPSHOT</prova.core.version>
 	
-        <apache.httpcomponents.version>4.5.5</apache.httpcomponents.version>
+        <apache.httpcomponents.version>4.5.13</apache.httpcomponents.version>
     </properties>
 
     <dependencies>
