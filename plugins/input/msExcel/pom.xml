@@ -33,7 +33,7 @@
     <commons.lang.version>3.9</commons.lang.version>
     <commons.math3.version>3.6.1</commons.math3.version>
     
-    <apache-poi.version>4.1.0</apache-poi.version>
+    <apache-poi.version>4.1.1</apache-poi.version>
     <apache-poi-ooxml.version>4.1.0</apache-poi-ooxml.version>
     <apache-poi-ooxml-schemas.version>4.1.0</apache-poi-ooxml-schemas.version>
     <apache-xmlbeans.version>3.1.0</apache-xmlbeans.version>
